@@ -19,6 +19,15 @@ public struct SecItemQuery<Value> where Value: SecItem {
     }
 }
 
+extension SecItemQuery where Value == GenericPassword {
+    public init(accessGroup: String? = Bundle.main.bundleIdentifier) {
+        self.attributes = [
+            kSecAttrAccessGroup: accessGroup as Any,
+            kSecUseDataProtectionKeychain: true, // This key affects only macOS.
+        ] as [String: Any]
+    }
+}
+
 // MARK: - Common
 
 public extension SecItemQuery {

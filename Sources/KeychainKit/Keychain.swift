@@ -11,18 +11,19 @@ enum KeychainError: Error {
     case missingSecKeyRepresentation
     case keychainWriteFailed(description: String)
     case keychainReadFailed(description: String)
+    case keychainDeleteFailed(description: String)
     case secKeyConversionFailed
 }
 
-class Keychain: SecItemStore {
-    func store(_ query: [String: Any]) throws {
+class Keychain {
+    private func store(_ query: [String: Any]) throws {
         let status = SecItemAdd(query as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.keychainWriteFailed(description: "\(status)")
         }
     }
     
-    func retrieve(_ query: [String: Any]) throws -> AnyObject? {
+    private func retrieve(_ query: [String: Any]) throws -> AnyObject? {
         var secItem: CFTypeRef?
         switch SecItemCopyMatching(query as CFDictionary, &secItem) {
         case errSecSuccess:
@@ -33,11 +34,22 @@ class Keychain: SecItemStore {
             throw KeychainError.keychainReadFailed(description: status.description)
         }
     }
+    
+    private func remove(_ query: [String: Any]) throws -> Bool {
+        switch SecItemDelete(query as CFDictionary) {
+        case errSecSuccess:
+            return true
+        case errSecItemNotFound:
+            return false
+        case let status:
+            throw KeychainError.keychainDeleteFailed(description: status.description)
+        }
+    }
 }
 
 // MARK: - Generic Password
 
-extension Keychain {
+extension Keychain: GenericPasswordStore {
     func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws {
         var attributes = query.attributes
         attributes[kSecClass as String] = kSecClassGenericPassword
@@ -56,16 +68,23 @@ extension Keychain {
         }
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
+    
+    func remove(query: SecItemQuery<GenericPassword>) throws -> Bool {
+        var attributes = query.attributes
+        attributes[kSecClass as String] = kSecClassGenericPassword
+        
+        return try remove(attributes)
+    }
 }
 
 // MARK: - Internet Password
 
-extension Keychain {
+extension Keychain: InternetPasswordStore {
     func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws {
         var attributes = query.attributes
         attributes[kSecClass as String] = kSecClassInternetPassword
         attributes[kSecValueData as String] = key.rawRepresentation
-
+        
         try store(attributes)
     }
     
@@ -79,11 +98,18 @@ extension Keychain {
         }
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
+    
+    func remove(query: SecItemQuery<InternetPassword>) throws -> Bool {
+        var attributes = query.attributes
+        attributes[kSecClass as String] = kSecClassInternetPassword
+        
+        return try remove(attributes)
+    }
 }
 
 // MARK: - Sec Key
 
-extension Keychain {
+extension Keychain: SecKeyStore {
     func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
         var attributes = query.attributes
         attributes[kSecClass as String] = kSecClassKey
@@ -117,5 +143,12 @@ extension Keychain {
         } catch  {
             throw KeychainError.secKeyConversionFailed
         }
+    }
+    
+    func remove(query: SecItemQuery<SecKey>) throws -> Bool {
+        var attributes = query.attributes
+        attributes[kSecClass as String] = kSecClassKey
+        
+        return try remove(attributes)
     }
 }

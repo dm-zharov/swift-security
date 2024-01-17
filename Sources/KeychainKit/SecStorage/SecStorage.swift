@@ -12,9 +12,6 @@ struct SomeView: View {
     @SecStorage("OpenAI")
     private var accessToken: Data?
     
-    @SecStorage(query: SecItemQuery<InternetPassword>())
-    private var accessToken: Data?
-    
     var body: some View {
         ZStack {
             Text(accessToken?.description ?? "")
@@ -24,39 +21,33 @@ struct SomeView: View {
 
 import SwiftData
 
-@propertyWrapper public struct SecStorage<Query, Value>: DynamicProperty {
-    private let query: Query
-    private let store: any SecItemStore
+@propertyWrapper public struct SecStorage<Value>: DynamicProperty where Value: GenericPasswordConvertible {
+    private let query: SecItemQuery<GenericPassword>
+    private let store: GenericPasswordStore
     
     public var wrappedValue: Value? {
         get {
-            nil
+            do {
+                return try store.retrieve(query)
+            } catch {
+                assertionFailure(error.localizedDescription)
+                return nil
+            }
         }
         nonmutating set {
-            if let newValue {
-                store.store(<#T##key: GenericPasswordConvertible##GenericPasswordConvertible#>, query: <#T##SecItemQuery<GenericPassword>#>)
-            } else {
-                // store.removeKey(account: account)
+            do {
+                if let newValue {
+                    try store.store(newValue, query: query)
+                } else {
+                    // TODO
+                }
+            } catch {
+                assertionFailure(error.localizedDescription)
             }
         }
     }
     
-    public var projectedValue: Binding<Value?> {
-        get {
-            Binding {
-                wrappedValue
-            } set: { newValue in
-                wrappedValue = newValue
-            }
-
-        }
-    }
-}
-
-// MARK: - Generic Password
-
-extension SecStorage where Query == SecItemQuery<GenericPassword>, Value == String {
-    public init(_ account: String, synchronizable: Bool = false, store: SecItemStore? = nil) {
+    public init(_ account: String, synchronizable: Bool = false, store: GenericPasswordStore? = nil) {
         var query = SecItemQuery<GenericPassword>()
         query.account = account
         query.synchronizable = synchronizable
@@ -64,17 +55,8 @@ extension SecStorage where Query == SecItemQuery<GenericPassword>, Value == Stri
         self.init(query: query, store: store)
     }
     
-    public init(query: SecItemQuery<GenericPassword>, store: SecItemStore? = nil) {
+    public init(query: SecItemQuery<GenericPassword>, store: GenericPasswordStore? = nil) {
         self.query = query
         self.store = store ?? Keychain()
-    }
-}
-
-// MARK: - Internet Password
-
-extension SecStorage where Query == SecItemQuery<InternetPassword>, Value == Data {
-    public init(query: SecItemQuery<InternetPassword>, store: SecItemStore? = nil) {
-        self.query = query
-        self.store = store
     }
 }
