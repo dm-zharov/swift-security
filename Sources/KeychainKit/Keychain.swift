@@ -17,9 +17,11 @@ enum KeychainError: Error {
 
 class Keychain {
     private func store(_ query: [String: Any]) throws {
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.keychainWriteFailed(description: "\(status)")
+        switch SecItemAdd(query as CFDictionary, nil){
+        case errSecSuccess:
+            return
+        case let status:
+            throw KeychainError.keychainReadFailed(description: status.description)
         }
     }
     
@@ -52,7 +54,6 @@ class Keychain {
 extension Keychain: GenericPasswordStore {
     func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassGenericPassword
         attributes[kSecValueData as String] = key.rawRepresentation
         
         try store(attributes)
@@ -60,7 +61,6 @@ extension Keychain: GenericPasswordStore {
     
     func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassGenericPassword
         attributes[kSecReturnData as String] = true
         
         guard let data = try retrieve(attributes) as? Data else {
@@ -69,10 +69,10 @@ extension Keychain: GenericPasswordStore {
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
     
+    @discardableResult
     func remove(query: SecItemQuery<GenericPassword>) throws -> Bool {
-        var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassGenericPassword
-        
+        let attributes = query.attributes
+
         return try remove(attributes)
     }
 }
@@ -82,7 +82,6 @@ extension Keychain: GenericPasswordStore {
 extension Keychain: InternetPasswordStore {
     func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassInternetPassword
         attributes[kSecValueData as String] = key.rawRepresentation
         
         try store(attributes)
@@ -90,7 +89,6 @@ extension Keychain: InternetPasswordStore {
     
     func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassInternetPassword
         attributes[kSecReturnData as String] = true
         
         guard let data = try retrieve(attributes) as? Data else {
@@ -99,10 +97,10 @@ extension Keychain: InternetPasswordStore {
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
     
+    @discardableResult
     func remove(query: SecItemQuery<InternetPassword>) throws -> Bool {
-        var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassInternetPassword
-        
+        let attributes = query.attributes
+
         return try remove(attributes)
     }
 }
@@ -112,7 +110,6 @@ extension Keychain: InternetPasswordStore {
 extension Keychain: SecKeyStore {
     func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassKey
         if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, nil) {
             attributes[kSecValueRef as String] = secKey
         } else {
@@ -124,7 +121,6 @@ extension Keychain: SecKeyStore {
     
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
         var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassKey
         attributes[kSecReturnRef as String] = true
         
         guard let secItem = try retrieve(attributes) else {
@@ -145,10 +141,10 @@ extension Keychain: SecKeyStore {
         }
     }
     
+    @discardableResult
     func remove(query: SecItemQuery<SecKey>) throws -> Bool {
-        var attributes = query.attributes
-        attributes[kSecClass as String] = kSecClassKey
-        
+        let attributes = query.attributes
+
         return try remove(attributes)
     }
 }

@@ -39,7 +39,7 @@ import SwiftData
                 if let newValue {
                     try store.store(newValue, query: query)
                 } else {
-                    // TODO
+                    _ = try store.remove(query: query)
                 }
             } catch {
                 assertionFailure(error.localizedDescription)
