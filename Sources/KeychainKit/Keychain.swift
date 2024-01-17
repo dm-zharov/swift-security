@@ -13,6 +13,7 @@ enum KeychainError: Error {
     case keychainReadFailed(description: String)
     case keychainDeleteFailed(description: String)
     case secKeyConversionFailed
+    case accessControlCreationFailed(description: String)
 }
 
 class Keychain {
@@ -61,7 +62,16 @@ extension Keychain: GenericPasswordStore {
     
     func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
         var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
+        
+        if let authenticationContext = query.authenticationContext {
+            /**
+             Prevent system UI from automatically requesting `Touch ID/Face ID` authentication.
+             Just in case someone passes here an ``LAContext`` instance without a prior ``evaluateAccessControl`` call.
+             */
+            attributes[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+        }
         
         guard let data = try retrieve(attributes) as? Data else {
             return nil
@@ -89,6 +99,7 @@ extension Keychain: InternetPasswordStore {
     
     func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
         var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
         
         guard let data = try retrieve(attributes) as? Data else {
@@ -121,6 +132,7 @@ extension Keychain: SecKeyStore {
     
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
         var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
         
         guard let secItem = try retrieve(attributes) else {

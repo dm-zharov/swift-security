@@ -81,10 +81,10 @@ public extension SecItemQuery {
     }
     
     /// The corresponding value indicates when your app needs access to the data in a keychain item.
-    var accessible: Accessible? {
+    var accessible: Accessibility? {
         get {
             if let rawValue = attributes[kSecAttrAccessible as String] as? String {
-                return Accessible(rawValue: rawValue)
+                return Accessibility(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -405,6 +405,17 @@ public extension SecItemQuery where Value == SecKey {
                 attributes[kSecAttrRounds as String] = nil
             }
         }
+    }
+}
+#endif
+
+#if canImport(LocalAuthentication)
+import LocalAuthentication
+
+extension SecItemQuery {
+    var authenticationContext: LAContext? {
+        get { attributes[kSecUseAuthenticationContext as String] as? LAContext }
+        set { attributes[kSecUseAuthenticationContext as String] = newValue }
     }
 }
 #endif
