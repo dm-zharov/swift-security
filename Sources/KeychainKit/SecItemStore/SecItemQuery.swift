@@ -289,48 +289,80 @@ public extension SecItemQuery where Value == SecKey {
         set { attributes[kSecAttrKeySizeInBits as String] = newValue }
     }
 
-    var effectiveKeySize: String? {
-        get { attributes[kSecAttrEffectiveKeySize as String] as? String }
+    var effectiveKeySize: Int? {
+        get { attributes[kSecAttrEffectiveKeySize as String] as? Int }
         set { attributes[kSecAttrEffectiveKeySize as String] = newValue }
     }
     
     // MARK: - Security
     
-    var isPermament: String? {
-        get { attributes[kSecAttrIsPermanent as String] as? String }
+    /**
+     The corresponding value indicates whether or not this cryptographic key or key pair should be stored in the default keychain at creation time.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `false`.
+     */
+    var isPermament: Bool? {
+        get { attributes[kSecAttrIsPermanent as String] as? Bool }
         set { attributes[kSecAttrIsPermanent as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to encrypt data.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `false`for private keys and `true` for public keys.
+     */
     var canEncrypt: Bool? {
         get { attributes[kSecAttrCanEncrypt as String] as? Bool }
         set { attributes[kSecAttrCanEncrypt as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to decrypt data.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
+     */
     var canDecrypt: Bool? {
         get { attributes[kSecAttrCanDecrypt as String] as? Bool }
         set { attributes[kSecAttrCanDecrypt as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to derive another key.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `true`.
+     */
     var canDerive: Bool? {
         get { attributes[kSecAttrCanDerive as String] as? Bool }
         set { attributes[kSecAttrCanDerive as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to create a digital signature.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
+     */
     var canSign: Bool? {
         get { attributes[kSecAttrCanSign as String] as? Bool }
         set { attributes[kSecAttrCanSign as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to verify a digital signature.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
+     */
     var canVerify: Bool? {
         get { attributes[kSecAttrCanVerify as String] as? Bool }
         set { attributes[kSecAttrCanVerify as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to wrap another key.
+     - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
+     */
     var canWrap: Bool? {
         get { attributes[kSecAttrCanWrap as String] as? Bool }
         set { attributes[kSecAttrCanWrap as String] = newValue }
     }
     
+    /**
+     The corresponding value indicates whether this cryptographic key can be used to unwrap another key.
+     On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
+     */
     var canUnwrap: Bool? {
         get { attributes[kSecAttrCanUnwrap as String] as? Bool }
         set { attributes[kSecAttrCanUnwrap as String] = newValue }
@@ -339,19 +371,28 @@ public extension SecItemQuery where Value == SecKey {
 
 #if os(macOS)
 public extension SecItemQuery where Value == SecKey {
-    var prf: String? {
-        get { attributes[kSecAttrPRF as String] as? String }
-        set { attributes[kSecAttrPRF as String] = newValue }
+    /// The corresponding value indicates the pseudorandom function associated with this cryptographic key.
+    var prf: PRFHmacAlg? {
+        get {
+            if let rawValue = attributes[kSecAttrPRF as String] as? String {
+                return PRFHmacAlg(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set { attributes[kSecAttrPRF as String] = newValue?.rawValue }
     }
-
+    
+    /// The corresponding value indicates the salt to use with this cryptographic key.
     var salt: Data? {
         get { attributes[kSecAttrSalt as String] as? Data }
         set { attributes[kSecAttrSalt as String] = newValue }
     }
 
+    /// The corresponding value indicates the number of rounds to run the pseudorandom function specified by ``prf`` for a cryptographic key.
     var rounds: Int? {
         get {
-            if let number = attributes[kSecAttrSalt as String] as? NSNumber {
+            if let number = attributes[kSecAttrRounds as String] as? NSNumber {
                 return number.intValue
             } else {
                 return nil
@@ -359,9 +400,9 @@ public extension SecItemQuery where Value == SecKey {
         }
         set {
             if let newValue {
-                attributes[kSecAttrSalt as String] = NSNumber(integerLiteral: newValue)
+                attributes[kSecAttrRounds as String] = NSNumber(integerLiteral: newValue)
             } else {
-                attributes[kSecAttrSalt as String] = nil
+                attributes[kSecAttrRounds as String] = nil
             }
         }
     }
