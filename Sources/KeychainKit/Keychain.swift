@@ -7,22 +7,13 @@
 
 import Foundation
 
-enum KeychainError: Error {
-    case missingSecKeyRepresentation
-    case keychainWriteFailed(description: String)
-    case keychainReadFailed(description: String)
-    case keychainDeleteFailed(description: String)
-    case secKeyConversionFailed
-    case accessControlCreationFailed(description: String)
-}
-
 class Keychain {
     private func store(_ query: [String: Any]) throws {
         switch SecItemAdd(query as CFDictionary, nil){
         case errSecSuccess:
             return
         case let status:
-            throw KeychainError.keychainReadFailed(description: status.description)
+            throw KeychainError.failedToWriteItem(description: status.debugDescription)
         }
     }
     
@@ -34,7 +25,7 @@ class Keychain {
         case errSecItemNotFound:
             return nil
         case let status:
-            throw KeychainError.keychainReadFailed(description: status.description)
+            throw KeychainError.failedToReadItem(description: status.debugDescription)
         }
     }
     
@@ -45,7 +36,7 @@ class Keychain {
         case errSecItemNotFound:
             return false
         case let status:
-            throw KeychainError.keychainDeleteFailed(description: status.description)
+            throw KeychainError.failedToRemoveItem(description: status.debugDescription)
         }
     }
 }
@@ -121,7 +112,9 @@ extension Keychain: InternetPasswordStore {
 extension Keychain: SecKeyStore {
     func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
         var attributes = query.attributes
-        if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, nil) {
+        
+        var error: Unmanaged<CFError>?
+        if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, &error) {
             attributes[kSecValueRef as String] = secKey
         } else {
             throw KeychainError.missingSecKeyRepresentation
@@ -149,7 +142,7 @@ extension Keychain: SecKeyStore {
         do {
             return try T(x963Representation: data)
         } catch  {
-            throw KeychainError.secKeyConversionFailed
+            throw KeychainError.failedSecKeyConversion
         }
     }
     
@@ -158,5 +151,15 @@ extension Keychain: SecKeyStore {
         let attributes = query.attributes
 
         return try remove(attributes)
+    }
+}
+
+extension OSStatus: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        if let debugDescription = SecCopyErrorMessageString(self, nil) as String? {
+            return debugDescription
+        } else {
+            return description
+        }
     }
 }

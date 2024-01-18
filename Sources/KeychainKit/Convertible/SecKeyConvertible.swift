@@ -24,16 +24,3 @@ extension P384.Signing.PrivateKey: SecKeyConvertible {}
 extension P384.KeyAgreement.PrivateKey: SecKeyConvertible {}
 extension P521.Signing.PrivateKey: SecKeyConvertible {}
 extension P521.KeyAgreement.PrivateKey: SecKeyConvertible {}
-
-extension SymmetricKey: GenericPasswordConvertible {
-    public init<D>(rawRepresentation data: D) throws where D: ContiguousBytes {
-        self.init(data: data)
-    }
-    
-    public var rawRepresentation: Data {
-        return withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
-            let contiguousBytes = bytes.bindMemory(to: UInt8.self)
-            return Data(contiguousBytes)
-        }
-    }
-}

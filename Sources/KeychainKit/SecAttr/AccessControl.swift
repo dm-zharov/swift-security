@@ -29,9 +29,9 @@ extension AccessControl {
             &error
         ) else {
             if let error = error?.takeUnretainedValue() {
-                throw KeychainError.accessControlCreationFailed(description: error.localizedDescription)
+                throw KeychainError.failedAccessControlCreation(description: error.localizedDescription)
             } else {
-                throw KeychainError.accessControlCreationFailed(description: "")
+                throw KeychainError.failedAccessControlCreation(description: "")
             }
         }
         self = AccessControl(rawValue: accessControl)
