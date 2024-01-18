@@ -44,21 +44,6 @@ extension SecItemQuery {
 }
 
 public extension SecItemQuery {
-    /**
-     The corresponding value indicates the item’s one and only access group.
-     
-     For an app to access a keychain item, one of the groups to which the app belongs must be the item’s group. The list of an app’s access groups consists of the following string identifiers, in this order:
-     - The strings in the app’s [Keychain Access Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/keychain-access-groups)
-     - The app ID string
-     - The strings in the [App Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/com_apple_security_application-groups)
-     
-     Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
-     */
-    var accessGroup: String? {
-        get { attributes[kSecAttrAccessGroup as String] as? String }
-        set { attributes[kSecAttrAccessGroup as String] = newValue }
-    }
-    
     /// The corresponding value indicates access control conditions for the item.
     var accessControl: AccessControl? {
         get {
@@ -133,7 +118,7 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationType: AuthenticationMethod? {
+    var authenticationMethod: AuthenticationMethod? {
         get {
             if let value = attributes[kSecAttrAuthenticationType as String] as? String {
                 return AuthenticationMethod(rawValue: value)
@@ -407,6 +392,23 @@ public extension SecItemQuery where Value == SecKey {
 }
 #endif
 
+private extension SecItemQuery {
+    /**
+     The corresponding value indicates the item’s one and only access group.
+     
+     For an app to access a keychain item, one of the groups to which the app belongs must be the item’s group. The list of an app’s access groups consists of the following string identifiers, in this order:
+     - The strings in the app’s [Keychain Access Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/keychain-access-groups)
+     - The app ID string
+     - The strings in the [App Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/com_apple_security_application-groups)
+     
+     Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
+     */
+    var accessGroup: String? {
+        get { attributes[kSecAttrAccessGroup as String] as? String }
+        set { attributes[kSecAttrAccessGroup as String] = newValue }
+    }
+}
+
 public extension SecItemQuery {
     static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
         var query = SecItemQuery<GenericPassword>()
@@ -414,15 +416,26 @@ public extension SecItemQuery {
         return query
     }
     
-    static func credential(host: String, protocol: ProtocolType?, authentication: AuthenticationMethod?) -> SecItemQuery<Value> where Value == InternetPassword {
-        var query = SecItemQuery<InternetPassword>()
+    static func credential(for user: String, service: String) -> SecItemQuery<Value> where Value == GenericPassword {
+        var query = SecItemQuery<GenericPassword>()
+        query.service = service
+        query.account = user
         return query
     }
     
-    static func key(_ type: KeyType, cipher: KeyCipher)  -> SecItemQuery<Value> where Value == SecKey {
-        var query = SecItemQuery<SecKey>()
-        query.keyClass = type
-        query.keyType = cipher
+    static func credential(for user: String, server: String) -> SecItemQuery<Value> where Value == InternetPassword {
+        return credential(for: user, space: WebProtectionSpace(server: server))
+    }
+    
+    static func credential(for user: String, space: WebProtectionSpace) -> SecItemQuery<Value> where Value == InternetPassword {
+        var query = SecItemQuery<InternetPassword>()
+        query.account = user
+        query.server = space.host
+        query.port = space.port
+        query.path = space.path
+        query.protocol = space.protocol
+        query.securityDomain = space.securityDomain
+        query.authenticationMethod = space.authenticationMethod
         return query
     }
 }

@@ -245,3 +245,56 @@ extension ProtocolType: RawRepresentable, CustomStringConvertible {
         }
     }
 }
+
+extension ProtocolType {
+    init?(scheme: String) {
+        switch scheme {
+        case "ftp":
+            self = .ftp
+        case "http":
+            self = .http
+        case "irc":
+            self = .irc
+        case "nntp":
+            self = .nntp
+        case "pop3":
+            self = .pop3
+        case "smtp":
+            self = .smtp
+        case "imap":
+            self = .imap
+        case "ldap":
+            self = .ldap
+        case "telnet":
+            self = .telnet
+        case "ssh":
+            self = .ssh
+        case "ftps":
+            self = .ftps
+        case "https":
+            self = .https
+        case "smb":
+            self = .smb
+        case "rtsp":
+            self = .rtsp
+        case "daap":
+            self = .daap
+        case "ipp":
+            self = .ipp
+        case "nntps":
+            self = .nntps
+        case "ldaps":
+            self = .ldaps
+        case "telnetS":
+            self = .telnetS
+        case "imaps":
+            self = .imaps
+        case "ircs":
+            self = .ircs
+        case "pop3S":
+            self = .pop3S
+        default:
+            return nil
+        }
+    }
+}

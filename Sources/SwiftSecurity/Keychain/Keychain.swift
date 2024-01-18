@@ -9,43 +9,34 @@ import Foundation
 import LocalAuthentication
 
 public class Keychain {
-    private func store(_ query: [String: Any]) throws {
-        switch SecItemAdd(query as CFDictionary, nil){
-        case errSecSuccess:
-            return
-        case let status:
-            throw SwiftSecurityError.failedToWriteItem(description: status.debugDescription)
-        }
+    private let accessGroup: String?
+
+    private init(accessGroup: String?) {
+        self.accessGroup = nil
     }
-    
-    private func retrieve(_ query: [String: Any]) throws -> AnyObject? {
-        var secItem: CFTypeRef?
-        switch SecItemCopyMatching(query as CFDictionary, &secItem) {
-        case errSecSuccess:
-            return secItem
-        case errSecItemNotFound:
-            return nil
-        case let status:
-            throw SwiftSecurityError.failedToReadItem(description: status.debugDescription)
-        }
-    }
-    
-    private func remove(_ query: [String: Any]) throws -> Bool {
-        switch SecItemDelete(query as CFDictionary) {
-        case errSecSuccess:
-            return true
-        case errSecItemNotFound:
-            return false
-        case let status:
-            throw SwiftSecurityError.failedToRemoveItem(description: status.debugDescription)
-        }
-    }
-    
-    private init() { }
 }
 
-extension Keychain {
-    public static let `default` = Keychain()
+public extension Keychain {
+    // MARK: - Public
+    
+    public static let `default` = Keychain(accessGroup: nil)
+    
+    /**
+     Create.
+     
+     - Parameter accessGroup: The corresponding value indicates the item’s one and only access group.
+     
+     For an app to access a keychain item, one of the groups to which the app belongs must be the item’s group. The list of an app’s access groups consists of the following string identifiers, in this order:
+     - The strings in the app’s [Keychain Access Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/keychain-access-groups)
+     - The app ID string
+     - The strings in the [App Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/com_apple_security_application-groups)
+     
+     Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
+     */
+    public convenience init(accessGroup: String) {
+        assert(!accessGroup.isEmpty)
+        self.init(accessGroup: accessGroup)
+    }
 }
 
 // MARK: - Generic Password
@@ -178,6 +169,52 @@ extension Keychain: SecKeyStore {
 
         return try remove(attributes)
     }
+}
+
+// MARK: - Common
+
+extension Keychain {
+    private func store(_ query: [String: Any]) throws {
+        var query = query
+        query[kSecAttrAccessGroup as String] = accessGroup
+        
+        switch SecItemAdd(query as CFDictionary, nil){
+        case errSecSuccess:
+            return
+        case let status:
+            throw SwiftSecurityError.failedToWriteItem(description: status.debugDescription)
+        }
+    }
+    
+    private func retrieve(_ query: [String: Any]) throws -> AnyObject? {
+        var query = query
+        query[kSecAttrAccessGroup as String] = accessGroup
+        
+        var secItem: CFTypeRef?
+        switch SecItemCopyMatching(query as CFDictionary, &secItem) {
+        case errSecSuccess:
+            return secItem
+        case errSecItemNotFound:
+            return nil
+        case let status:
+            throw SwiftSecurityError.failedToReadItem(description: status.debugDescription)
+        }
+    }
+    
+    private func remove(_ query: [String: Any]) throws -> Bool {
+        var query = query
+        query[kSecAttrAccessGroup as String] = accessGroup
+        
+        switch SecItemDelete(query as CFDictionary) {
+        case errSecSuccess:
+            return true
+        case errSecItemNotFound:
+            return false
+        case let status:
+            throw SwiftSecurityError.failedToRemoveItem(description: status.debugDescription)
+        }
+    }
+    
 }
 
 extension OSStatus: CustomDebugStringConvertible {

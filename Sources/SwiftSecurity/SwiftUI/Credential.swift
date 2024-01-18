@@ -36,18 +36,15 @@ import Security
     ///   - account: A string indicating the item's account name.
     ///   - synchronizable: A string indicating whether the item synchronizes through iCloud.
     ///   - store: The secure store to read and write to. A value of nil will use the default.
-    public init(_ service: String, accessGroup: String? = nil, store: SecDataStore = Keychain.default) {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        query.accessGroup = accessGroup
-        self.init(query: query, store: store)
+    public init(_ service: String, store: Keychain = .default) {
+        self.init(query: .credential(for: service), store: store)
     }
     
     /// Creates a property that can read and write to a secure storage.
     /// - Parameters:
     ///   - query: A query to the secure storage.
     ///   - store: The secure store to read and write to. A value of nil will use the default.
-    public init(query: SecItemQuery<GenericPassword>, store: SecDataStore = Keychain.default) {
+    public init(query: SecItemQuery<GenericPassword>, store: Keychain = .default) {
         _provider = StateObject(
             wrappedValue: SecItemProvider(query: query, store: store)
         )
