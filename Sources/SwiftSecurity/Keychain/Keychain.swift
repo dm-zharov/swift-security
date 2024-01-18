@@ -10,16 +10,6 @@ import LocalAuthentication
 
 public class Keychain {
     private let accessGroup: String?
-
-    private init(accessGroup: String?) {
-        self.accessGroup = nil
-    }
-}
-
-public extension Keychain {
-    // MARK: - Public
-    
-    public static let `default` = Keychain(accessGroup: nil)
     
     /**
      Create.
@@ -33,10 +23,22 @@ public extension Keychain {
      
      Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
      */
-    public convenience init(accessGroup: String) {
-        assert(!accessGroup.isEmpty)
-        self.init(accessGroup: accessGroup)
+    public init(accessGroup: AccessGroup) {
+        switch accessGroup {
+        case .default:
+            self.accessGroup = nil
+        case .keychainGroupID(let teamID, let groupID):
+            self.accessGroup = "\(teamID).\(groupID)"
+        case .applicationID:
+            self.accessGroup = Bundle.main.bundleIdentifier
+        case .applicationGroupID(let groupID):
+            self.accessGroup = groupID
+        }
     }
+}
+
+public extension Keychain {
+    public static let `default` = Keychain(accessGroup: .applicationID)
 }
 
 // MARK: - Generic Password
