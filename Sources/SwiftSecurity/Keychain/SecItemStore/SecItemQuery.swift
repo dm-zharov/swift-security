@@ -11,39 +11,37 @@ import Security
 public struct SecItemQuery<Value> where Value: SecItem {
     private(set) var attributes: [String: Any]
     
-    private init(itemClass: SecItemClass) {
+    private init(credentialType: CredentialType) {
         self.attributes = [
-            kSecClass: itemClass.rawValue,
+            kSecClass: credentialType.rawValue,
             kSecUseDataProtectionKeychain: true, // This key affects only macOS.
         ] as [String: Any]
     }
 }
 
-// MARK: - Creation
+// MARK: - Generic
 
 extension SecItemQuery {
     public init() where Value == GenericPassword {
-        self.init(itemClass: .genericPassword)
+        self.init(credentialType: .genericPassword)
     }
     
     public init() where Value == InternetPassword {
-        self.init(itemClass: .internetPassword)
+        self.init(credentialType: .internetPassword)
     }
     
     public init() where Value == SecKey {
-        self.init(itemClass: .key)
+        self.init(credentialType: .key)
     }
     
     public init() where Value == SecCertificate {
-        self.init(itemClass: .certificate)
+        self.init(credentialType: .certificate)
     }
     
     public init() where Value == SecIdentity {
-        self.init(itemClass: .identity)
+        self.init(credentialType: .identity)
     }
 }
-
-// MARK: - Common
 
 public extension SecItemQuery {
     /**
@@ -135,10 +133,10 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationType: AuthenticationType? {
+    var authenticationType: AuthenticationMethod? {
         get {
             if let value = attributes[kSecAttrAuthenticationType as String] as? String {
-                return AuthenticationType(rawValue: value)
+                return AuthenticationMethod(rawValue: value)
             } else {
                 return nil
             }
@@ -260,10 +258,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value specifies a type of cryptographic key.
-    var keyClass: KeyClass? {
+    var keyClass: KeyType? {
         get {
             if let rawValue = attributes[kSecAttrKeyClass as String] as? String {
-                return KeyClass(rawValue: rawValue)
+                return KeyType(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -272,10 +270,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: KeyType? {
+    var keyType: KeyCipher? {
         get {
             if let rawValue = attributes[kSecAttrKeyType as String] as? String {
-                return KeyType(rawValue: rawValue)
+                return KeyCipher(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -409,13 +407,22 @@ public extension SecItemQuery where Value == SecKey {
 }
 #endif
 
-#if canImport(LocalAuthentication)
-import LocalAuthentication
-
 public extension SecItemQuery {
-    var authenticationContext: LAContext? {
-        get { attributes[kSecUseAuthenticationContext as String] as? LAContext }
-        set { attributes[kSecUseAuthenticationContext as String] = newValue }
+    static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
+        var query = SecItemQuery<GenericPassword>()
+        query.service = service
+        return query
+    }
+    
+    static func credential(host: String, protocol: ProtocolType?, authentication: AuthenticationMethod?) -> SecItemQuery<Value> where Value == InternetPassword {
+        var query = SecItemQuery<InternetPassword>()
+        return query
+    }
+    
+    static func key(_ type: KeyType, cipher: KeyCipher)  -> SecItemQuery<Value> where Value == SecKey {
+        var query = SecItemQuery<SecKey>()
+        query.keyClass = type
+        query.keyType = cipher
+        return query
     }
 }
-#endif

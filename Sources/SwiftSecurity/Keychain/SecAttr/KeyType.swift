@@ -1,5 +1,5 @@
 //
-//  KeyClass.swift
+//  KeyType.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -8,13 +8,13 @@
 import Foundation
 import Security
 
-public enum KeyClass {
+public enum KeyType {
     case `public`
     case `private`
     case symmetric
 }
 
-extension KeyClass: RawRepresentable, CustomStringConvertible {
+extension KeyType: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrKeyClassPublic):

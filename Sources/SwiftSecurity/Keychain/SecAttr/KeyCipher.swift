@@ -1,6 +1,6 @@
 //
-//  KeyType.swift
-//  
+//  KeyCipher.swift
+//
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
 //
@@ -8,9 +8,8 @@
 import Foundation
 import Security
 
-public enum KeyType {
+public enum KeyCipher {
     case rsa
-    case ec
     case ecsecPrimeRandom
     #if os(macOS)
     case dsa
@@ -20,17 +19,14 @@ public enum KeyType {
     case rc4
     case rc2
     case cast
-    case ecdsa
     #endif
 }
 
-extension KeyType: RawRepresentable, CustomStringConvertible {
+extension KeyCipher: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrKeyTypeRSA):
             self = .rsa
-        case String(kSecAttrKeyTypeEC):
-            self = .ec
         case String(kSecAttrKeyTypeECSECPrimeRandom):
             self = .ecsecPrimeRandom
         #if os(macOS)
@@ -48,8 +44,6 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
             self = .rc2
         case String(kSecAttrKeyTypeCAST):
             self = .cast
-        case String(kSecAttrKeyTypeECDSA):
-            self = .ecdsa
         #endif
         default:
             return nil
@@ -60,8 +54,6 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
         switch self {
         case .rsa:
             return String(kSecAttrKeyTypeRSA)
-        case .ec:
-            return String(kSecAttrKeyTypeEC)
         case .ecsecPrimeRandom:
             return String(kSecAttrKeyTypeECSECPrimeRandom)
         #if os(macOS)
@@ -79,8 +71,6 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
             return String(kSecAttrKeyTypeRC2)
         case .cast:
             return String(kSecAttrKeyTypeCAST)
-        case .ecdsa:
-            return String(kSecAttrKeyTypeECDSA)
         #endif
         }
     }
@@ -89,8 +79,6 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
         switch self {
         case .rsa:
             return "RSA"
-        case .ec:
-            return "EC"
         case .ecsecPrimeRandom:
             return "ECSECPrimeRandom"
         #if os(macOS)
@@ -108,8 +96,6 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
             return "RC2"
         case .cast:
             return "CAST"
-        case .ecdsa:
-            return "ECDSA"
         #endif
         }
     }

@@ -1,5 +1,5 @@
 //
-//  AuthenticationType.swift
+//  AuthenticationMethod.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum AuthenticationType {
+public enum AuthenticationMethod {
     case ntlm
     case msn
     case dpa
@@ -18,7 +18,7 @@ public enum AuthenticationType {
     case `default`
 }
 
-extension AuthenticationType: RawRepresentable, CustomStringConvertible {
+extension AuthenticationMethod: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrAuthenticationTypeNTLM):
