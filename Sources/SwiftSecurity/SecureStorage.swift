@@ -1,5 +1,5 @@
 //
-//  Keychain.swift
+//  CredentialStorage.swift
 //
 //
 //  Created by Dmitriy Zharov on 05.06.2023.
@@ -7,13 +7,13 @@
 
 import Foundation
 
-class Keychain {
+public class SecureStorage {
     private func store(_ query: [String: Any]) throws {
         switch SecItemAdd(query as CFDictionary, nil){
         case errSecSuccess:
             return
         case let status:
-            throw KeychainError.failedToWriteItem(description: status.debugDescription)
+            throw SecureStorageError.failedToWriteItem(description: status.debugDescription)
         }
     }
     
@@ -25,7 +25,7 @@ class Keychain {
         case errSecItemNotFound:
             return nil
         case let status:
-            throw KeychainError.failedToReadItem(description: status.debugDescription)
+            throw SecureStorageError.failedToReadItem(description: status.debugDescription)
         }
     }
     
@@ -36,22 +36,28 @@ class Keychain {
         case errSecItemNotFound:
             return false
         case let status:
-            throw KeychainError.failedToRemoveItem(description: status.debugDescription)
+            throw SecureStorageError.failedToRemoveItem(description: status.debugDescription)
         }
     }
+    
+    private init() { }
+}
+
+extension SecureStorage {
+    public static let `default` = SecureStorage()
 }
 
 // MARK: - Generic Password
 
-extension Keychain: GenericPasswordStore {
-    func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws {
+extension SecureStorage: GenericPasswordStore {
+    public func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws {
         var attributes = query.attributes
         attributes[kSecValueData as String] = key.rawRepresentation
         
         try store(attributes)
     }
     
-    func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
+    public func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -71,7 +77,7 @@ extension Keychain: GenericPasswordStore {
     }
     
     @discardableResult
-    func remove(query: SecItemQuery<GenericPassword>) throws -> Bool {
+    public func remove(query: SecItemQuery<GenericPassword>) throws -> Bool {
         let attributes = query.attributes
 
         return try remove(attributes)
@@ -80,15 +86,15 @@ extension Keychain: GenericPasswordStore {
 
 // MARK: - Internet Password
 
-extension Keychain: InternetPasswordStore {
-    func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws {
+extension SecureStorage: InternetPasswordStore {
+    public func store<T: GenericPasswordConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws {
         var attributes = query.attributes
         attributes[kSecValueData as String] = key.rawRepresentation
         
         try store(attributes)
     }
     
-    func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
+    public func retrieve<T: GenericPasswordConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -100,7 +106,7 @@ extension Keychain: InternetPasswordStore {
     }
     
     @discardableResult
-    func remove(query: SecItemQuery<InternetPassword>) throws -> Bool {
+    public func remove(query: SecItemQuery<InternetPassword>) throws -> Bool {
         let attributes = query.attributes
 
         return try remove(attributes)
@@ -109,21 +115,21 @@ extension Keychain: InternetPasswordStore {
 
 // MARK: - Sec Key
 
-extension Keychain: SecKeyStore {
-    func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
+extension SecureStorage: SecKeyStore {
+    public func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
         var attributes = query.attributes
         
         var error: Unmanaged<CFError>?
         if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, &error) {
             attributes[kSecValueRef as String] = secKey
         } else {
-            throw KeychainError.missingSecKeyRepresentation
+            throw SecureStorageError.missingSecKeyRepresentation
         }
 
         try store(attributes)
     }
     
-    func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
+    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
@@ -136,18 +142,18 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(secKey, &error) as Data? else {
-            throw KeychainError.missingSecKeyRepresentation
+            throw SecureStorageError.missingSecKeyRepresentation
         }
         
         do {
             return try T(x963Representation: data)
         } catch  {
-            throw KeychainError.failedSecKeyConversion
+            throw SecureStorageError.failedSecKeyConversion
         }
     }
     
     @discardableResult
-    func remove(query: SecItemQuery<SecKey>) throws -> Bool {
+    public func remove(query: SecItemQuery<SecKey>) throws -> Bool {
         let attributes = query.attributes
 
         return try remove(attributes)

@@ -1,13 +1,13 @@
 //
-//  KeychainError.swift
-//  
+//  SecureStorageError.swift
+//
 //
 //  Created by Dmitriy Zharov on 18.01.2024.
 //
 
 import Foundation
 
-enum KeychainError: Error {
+enum SecureStorageError: Error {
     case failedToWriteItem(description: String)
     case failedToReadItem(description: String)
     case failedToRemoveItem(description: String)
@@ -16,7 +16,7 @@ enum KeychainError: Error {
     case missingSecKeyRepresentation
 }
 
-extension KeychainError: LocalizedError {
+extension SecureStorageError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .failedToWriteItem(let description):

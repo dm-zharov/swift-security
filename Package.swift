@@ -4,17 +4,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "KeychainKit",
+    name: "SwiftSecurity",
     platforms: [.iOS(.v13), .macOS(.v10_15), .macCatalyst(.v13), .watchOS(.v6), .tvOS(.v13)],
     products: [
         .library(
-            name: "KeychainKit",
-            targets: ["KeychainKit"]
+            name: "SwiftSecurity",
+            targets: ["SwiftSecurity"]
         ),
     ],
     targets: [
         .target(
-            name: "KeychainKit",
+            name: "SwiftSecurity",
             dependencies: []
         ),
     ]

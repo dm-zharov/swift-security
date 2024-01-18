@@ -195,7 +195,7 @@ public extension SecItemQuery where Value == InternetPassword {
     }
 }
 
-extension SecItemQuery where Value: Password {
+public extension SecItemQuery where Value: Password {
     // MARK: - User
     
     /// The corresponding value specifies a user-visible string describing this kind of item (for example, "Disk image password").
@@ -412,7 +412,7 @@ public extension SecItemQuery where Value == SecKey {
 #if canImport(LocalAuthentication)
 import LocalAuthentication
 
-extension SecItemQuery {
+public extension SecItemQuery {
     var authenticationContext: LAContext? {
         get { attributes[kSecUseAuthenticationContext as String] as? LAContext }
         set { attributes[kSecUseAuthenticationContext as String] = newValue }
