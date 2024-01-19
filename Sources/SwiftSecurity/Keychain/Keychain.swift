@@ -27,18 +27,18 @@ public class Keychain {
         switch accessGroup {
         case .default:
             self.accessGroup = nil
-        case .keychainGroupID(let teamID, let groupID):
+        case .keychainGroup(let teamID, let groupID):
             self.accessGroup = "\(teamID).\(groupID)"
-        case .applicationID:
+        case .application:
             self.accessGroup = Bundle.main.bundleIdentifier
-        case .applicationGroupID(let groupID):
+        case .applicationGroup(let groupID):
             self.accessGroup = groupID
         }
     }
 }
 
 public extension Keychain {
-    public static let `default` = Keychain(accessGroup: .applicationID)
+    public static let `default` = Keychain(accessGroup: .application)
 }
 
 // MARK: - Generic Password
