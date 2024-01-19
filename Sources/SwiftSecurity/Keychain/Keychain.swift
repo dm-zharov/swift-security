@@ -176,6 +176,12 @@ extension Keychain: SecKeyStore {
 
 // MARK: - Common
 
+extension Keychain: SecItemStore {
+    public func removeAll() throws {
+        
+    }
+}
+
 internal extension Keychain {
     func store(_ query: [String: Any], accessControl: SecAccessControl) throws {
         var query = query

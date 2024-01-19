@@ -8,9 +8,13 @@
 import Foundation
 import LocalAuthentication
 
+public protocol SecItemStore {
+    func removeAll() throws
+}
+
 // MARK: - SecData
 
-public protocol SecDataStore {
+public protocol SecDataStore: SecItemStore {
     // MARK: - Generic
     
     func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>, accessControl: AccessControl) throws
@@ -26,7 +30,7 @@ public protocol SecDataStore {
 
 // MARK: - SecKey
 
-public protocol SecKeyStore {
+public protocol SecKeyStore: SecItemStore {
     func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>, accessControl: AccessControl) throws
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<SecKey>) throws -> Bool

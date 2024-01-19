@@ -1,6 +1,9 @@
 # SwiftSecurity
 
-SwiftSecurity is a modern wrapper for Keychain Services API
+![Platforms](https://img.shields.io/badge/platforms-ios%20-lightgrey.svg)
+[![SPM compatible](https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat)](#swift-package-manager)
+
+SwiftSecurity is a modern wrapper for Keychain Services API. Use value types easily, and get extra safety and convenient compile-time checks for free.
 
 ## Features
 
@@ -40,7 +43,7 @@ let token: String? = try Keychain.default.retrieve(.credential(for: "OpenAI"))
 try Keychain.default.remove(.credential(for: "OpenAI"))
 ```
 
-#### Basic (SwiftUI)
+### Basic (SwiftUI)
 
 ```swift
 struct AuthView: View {
@@ -54,6 +57,7 @@ struct AuthView: View {
             }
 
             Button("Delete") {
+                // Remove value
                 try? _token.remove()
             }
         }
@@ -64,6 +68,13 @@ struct AuthView: View {
         }
     }
 } 
+```
+
+### Keychain
+
+```swift
+Keychain.default // == Keychain(accessGroup: .application)
+Keychain(accessGroup: .applicationGroup("group.com.example.app"))
 ```
 
 ## Instantiation
@@ -83,11 +94,18 @@ let password: String? = try keychain.retrieve(.credential(for: "mymail@gmail.com
 let token: String? = try? Keychain.default.retrieve(.credential(for: "OpenAI"))
 ```
 
-## Keychain
+
+## Advanced
 
 ```swift
-Keychain.default // Keychain(accessGroup: .application)
-Keychain(accessGroup: .applicationGroup("group.com.example.app"))
+var query = SecItemQuery<InternetPassword>()
+query.synchronizable = true // ✅ Common attribute
+query.protocol = .https // ✅ `InternetPassword` attribute
+query.service = "Some label" // ❌ Compile error. Only `GenericPassword` has this attribute
+...
+query.keySizeInBits // ❌ Compile error. Only `SecKey` has this attribute.
+
+try keychain.store(secret, query: query)
 ```
 
 ## Custom Types
@@ -96,27 +114,27 @@ In order to store/retrieve your own custom type that isn't supported, you need t
 
 ```swift
 // `SecDataConvertible` -> Generic or Internet password
-* Foundation
-    * `String`
-    * `Data`
-* CryptoKit: 
-    * SymmetricKey
-    * Curve25519.KeyAgreement.PrivateKey
-    * Curve25519.Signing.PrivateKey
-    * SecureEnclave.P256.KeyAgreement.PrivateKey
-    * SecureEnclave.P256.Signing.PrivateKey
+Foundation:
+    - String
+    - Data
+CryptoKit: 
+    - SymmetricKey
+    - Curve25519.KeyAgreement.PrivateKey
+    - Curve25519.Signing.PrivateKey
+    - SecureEnclave.P256.KeyAgreement.PrivateKey
+    - SecureEnclave.P256.Signing.PrivateKey
 
 // `SecKeyConvertible` -> SecKey
-* CryptoKit:
-    * P256.KeyAgreement.PrivateKey
-    * P256.Signing.PrivateKey
-    * P384.KeyAgreement.PrivateKey
-    * P384.Signing.PrivateKey
-    * P521.KeyAgreement.PrivateKey
-    * P521.Signing.PrivateKey
+CryptoKit:
+    P256.KeyAgreement.PrivateKey
+    P256.Signing.PrivateKey
+    P384.KeyAgreement.PrivateKey
+    P384.Signing.PrivateKey
+    P521.KeyAgreement.PrivateKey
+    P521.Signing.PrivateKey
 ```
 
-You could extend types by conforming `SecDataConvertible` (for `Generic or Internet Password`)
+This protocol implementation is inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) 
 
 ## Privacy Manifest
 

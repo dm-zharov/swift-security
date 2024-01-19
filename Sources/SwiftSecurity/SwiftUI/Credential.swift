@@ -24,7 +24,7 @@ import Security
         provider.fetchError
     }
     
-    public func store(_ value: Value?) throws {
+    public func store(_ value: Value) throws {
         try provider(set: value)
     }
     
