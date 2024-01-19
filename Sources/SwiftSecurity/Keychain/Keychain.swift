@@ -221,6 +221,12 @@ internal extension Keychain {
     
 }
 
+extension Keychain: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        ""
+    }
+}
+
 extension OSStatus: CustomDebugStringConvertible {
     public var debugDescription: String {
         if let debugDescription = SecCopyErrorMessageString(self, nil) as String? {

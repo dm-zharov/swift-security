@@ -146,8 +146,8 @@ var query = SecItemQuery<InternetPassword>()
 query.synchronizable = true // ✅ Common attribute
 query.protocol = .https     // ✅ `InternetPassword` has this attribute
 
-query.service = "OpenAI"    // ❌ Doesn't compile. Only `GenericPassword` has this attribute
-query.keySizeInBits = 2048  // ❌ Doesn't compile. Only `SecKey` has this attribute.
+query.service = "OpenAI"    // ❌ Only for `GenericPassword`, so not accessible
+query.keySizeInBits = 2048  // ❌ Only for `SecKey`, so not accessible
 
 // Perform
 try keychain.store(secret, query: query)
@@ -195,9 +195,13 @@ This protocol implementation is inspired by Apple's sample code [Storing CryptoK
 - `kSecUseDataProtectionKeychain == true`. This key helps to improve the portability of your code across platforms.
 - `kSecAttrAccessibleWhenUnlocked`.
 
-## Privacy Manifest
+## Knowledge
 
-[TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+* [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+
+## Author
+
+Dmitriy Zharov, contact@zharov.dev
 
 ## License
 

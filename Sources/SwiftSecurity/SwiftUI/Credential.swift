@@ -9,8 +9,6 @@ import SwiftUI
 import Security
 
 /// A property wrapper type that reflects a value from secure storage and invalidates a view on a change in value.
-@available(iOS 14.0, *)
-@available(macOS 11.0, *)
 @propertyWrapper public struct Credential<Value>: DynamicProperty where Value: SecDataConvertible {
     @StateObject private var provider: SecItemProvider<Value>
     
@@ -52,8 +50,6 @@ import Security
     }
 }
 
-@available(iOS 14.0, *)
-@available(macOS 11.0, *)
 final private class SecItemProvider<Value>: ObservableObject where Value: SecDataConvertible {
     private let query: SecItemQuery<GenericPassword>
     private let store: SecDataStore

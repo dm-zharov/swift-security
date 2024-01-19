@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftSecurity",
-    platforms: [.iOS(.v13), .macOS(.v10_15), .macCatalyst(.v13), .watchOS(.v6), .tvOS(.v13)],
+    platforms: [.iOS(.v14), .macOS(.v11), .macCatalyst(.v14), .watchOS(.v7), .tvOS(.v14)],
     products: [
         .library(
             name: "SwiftSecurity",

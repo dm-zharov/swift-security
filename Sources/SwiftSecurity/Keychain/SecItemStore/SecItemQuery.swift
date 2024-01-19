@@ -48,7 +48,7 @@ public extension SecItemQuery {
     }
 }
 
-// MARK: - Generic
+// MARK: - Instantiation
 
 extension SecItemQuery {
     public init() where Value == GenericPassword {
@@ -86,7 +86,7 @@ public extension SecItemQuery {
     }
 }
 
-// MARK: - Password
+// MARK: - GenericPassword
 
 public extension SecItemQuery where Value == GenericPassword {
     // MARK: - Primary
@@ -103,7 +103,7 @@ public extension SecItemQuery where Value == GenericPassword {
         set { attributes[kSecAttrService as String] = newValue }
     }
     
-    // MARK: - User
+    // MARK: - Attributes
     
     /// The corresponding value contains a user-defined attribute.
     var generic: Data? {
@@ -111,6 +111,8 @@ public extension SecItemQuery where Value == GenericPassword {
         set { attributes[kSecAttrGeneric as String] = newValue }
     }
 }
+
+// MARK: - InternetPassword
 
 public extension SecItemQuery where Value == InternetPassword {    
     // MARK: - Primary
@@ -182,8 +184,10 @@ public extension SecItemQuery where Value == InternetPassword {
     }
 }
 
+// MARK: - Generic and Internet Password
+
 public extension SecItemQuery where Value: Password {
-    // MARK: - User
+    // MARK: - Attributes
     
     /// The corresponding value specifies a user-visible string describing this kind of item (for example, "Disk image password").
     var description: String? {
@@ -225,7 +229,7 @@ public extension SecItemQuery where Value: Password {
     }
 }
 
-// MARK: - Sec Key
+// MARK: - SecKey
 
 public extension SecItemQuery where Value == SecKey {
     // MARK: - Primary
@@ -281,7 +285,7 @@ public extension SecItemQuery where Value == SecKey {
         set { attributes[kSecAttrEffectiveKeySize as String] = newValue }
     }
     
-    // MARK: - Security
+    // MARK: - Attributes
     
     /**
      The corresponding value indicates whether or not this cryptographic key or key pair should be stored in the default keychain at creation time.
@@ -395,6 +399,70 @@ public extension SecItemQuery where Value == SecKey {
     }
 }
 #endif
+
+// MARK: - SecCertificate
+
+public extension SecItemQuery where Value == SecCertificate {
+    // MARK: - Primary
+    
+    /**
+     The corresponding value denotes the certificate type (see the CSSM_CERT_TYPE enumeration in cssmtype.h).
+     - Note: Read only.
+     */
+    var certificateType: NSNumber? {
+        get { attributes[kSecAttrCertificateType as String] as? NSNumber }
+    }
+    
+    /**
+     The corresponding value contains the X.500 issuer name of a certificate.
+     - Note: Read only.
+     */
+    var issuer: Data? {
+        get { attributes[kSecAttrIssuer as String] as? Data }
+    }
+    
+    /**
+     The corresponding value contains the serial number data of a certificate.
+     - Note: Read only.
+     */
+    var serialNumber: Data? {
+        get { attributes[kSecAttrSerialNumber as String] as? Data }
+    }
+
+    // MARK: - Attributes
+    
+    /**
+     The corresponding value denotes the certificate encoding (see the CSSM_CERT_ENCODING enumeration in cssmtype.h).
+     - Note: Read only.
+     */
+    var certificateEncoding: NSNumber? {
+        get { attributes[kSecAttrCertificateEncoding as String] as? NSNumber }
+    }
+    
+    /**
+     The corresponding value denotes the certificate encoding (see the CSSM_CERT_ENCODING enumeration in cssmtype.h).
+     - Note: Read only.
+     */
+    var subject: Data? {
+        get { attributes[kSecAttrSubject as String] as? Data }
+    }
+    
+    /**
+     The corresponding value contains the subject key ID of a certificate.
+     - Note: Read only.
+     */
+    var subjectKeyID: Data? {
+        get { attributes[kSecAttrSubjectKeyID as String] as? Data }
+    }
+    
+    /**
+     The corresponding value contains the hash of a certificate's public key..
+     - Note: Read only.
+     */
+    var publicKeyHash: Data? {
+        get { attributes[kSecAttrPublicKeyHash as String] as? Data }
+    }
+}
 
 #if os(tvOS)
 public extension SecItemQuery {
