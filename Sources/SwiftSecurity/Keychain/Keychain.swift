@@ -59,11 +59,7 @@ extension Keychain: SecDataStore {
         try store(attributes, accessControl: accessControl.rawValue)
     }
     
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
-        try retrieve(query, authenticationContext: nil)
-    }
-    
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T? {
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext? = nil) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -96,11 +92,7 @@ extension Keychain {
         try store(attributes, accessControl: accessControl.rawValue)
     }
     
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
-        try retrieve(query, authenticationContext: nil)
-    }
-    
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T? {
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -139,11 +131,7 @@ extension Keychain: SecKeyStore {
         try store(attributes, accessControl: accessControl.rawValue)
     }
     
-    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
-        try retrieve(query, authenticationContext: nil)
-    }
-    
-    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T? {
+    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true

@@ -1,16 +1,18 @@
 # SwiftSecurity
 
 ![Platforms](https://img.shields.io/badge/platforms-ios%20-lightgrey.svg)
-[![SPM compatible](https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat)](#swift-package-manager)
+[![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 
 SwiftSecurity is a modern wrapper for Keychain Services API. Use value types easily, and get extra safety and convenient compile-time checks for free.
 
 ## Features
 
+* Simple
 * Static typing and compile-time checks
-* Seamless compatability with CryptoKit
+* Seamless compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
 * Support Generic & Internet passwords, Keys
 * Easy way to implement support for custom types
+* [Accessibility](#accessibility)
 
 Securely store small chunks of data on behalf of the user.
 
@@ -33,6 +35,9 @@ let package = Package(
 ### Basic
 
 ```swift
+// 
+let keychain = Keychain.default
+
 // Store value
 try Keychain.default.store("8e9c0a7f", query: .credential(for: "OpenAI"))
 
@@ -55,7 +60,6 @@ struct AuthView: View {
                 // Store value
                 try? _token.store("8e9c0a7f")
             }
-
             Button("Delete") {
                 // Remove value
                 try? _token.remove()
@@ -94,6 +98,15 @@ let password: String? = try keychain.retrieve(.credential(for: "mymail@gmail.com
 let token: String? = try? Keychain.default.retrieve(.credential(for: "OpenAI"))
 ```
 
+## <a name="accessibility"> Access Control
+
+```swift
+try keychain.store(secret, query: .credential(for: "FBI", accessControl: .init(.whenUnlocked)))
+try keychain.store(secret, query: .credential(for: "FBI", accessControl: .init(.whenUnlocked, options: .biometryAny)))
+
+```
+
+Default accessibility matches background application (`kSecAttrAccessibleAfterFirstUnlock`).
 
 ## Advanced
 
@@ -135,6 +148,11 @@ CryptoKit:
 ```
 
 This protocol implementation is inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) 
+
+## Defaults
+
+- `kSecUseDataProtectionKeychain == true`. This key helps to improve the portability of your code across platforms.
+- `kSecAttrAccessibleWhenUnlocked`.
 
 ## Privacy Manifest
 

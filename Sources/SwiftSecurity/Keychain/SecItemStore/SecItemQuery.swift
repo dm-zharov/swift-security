@@ -405,3 +405,9 @@ public extension SecItemQuery {
     }
 }
 #endif
+
+extension SecItemQuery: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        attributes.debugDescription
+    }
+}
