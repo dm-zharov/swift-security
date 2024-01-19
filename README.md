@@ -98,28 +98,69 @@ let password: String? = try keychain.retrieve(.credential(for: "mymail@gmail.com
 let token: String? = try? Keychain.default.retrieve(.credential(for: "OpenAI"))
 ```
 
-## <a name="accessibility"> Access Control
+## <a name="accessibility"> Accessibility
+
+## Store
 
 ```swift
-try keychain.store(secret, query: .credential(for: "FBI", accessControl: .init(.whenUnlocked)))
-try keychain.store(secret, query: .credential(for: "FBI", accessControl: .init(.whenUnlocked, options: .biometryAny)))
+try keychain.store(secret, query: .credential(for: "FBI"), accessControl: .init(.whenUnlocked))
+
+try keychain.store(
+    secret,
+    query: .credential(for: "FBI",
+    accessControl: .init(.whenUnlocked, options: .biometryAny)
+)
 
 ```
 
 Default accessibility matches background application (`kSecAttrAccessibleAfterFirstUnlock`).
 
+## Get
+
+```swift
+// Create an LAContext
+var context = LAContext()
+
+// Authenticate
+do {
+    let success = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Log in with Biometrics")
+} else {
+    // Handle LAError error
+}
+
+// Check for authentication 
+if success {
+    // Get value
+    try keychain.retrieve(.credential(for: "FBI"), authenticationContext: context)
+}
+
+```
+
+Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
+
 ## Advanced
 
 ```swift
+// Make query
 var query = SecItemQuery<InternetPassword>()
 query.synchronizable = true // ✅ Common attribute
-query.protocol = .https // ✅ `InternetPassword` attribute
-query.service = "Some label" // ❌ Compile error. Only `GenericPassword` has this attribute
-...
-query.keySizeInBits // ❌ Compile error. Only `SecKey` has this attribute.
+query.protocol = .https     // ✅ `InternetPassword` has this attribute
 
+query.service = "OpenAI"    // ❌ Doesn't compile. Only `GenericPassword` has this attribute
+query.keySizeInBits = 2048  // ❌ Doesn't compile. Only `SecKey` has this attribute.
+
+// Perform
 try keychain.store(secret, query: query)
+try keychain.retrieve(query)
+try keychain.remove(query)
 ```
+
+Possible queries:
+* `SecItemQuery<GenericPassword>`
+* `SecItemQuery<InternetPassword>`
+* `SecItemQuery<SecKey>`
+* `SecItemQuery<SecCertificate>`
+* `SecItemQuery<SecIdentity>`
 
 ## Custom Types
 
