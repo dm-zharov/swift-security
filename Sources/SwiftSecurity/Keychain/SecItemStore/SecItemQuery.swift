@@ -19,6 +19,35 @@ public struct SecItemQuery<Value> where Value: SecItem {
     }
 }
 
+// MARK: - Convenient
+
+public extension SecItemQuery {
+    static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
+        var query = SecItemQuery<GenericPassword>()
+        query.service = service
+        return query
+    }
+    
+    static func credential(for account: String, service: String?) -> SecItemQuery<Value> where Value == GenericPassword {
+        var query = SecItemQuery<GenericPassword>()
+        query.service = service
+        query.account = account
+        return query
+    }
+    
+    static func credential(for user: String, space: WebProtectionSpace) -> SecItemQuery<Value> where Value == InternetPassword {
+        var query = SecItemQuery<InternetPassword>()
+        query.account = user
+        query.server = space.host
+        query.port = space.port
+        query.path = space.path
+        query.protocol = space.protocol
+        query.securityDomain = space.securityDomain
+        query.authenticationMethod = space.authenticationMethod
+        return query
+    }
+}
+
 // MARK: - Generic
 
 extension SecItemQuery {
@@ -44,35 +73,10 @@ extension SecItemQuery {
 }
 
 public extension SecItemQuery {
-    /// The corresponding value indicates access control conditions for the item.
-    var accessControl: AccessControl? {
-        get {
-            if let value = attributes[kSecAttrAccessControl as String] as? AnyObject {
-                let rawValue = value as! SecAccessControl
-                return AccessControl(rawValue: rawValue)
-            } else {
-                return nil
-            }
-        }
-        set { attributes[kSecAttrAccessControl as String] = newValue?.rawValue }
-    }
-    
     /// The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
     var synchronizable: Bool? {
         get { attributes[kSecAttrSynchronizable as String] as? Bool }
         set { attributes[kSecAttrSynchronizable as String] = newValue }
-    }
-    
-    /// The corresponding value indicates when your app needs access to the data in a keychain item.
-    var accessible: Accessibility? {
-        get {
-            if let rawValue = attributes[kSecAttrAccessible as String] as? String {
-                return Accessibility(rawValue: rawValue)
-            } else {
-                return nil
-            }
-        }
-        set { attributes[kSecAttrAccessible as String] = newValue?.rawValue }
     }
     
     /// The corresponding value contains the user-visible label for this item.
@@ -392,50 +396,12 @@ public extension SecItemQuery where Value == SecKey {
 }
 #endif
 
-private extension SecItemQuery {
-    /**
-     The corresponding value indicates the item’s one and only access group.
-     
-     For an app to access a keychain item, one of the groups to which the app belongs must be the item’s group. The list of an app’s access groups consists of the following string identifiers, in this order:
-     - The strings in the app’s [Keychain Access Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/keychain-access-groups)
-     - The app ID string
-     - The strings in the [App Groups Entitlement](doc://com.apple.documentation/documentation/bundleresources/entitlements/com_apple_security_application-groups)
-     
-     Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
-     */
-    var accessGroup: String? {
-        get { attributes[kSecAttrAccessGroup as String] as? String }
-        set { attributes[kSecAttrAccessGroup as String] = newValue }
-    }
-}
-
+#if os(tvOS)
 public extension SecItemQuery {
-    static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        return query
-    }
-    
-    static func credential(for user: String, service: String) -> SecItemQuery<Value> where Value == GenericPassword {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        query.account = user
-        return query
-    }
-    
-    static func credential(for user: String, server: String) -> SecItemQuery<Value> where Value == InternetPassword {
-        return credential(for: user, space: WebProtectionSpace(server: server))
-    }
-    
-    static func credential(for user: String, space: WebProtectionSpace) -> SecItemQuery<Value> where Value == InternetPassword {
-        var query = SecItemQuery<InternetPassword>()
-        query.account = user
-        query.server = space.host
-        query.port = space.port
-        query.path = space.path
-        query.protocol = space.protocol
-        query.securityDomain = space.securityDomain
-        query.authenticationMethod = space.authenticationMethod
-        return query
+    @available(tvOS 16.0, *)
+    var useUserIndependentKeychain: Bool? {
+        get { attributes[kSecUseUserIndependentKeychain as String] as? String }
+        set { attributes[kSecUseUserIndependentKeychain as String] = newValue }
     }
 }
+#endif

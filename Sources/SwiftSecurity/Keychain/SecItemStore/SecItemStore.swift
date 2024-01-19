@@ -6,27 +6,28 @@
 //
 
 import Foundation
+import LocalAuthentication
 
 // MARK: - SecData
 
 public protocol SecDataStore {
     // MARK: - Generic
     
-    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws
-    func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T?
-    func remove(query: SecItemQuery<GenericPassword>) throws -> Bool
+    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>, accessControl: AccessControl) throws
+    func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T?
+    func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool
     
-    // MARK: - Internal
+    // MARK: - Internet
     
-    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws
-    func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T?
-    func remove(query: SecItemQuery<InternetPassword>) throws -> Bool
+    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<InternetPassword>, accessControl: AccessControl) throws
+    func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T?
+    func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool
 }
 
 // MARK: - SecKey
 
 public protocol SecKeyStore {
-    func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws
-    func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T?
-    func remove(query: SecItemQuery<SecKey>) throws -> Bool
+    func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>, accessControl: AccessControl) throws
+    func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
+    func remove(_ query: SecItemQuery<SecKey>) throws -> Bool
 }

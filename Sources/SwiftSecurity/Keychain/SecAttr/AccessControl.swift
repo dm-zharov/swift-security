@@ -19,8 +19,8 @@ public struct AccessControl: RawRepresentable {
     }
 }
 
-extension AccessControl {
-    public init(protection: Accessibility, options: Options) throws {
+public extension AccessControl {
+    init(_ protection: Accessibility = .afterFirstUnlock, options: Options = []) throws {
         var error: Unmanaged<CFError>?
         guard let accessControl = SecAccessControlCreateWithFlags(
             kCFAllocatorDefault,
@@ -34,7 +34,7 @@ extension AccessControl {
                 throw SwiftSecurityError.failedAccessControlCreation(description: "")
             }
         }
-        self = AccessControl(rawValue: accessControl)
+        self.init(rawValue: accessControl)
     }
 }
 
@@ -94,11 +94,13 @@ extension AccessControl {
          Indicates that at least one constraint must be satisfied.
          */
         public static let and = Options(rawValue: 1 << 15)
+        
+        // MARK: - Additional Options
 
         /**
          Enable a private key to be used in signing a block of data or verifying a signed block.
          
-         This option can be combined with any other access control options.
+         This option can be combined with any other access control option.
          
          - SeeAlso: [Developer Documentation](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/1617983-privatekeyusage)
          */

@@ -10,6 +10,7 @@ import Security
 
 /// A property wrapper type that reflects a value from secure storage and invalidates a view on a change in value.
 @available(iOS 14.0, *)
+@available(macOS 11.0, *)
 @propertyWrapper public struct Credential<Value>: DynamicProperty where Value: SecDataConvertible {
     @StateObject private var provider: SecItemProvider<Value>
     
@@ -52,6 +53,7 @@ import Security
 }
 
 @available(iOS 14.0, *)
+@available(macOS 11.0, *)
 final private class SecItemProvider<Value>: ObservableObject where Value: SecDataConvertible {
     private let query: SecItemQuery<GenericPassword>
     private let store: SecDataStore
@@ -65,7 +67,7 @@ final private class SecItemProvider<Value>: ObservableObject where Value: SecDat
         }
         
         do {
-            self.value = try store.retrieve(query)
+            self.value = try store.retrieve(query, authenticationContext: nil)
             self.fetchError = nil
         } catch {
             self.fetchError = error
@@ -78,9 +80,9 @@ final private class SecItemProvider<Value>: ObservableObject where Value: SecDat
         objectWillChange.send()
         
         if let newValue {
-            try store.store(newValue, query: query)
+            try store.store(newValue, query: query, accessControl: AccessControl())
         } else {
-            _ = try store.remove(query: query)
+            _ = try store.remove(query)
         }
         
         self.value = nil

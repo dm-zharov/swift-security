@@ -28,12 +28,6 @@ public struct WebProtectionSpace {
     /// The type of authentication.
     public private(set) var authenticationMethod: AuthenticationMethod?
     
-    /// Creates a protection space object for the given server.
-    /// - Parameter server: Server (e. g. `https://apple.com`).
-    public init(server: String) {
-        self.init(host: server)
-    }
-    
     /// Creates a protection space object from the given host, port, protocol, realm, and authentication method.
     /// - Parameters:
     ///   - server: Host (e.g. `apple.com`)
@@ -56,5 +50,13 @@ public struct WebProtectionSpace {
         self.protocol = `protocol`
         self.securityDomain = securityDomain
         self.authenticationMethod = authenticationMethod
+    }
+}
+
+public extension WebProtectionSpace {
+    /// Creates a protection space object for the given server.
+    /// - Parameter string: Server (e. g. `https://apple.com`).
+    static func server(_ string: String) -> WebProtectionSpace {
+        WebProtectionSpace(host: string)
     }
 }
