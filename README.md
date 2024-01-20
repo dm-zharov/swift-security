@@ -107,7 +107,7 @@ The generics system prevents API misuses at compile time:
 
 ```swift
 var query = SecItemQuery<InternetPassword>()
-query.synchronizable = true  // ✅ Common attribute
+query.synchronizable = true  // ✅ Common
 query.server = "example.com" // ✅ Only for `InternetPassword`
 query.service = "OpenAI"     // ❌ Only for `SecItemQuery<GenericPassword>`, so not accessible
 query.keySizeInBits = 2048   // ❌ Only for `SecItemQuery<SecKey>`, so not accessible
@@ -177,7 +177,7 @@ let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 
 ## <a name="accessibility"> Accessibility
 
-Default accessibility matches background application (`.afterFirstUnlock` == `kSecAttrAccessibleAfterFirstUnlock`). That is not the most secure way to store items, so you could change it.
+Default accessibility is suitable for background running applications (`.afterFirstUnlock`, `kSecAttrAccessibleAfterFirstUnlock`). That is not the most secure way to store items, so you might consider to change it.
 
 ### Store
 
@@ -191,12 +191,10 @@ try keychain.store(
 try keychain.store(
     secret,
     query: .credential(for: "FBI"),
-    accessControl: .init(.whenUnlocked, options: .biometryAny)
+    accessControl: .init(.whenUnlocked, options: .biometryAny) // Requires user authentication
 )
 
 ```
-
-Default accessibility matches background application (`kSecAttrAccessibleAfterFirstUnlock`).
 
 ### Get
 
