@@ -14,6 +14,7 @@ enum SwiftSecurityError: Error {
     case failedAccessControlCreation(description: String)
     case failedPasswordConversion
     case failedSecKeyConversion
+    case failedSecCertificateConversion(description: String)
     case missingSecKeyRepresentation
 }
 
@@ -32,6 +33,8 @@ extension SwiftSecurityError: LocalizedError {
             return "Couldn't convert password."
         case .failedSecKeyConversion:
             return "Couldn't convert key."
+        case .failedSecCertificateConversion:
+            return "Couldn't convert certificate"
         case .missingSecKeyRepresentation:
             return "Missing SecKey representation."
         }

@@ -8,7 +8,7 @@ SwiftSecurity is a modern wrapper for Keychain Services API. Use value types eas
 ## Features
 
 * Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
-* Support of Generic Password, Internet Password, SecKey and SecCertificate
+* Support of Generic & Internet passwords, Keys and Certificates
 * [Accessibility](#accessibility)
 
 ## Installation
@@ -130,8 +130,12 @@ Foundation:
     - Data // GenericPassword, InternetPassword
     - String // GenericPassword, InternetPassword
 CryptoKit:
-    - SymmetricKey, Curve25519 // GenericPassword
+    - SymmetricKey // GenericPassword
+    - Curve25519 // GenericPassword
     - P256, P384, P521 (Elliptic Curves) // SecKey
+SwiftSecurity:
+    - X509.DER.Data // SecCertificate
+    - PKCS12.Blob // SecIdentity
 ```
 
 If you need to support your own types, you could extend them by implementing next protocols:

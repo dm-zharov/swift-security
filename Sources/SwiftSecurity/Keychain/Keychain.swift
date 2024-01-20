@@ -45,7 +45,7 @@ public extension Keychain {
     }
 }
 
-// MARK: - Generic Password
+// MARK: - GenericPassword
 
 extension Keychain: SecDataStore {
     public func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>) throws {
@@ -78,7 +78,7 @@ extension Keychain: SecDataStore {
     }
 }
 
-// MARK: - Internet Password
+// MARK: - InternetPassword
 
 extension Keychain {
     public func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<InternetPassword>) throws {
@@ -111,7 +111,7 @@ extension Keychain {
     }
 }
 
-// MARK: - Sec Key
+// MARK: - SecKey
 
 extension Keychain: SecKeyStore {
     public func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>) throws {
@@ -157,8 +157,71 @@ extension Keychain: SecKeyStore {
     @discardableResult
     public func remove(_ query: SecItemQuery<SecKey>) throws -> Bool {
         let attributes = query.attributes
-
         return try remove(attributes)
+    }
+}
+
+// MARK: - SecCertificate
+
+extension Keychain: SecCertificateStore {
+    public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>) throws {
+        try store(data, query: query, accessControl: AccessControl())
+    }
+    
+    public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessControl: AccessControl) throws {
+        guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
+            throw SwiftSecurityError.failedSecCertificateConversion(
+                description: "Data parameter is not a valid DER-encoded X.509 certificate."
+            )
+        }
+        
+        var attributes = query.attributes
+        attributes[kSecValueRef as String] = certificate
+        
+        try store(attributes, accessControl: accessControl.rawValue)
+    }
+    
+    public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext?) throws -> T? {
+        var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
+        attributes[kSecReturnRef as String] = true
+        
+        guard let secItem = try retrieve(attributes, authenticationContext: authenticationContext) else {
+            return nil
+        }
+        
+        let certificate = secItem as! SecCertificate
+        let data = SecCertificateCopyData(certificate) as Data
+    
+        return try T(derRepresentation: data)
+    }
+    
+    @discardableResult
+    public func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool {
+        let attributes = query.attributes
+        return try remove(attributes)
+    }
+}
+
+// MARK: - SecIdentity
+
+extension Keychain: SecIdentityStore {
+    public func store<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
+        let attributes = [kSecImportExportPassphrase as String: passphrase]
+        
+        var secResult: CFArray?
+        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &secResult) {
+        case errSecSuccess:
+            if let items = secResult as? Array<[String: Any]> {
+                return items.map { item in
+                    PKCS12.SecImportItem(attributes: item)
+                }
+            } else {
+                return []
+            }
+        case let status:
+            throw SwiftSecurityError.failedToWriteItem(description: status.debugDescription)
+        }
     }
 }
 
@@ -176,7 +239,7 @@ internal extension Keychain {
         query[kSecAttrAccessGroup as String] = accessGroup
         query[kSecAttrAccessControl as String] = accessControl
         
-        switch SecItemAdd(query as CFDictionary, nil){
+        switch SecItemAdd(query as CFDictionary, nil) {
         case errSecSuccess:
             return
         case let status:
@@ -184,7 +247,7 @@ internal extension Keychain {
         }
     }
     
-    func retrieve(_ query: [String: Any], authenticationContext: LAContext?) throws -> AnyObject? {
+    func retrieve(_ query: [String: Any], authenticationContext: LAContext?) throws -> CFTypeRef? {
         var query = query
         query[kSecAttrAccessGroup as String] = accessGroup
         
@@ -196,7 +259,7 @@ internal extension Keychain {
         var secItem: CFTypeRef?
         switch SecItemCopyMatching(query as CFDictionary, &secItem) {
         case errSecSuccess:
-            return secItem
+            return secItem as CFTypeRef
         case errSecItemNotFound:
             return nil
         case let status:

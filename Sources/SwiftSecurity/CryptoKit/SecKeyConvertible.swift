@@ -8,7 +8,7 @@
 import Foundation
 import CryptoKit
 
-// MARK: - NIST Keys
+// MARK: - NIST Key
 
 public protocol SecKeyConvertible {
     /// Creates a key from an X9.63 representation.

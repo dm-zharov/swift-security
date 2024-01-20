@@ -35,3 +35,17 @@ public protocol SecKeyStore: SecItemStore {
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<SecKey>) throws -> Bool
 }
+
+// MARK: - SecCertificate
+
+public protocol SecCertificateStore: SecItemStore {
+    func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessControl: AccessControl) throws
+    func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext?) throws -> T?
+    func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool
+}
+
+// MARK: - SecIdentity
+
+public protocol SecIdentityStore: SecItemStore {
+    func store<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem]
+}
