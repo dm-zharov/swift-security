@@ -109,8 +109,8 @@ The generics system prevents API misuses at compile time:
 var query = SecItemQuery<InternetPassword>()
 query.synchronizable = true  // ✅ Common
 query.server = "example.com" // ✅ Only for `InternetPassword`
-query.service = "OpenAI"     // ❌ Only for `SecItemQuery<GenericPassword>`, so not accessible
-query.keySizeInBits = 2048   // ❌ Only for `SecItemQuery<SecKey>`, so not accessible
+query.service = "OpenAI"     // ❌ Only for `GenericPassword`, so not accessible
+query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 ```
 
 Queries:
@@ -132,10 +132,10 @@ Foundation:
 CryptoKit:
     - SymmetricKey // GenericPassword
     - Curve25519 // GenericPassword
-    - P256, P384, P521 (Elliptic Curves) // SecKey
+    - P256, P384, P521 // SecKey (Elliptic Curves)
 SwiftSecurity:
-    - X509.DER.Data // SecCertificate
-    - PKCS12.Blob // SecIdentity
+    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
+    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
 ```
 
 If you need to support your own types, you could extend them by implementing next protocols:

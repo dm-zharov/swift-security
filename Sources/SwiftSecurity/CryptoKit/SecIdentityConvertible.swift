@@ -17,7 +17,7 @@ public protocol SecIdentityConvertible {
     var pkcs12Representation: Data { get }
 }
 
-extension PKCS12.Blob: SecIdentityConvertible {
+extension PKCS12.Data: SecIdentityConvertible {
     public init<Bytes>(pkcs12Representation data: Bytes) throws where Bytes : ContiguousBytes {
         self.init(
             rawValue: try Data(rawRepresentation: data)

@@ -47,5 +47,5 @@ public protocol SecCertificateStore: SecItemStore {
 // MARK: - SecIdentity
 
 public protocol SecIdentityStore: SecItemStore {
-    func store<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem]
+    func `import`<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem]
 }

@@ -206,7 +206,7 @@ extension Keychain: SecCertificateStore {
 // MARK: - SecIdentity
 
 extension Keychain: SecIdentityStore {
-    public func store<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
+    public func `import`<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
         let attributes = [kSecImportExportPassphrase as String: passphrase]
         
         var secResult: CFArray?

@@ -13,10 +13,10 @@ public enum PKCS12 {
     }
     
     /// PKCS #12–formatted blob (a file with extension .p12)
-    public struct Blob: RawRepresentable {
-        public let rawValue: Data
+    public struct Data: RawRepresentable {
+        public let rawValue: Foundation.Data
         
-        public init(rawValue: Data) {
+        public init(rawValue: Foundation.Data) {
             self.rawValue = rawValue
         }
     }
