@@ -3,20 +3,13 @@
 ![Platforms](https://img.shields.io/badge/platforms-ios%20-lightgrey.svg)
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 
-SwiftSecurity is a modern wrapper for Keychain Services API. Use value types easily, and get extra safety and convenient compile-time checks for free.
+SwiftSecurity is a modern wrapper for Keychain Services API. Use value types easily, and get extra safety and convenient compile-time checks for free. Securely store small chunks of data on behalf of the user.
 
 ## Features
 
-* Simple
-* Static typing and compile-time checks
-* Seamless compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
-* Support Generic & Internet passwords, Keys
-* Easy way to implement support for custom types
+* Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
+* Support of Generic Password, Internet Password, SecKey and SecCertificate
 * [Accessibility](#accessibility)
-
-Securely store small chunks of data on behalf of the user.
-
-The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
 ## Installation
 
@@ -25,7 +18,7 @@ The framework’s default behavior provides a reasonable trade-off between secur
 ```swift
 let package = Package(
     dependencies: [
-        .Package(url: "https://github.com/dm-zharov/SwiftSecurity.git")
+        .package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "0.1.0")
     ]
 )
 ```
@@ -35,17 +28,17 @@ let package = Package(
 ### Basic
 
 ```swift
-// 
+// Choose Keychain
 let keychain = Keychain.default
 
-// Store value
-try Keychain.default.store("8e9c0a7f", query: .credential(for: "OpenAI"))
+// Store secret
+try keychain.store("8e9c0a7f", query: .credential(for: "OpenAI"))
 
-// Get value
-let token: String? = try Keychain.default.retrieve(.credential(for: "OpenAI"))
+// Get secret
+let token: String? = try keychain.retrieve(.credential(for: "OpenAI"))
 
-// Remove value
-try Keychain.default.remove(.credential(for: "OpenAI"))
+// Remove secret
+try keychain.remove(.credential(for: "OpenAI"))
 ```
 
 ### Basic (SwiftUI)
@@ -74,40 +67,130 @@ struct AuthView: View {
 } 
 ```
 
-### Keychain
+### Web Credential
 
 ```swift
-Keychain.default // == Keychain(accessGroup: .application)
-Keychain(accessGroup: .applicationGroup("group.com.example.app"))
+// Store value
+try keychain.store(password, query: .credential(for: "login", space: .server("https://example.com"))
+
+// Get value
+let password: String? = try keychain.retrieve(query: .credential(for: "login", space: .server("https://example.com"))
 ```
 
-## Instantiation
+For example, if you need to store distinct ports credentials for the same user working on the same server, you might further characterize the query by specifying protection space.
 
 ```swift
-// Generic password
-let secret: Data? = try keychain.retrieve(.credential(for: "Messaging"))
-let key: SymmetricKey? = try keychain.retrieve(.credential(for: "Messaging"))
+let space1 = WebProtectionSpace(host: "https://example.com", port: 443)
+try keychain.store(password, query: .credential(for: user, space: space1)
 
-// Internet password
-let password: String? = try keychain.retrieve(.credential(for: "mymail@gmail.com", space: .server("http://google.com")))
+let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
+try keychain.store(password, query: .credential(for: user, space: space2)
 ```
 
-#### Retrieve Secret
+## Advanced
 
 ```swift
-let token: String? = try? Keychain.default.retrieve(.credential(for: "OpenAI"))
+// Create query
+var query = SecItemQuery<GenericPassword>()
+
+// Customize
+query.synchronizable = true
+query.service = "OpenAI"
+
+// Perform query
+try keychain.store(secret, query: query)
+try keychain.retrieve(query)
+try keychain.remove(query)
+```
+
+The generics system prevents API misuses at compile time:
+
+```swift
+var query = SecItemQuery<InternetPassword>()
+query.synchronizable = true  // ✅ Common attribute
+query.server = "example.com" // ✅ Only for `InternetPassword`
+query.service = "OpenAI"     // ❌ Only for `SecItemQuery<GenericPassword>`, so not accessible
+query.keySizeInBits = 2048   // ❌ Only for `SecItemQuery<SecKey>`, so not accessible
+```
+
+Queries:
+```swift
+let genericPassword = SecItemQuery<GenericPassword>
+let internetPassword = SecItemQuery<InternetPassword>
+let secKey = SecItemQuery<SecKey>
+let secCertificate = SecItemQuery<SecCertificate>
+```
+
+### Data Types
+
+You you could store and retrieve different types of data.
+
+```swift
+Foundation:
+    - Data // GenericPassword, InternetPassword
+    - String // GenericPassword, InternetPassword
+CryptoKit:
+    - SymmetricKey, Curve25519 // GenericPassword
+    - P256, P384, P521 (Elliptic Curves) // SecKey
+```
+
+If you need to support your own types, you could extend them by implementing next protocols:
+
+```swift
+// Store as Data (GenericPassword, InternetPassword)
+extension CustomType: SecDataConvertible {}
+
+// Store as Key (SecKey)
+extension CustomType: SecKeyConvertible {}
+```
+
+This protocol implementation is inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) 
+
+## Choose Keychain
+
+### Default
+```swift
+let keychain = Keychain.default
+```
+
+The system considers the default storage by list of [access groups](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/) in this order:
+- If [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability enabled, then by the first entry in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups).
+- Otherwise, by the application bundle identifier.
+
+### Sharing within Keychain Group
+
+[Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability makes it possible to share keychain items between multiple apps belonging to the same developer (or between an app and extensions).
+
+If you don't want to rely on the automatic behavior of default storage selection, you could explicitly specify a keychain sharing group.
+
+```swift
+let keychain = Keychain(accessGroup: .keychainGroup(teamID: "J42EP42PB2", nameID: "com.example.app"))
+```
+
+### Sharing within App Group
+
+The same sharing behavior could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably the most convenient choice.
+
+```swift
+let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
 ## <a name="accessibility"> Accessibility
 
-## Store
+Default accessibility matches background application (`.afterFirstUnlock` == `kSecAttrAccessibleAfterFirstUnlock`). That is not the most secure way to store items, so you could change it.
+
+### Store
 
 ```swift
-try keychain.store(secret, query: .credential(for: "FBI"), accessControl: .init(.whenUnlocked))
+try keychain.store(
+    secret,
+    query: .credential(for: "FBI"),
+    accessControl: .init(.whenUnlocked)
+)
 
 try keychain.store(
     secret,
-    query: .credential(for: "FBI",
+    query: .credential(for: "FBI"),
     accessControl: .init(.whenUnlocked, options: .biometryAny)
 )
 
@@ -115,7 +198,7 @@ try keychain.store(
 
 Default accessibility matches background application (`kSecAttrAccessibleAfterFirstUnlock`).
 
-## Get
+### Get
 
 ```swift
 // Create an LAContext
@@ -138,65 +221,17 @@ if success {
 
 Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
 
-## Advanced
-
-```swift
-// Make query
-var query = SecItemQuery<InternetPassword>()
-query.synchronizable = true // ✅ Common attribute
-query.protocol = .https     // ✅ `InternetPassword` has this attribute
-
-query.service = "OpenAI"    // ❌ Only for `GenericPassword`, so not accessible
-query.keySizeInBits = 2048  // ❌ Only for `SecKey`, so not accessible
-
-// Perform
-try keychain.store(secret, query: query)
-try keychain.retrieve(query)
-try keychain.remove(query)
-```
-
-Possible queries:
-* `SecItemQuery<GenericPassword>`
-* `SecItemQuery<InternetPassword>`
-* `SecItemQuery<SecKey>`
-* `SecItemQuery<SecCertificate>`
-* `SecItemQuery<SecIdentity>`
-
-## Custom Types
-
-In order to store/retrieve your own custom type that isn't supported, you need to conform `SecDataConvertible` for generic data (could be stored as `Generic or Internet Password`).
-
-```swift
-// `SecDataConvertible` -> Generic or Internet password
-Foundation:
-    - String
-    - Data
-CryptoKit: 
-    - SymmetricKey
-    - Curve25519.KeyAgreement.PrivateKey
-    - Curve25519.Signing.PrivateKey
-    - SecureEnclave.P256.KeyAgreement.PrivateKey
-    - SecureEnclave.P256.Signing.PrivateKey
-
-// `SecKeyConvertible` -> SecKey
-CryptoKit:
-    P256.KeyAgreement.PrivateKey
-    P256.Signing.PrivateKey
-    P384.KeyAgreement.PrivateKey
-    P384.Signing.PrivateKey
-    P521.KeyAgreement.PrivateKey
-    P521.Signing.PrivateKey
-```
-
-This protocol implementation is inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) 
 
 ## Defaults
 
-- `kSecUseDataProtectionKeychain == true`. This key helps to improve the portability of your code across platforms.
-- `kSecAttrAccessibleWhenUnlocked`.
+The framework’s default behavior provides a reasonable trade-off between security and accessibility.
+
+- `kSecUseDataProtectionKeychain == true`. This attribute helps to improve the portability of code across platforms.
+- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` by default.
 
 ## Knowledge
 
+* [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain)
 * [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
 
 ## Author
