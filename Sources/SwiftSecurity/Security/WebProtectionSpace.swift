@@ -10,18 +10,19 @@ import Foundation
 /**
  A server or an area on a server, that requires authentication.
  
- - Note: The only minimum and required attribute is the host.
-    Other attributes help characterize the password to distinguish it from other internet passwords that apply to the same ``host`` and ``username``.
-    For example, if you need to store distinct FTP and HTTP credentials for the same user working on the same server, you might set the `'protocol'` attribute to distinguish between them.
+ The only minimum and required attribute is the host.
+ Other attributes help characterize the password to distinguish it from other internet passwords that apply to the same attributes; for example the same ``host`` and ``username``.
+    
+ - Note: If you need to store distinct FTP and HTTP credentials for the same user working on the same server, you might set the ``protocol`` attribute to distinguish between them.
  */
 public struct WebProtectionSpace {
-    /// The host name for the protection space object.
+    /// The host name, typically the domain name or IP address.
     public private(set) var host: String
-    /// The port for the protection space object.
+    /// The port number.
     public private(set) var port: Int?
-    /// The receiver’s port.
+    /// The path, typically the path component of the URL.
     public private(set) var path: String?
-    /// The protocol for the protection space object. The value of protocol is equivalent to the scheme for a URL in the protection space, for example, “http”, “https”, “ftp”, etc.
+    /// The value of protocol is equivalent to the scheme. For example: “http”, “https”, “ftp”, etc.
     public private(set) var `protocol`: ProtocolType?
     /// The security domain.
     public private(set) var securityDomain: String?
@@ -30,12 +31,12 @@ public struct WebProtectionSpace {
     
     /// Creates a protection space object from the given host, port, protocol, realm, and authentication method.
     /// - Parameters:
-    ///   - server: Host (e.g. `apple.com`)
-    ///   - port: Port (e.g. `443`).
-    ///   - protocol: Protocol (e.g. `https`).
-    ///   - authentication: Authentication method (e.g. ".httpBasic")
-    ///   - path: Path (e.g. path component of the URL).
-    ///   - securityDomain: Security domain.
+    ///   - server: The host; for example, `apple.com`.
+    ///   - port: The port number; for example: `443`.
+    ///   - protocol: The protocol; for example `https`, `ftp`.
+    ///   - authentication: The type of authentication; for example: `.httpBasic`.
+    ///   - path: The path, typically the path component of the URL.
+    ///   - securityDomain: The security domain.
     public init(
         host: String,
         port: Int? = nil,
@@ -54,9 +55,10 @@ public struct WebProtectionSpace {
 }
 
 public extension WebProtectionSpace {
-    /// Creates a protection space object for the given server.
-    /// - Parameter string: Server (e. g. `https://apple.com`).
-    static func server(_ string: String) -> WebProtectionSpace {
-        WebProtectionSpace(host: string)
+    /// Creates a protection space object for the given website.
+    /// - Parameter server: The host; for example, `apple.com`.
+    /// - Parameter port: The port number; for example: `443`.
+    static func website(_ server: String, port: Int? = nil) -> WebProtectionSpace {
+        WebProtectionSpace(host: server, port: port)
     }
 }

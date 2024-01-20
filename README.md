@@ -71,20 +71,20 @@ struct AuthView: View {
 
 ```swift
 // Store value
-try keychain.store(password, query: .credential(for: "login", space: .server("https://example.com"))
+try keychain.store(password, query: .credential(for: "login", space: .website("https://example.com"))
 
 // Get value
-let password: String? = try keychain.retrieve(query: .credential(for: "login", space: .server("https://example.com"))
+let password: String? = try keychain.retrieve(query: .credential(for: "login", space: .website("https://example.com"))
 ```
 
 For example, if you need to store distinct ports credentials for the same user working on the same server, you might further characterize the query by specifying protection space.
 
 ```swift
 let space1 = WebProtectionSpace(host: "https://example.com", port: 443)
-try keychain.store(password, query: .credential(for: user, space: space1)
+try keychain.store(password1, query: .credential(for: user, space: space1))
 
 let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
-try keychain.store(password, query: .credential(for: user, space: space2)
+try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
 ## Advanced
