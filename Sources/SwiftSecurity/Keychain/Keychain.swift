@@ -16,8 +16,8 @@ public struct Keychain: Hashable, Codable, Sendable {
     }
 }
 
-public extension Keychain {
-    static let `default` = Keychain(accessGroup: .default)
+extension Keychain {
+    public static let `default` = Keychain(accessGroup: .default)
     
     /**
      Create.
@@ -31,7 +31,7 @@ public extension Keychain {
      
      Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
      */
-    init(accessGroup: AccessGroup) {
+    public init(accessGroup: AccessGroup) {
         switch accessGroup {
         case .default:
             self.init(accessGroup: nil)
@@ -206,13 +206,36 @@ extension Keychain: SecCertificateStore {
 // MARK: - SecIdentity
 
 extension Keychain: SecIdentityStore {
+    public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>) throws {
+        try store(item, query: query, accessControl: AccessControl())
+    }
+    
+    public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessControl: AccessControl) throws {
+        guard let identity = item.identity else {
+            throw SwiftSecurityError.failedToWriteItem(description: "Identity is not found.")
+        }
+        
+        var attributes = query.attributes
+        attributes[kSecValueRef as String] = identity
+        
+        try store(attributes, accessControl: accessControl.rawValue)
+    }
+    
+    public func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext? = nil) throws -> SecIdentity? {
+        var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
+        attributes[kSecReturnRef as String] = true
+        
+        return try retrieve(attributes, authenticationContext: authenticationContext) as! SecIdentity?
+    }
+    
     public func `import`<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
         let attributes = [kSecImportExportPassphrase as String: passphrase]
         
-        var secResult: CFArray?
-        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &secResult) {
+        var secItems: CFArray?
+        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &secItems) {
         case errSecSuccess:
-            if let items = secResult as? Array<[String: Any]> {
+            if let items = secItems as? Array<[String: Any]> {
                 return items.map { item in
                     PKCS12.SecImportItem(attributes: item)
                 }
@@ -247,7 +270,7 @@ internal extension Keychain {
         }
     }
     
-    func retrieve(_ query: [String: Any], authenticationContext: LAContext?) throws -> CFTypeRef? {
+    func retrieve(_ query: [String: Any], authenticationContext: LAContext?) throws -> AnyObject? {
         var query = query
         query[kSecAttrAccessGroup as String] = accessGroup
         
