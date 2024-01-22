@@ -77,8 +77,7 @@ struct AuthView: View {
 ```swift
 // Store value
 try keychain.store(
-    password,
-    query: .credential(for: "login", space: .website("https://example.com")
+    password, query: .credential(for: "login", space: .website("https://example.com")
 )
 
 // Retrieve value
