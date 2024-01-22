@@ -67,6 +67,7 @@ extension Keychain: SecDataStore {
         guard let data = try retrieve(attributes, authenticationContext: authenticationContext) as? Data else {
             return nil
         }
+
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
     
@@ -254,6 +255,18 @@ extension Keychain: SecIdentityStore {
 // MARK: - Common
 
 extension Keychain: SecItemStore {
+    public func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
+        var attributes = query.attributes
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
+        attributes[kSecReturnAttributes as String] = true
+        
+        guard let result = try retrieve(attributes, authenticationContext: nil) as? [String: Any] else {
+            return nil
+        }
+        
+        return SecItemInfo<SecItem>(result)
+    }
+    
     public func removeAll() throws {
         try remove(SecItemQuery<GenericPassword>())
         try remove(SecItemQuery<InternetPassword>())
@@ -323,25 +336,27 @@ extension Keychain: CustomStringConvertible {
 
 extension Keychain: CustomDebugStringConvertible {
     public var debugDescription: String {
-        var query = SecItemQuery<GenericPassword>().attributes
-        query[kSecAttrAccessGroup as String] = accessGroup
-        query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
-        query[kSecMatchLimit as String] = kSecMatchLimitAll
-        query[kSecReturnAttributes as String] = true
-        query[kSecUseOperationPrompt as String] = "A debugger is requesting access to the protected items stored in the keychain."
-
-        var result: AnyObject?
-        switch SecItemCopyMatching(query as CFDictionary, &result) {
-        case errSecSuccess:
-            if let items = result as? Array<[String: Any]> {
-                return items.debugDescription
+        func retrieveAll<S: SecItem>(_ query: SecItemQuery<S>) -> Array<[String: Any]> where S: SecItem {
+            var attributes = query.attributes
+            attributes[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            attributes[kSecMatchLimit as String] = kSecMatchLimitAll
+            attributes[kSecReturnAttributes as String] = true
+            attributes[kSecUseOperationPrompt as String] = "A debugger is requesting access to the protected items stored in the keychain."
+            
+            if let items = try? retrieve(attributes, authenticationContext: nil) as? Array<[String: Any]> {
+                return items
+            } else {
+                return []
             }
-        case errSecItemNotFound:
-            return "[]"
-        case let status:
-            return SwiftSecurityError(rawValue: status).errorDescription ?? "Couldn't retrieve items."
         }
         
-        return "[]"
+        var attributes: Array<[String: Any]> = []
+        attributes.append(contentsOf: retrieveAll(SecItemQuery<GenericPassword>()))
+        attributes.append(contentsOf: retrieveAll(SecItemQuery<InternetPassword>()))
+        attributes.append(contentsOf: retrieveAll(SecItemQuery<SecKey>()))
+        attributes.append(contentsOf: retrieveAll(SecItemQuery<SecCertificate>()))
+        attributes.append(contentsOf: retrieveAll(SecItemQuery<SecIdentity>()))
+        
+        return attributes.debugDescription
     }
 }

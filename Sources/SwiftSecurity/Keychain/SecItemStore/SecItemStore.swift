@@ -9,6 +9,7 @@ import Foundation
 import LocalAuthentication
 
 public protocol SecItemStore {
+    func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext?) throws -> SecItemInfo<SecItem>?
     func removeAll() throws
 }
 

@@ -7,6 +7,9 @@
 
 import Foundation
 
+/**
+ - SeeAlso: [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes)
+ */
 public struct SwiftSecurityError: RawRepresentable, Error {
     public var rawValue: OSStatus
     

@@ -8,7 +8,7 @@ SwiftSecurity is a modern wrapper for Keychain Services API. Use value types eas
 ## Features
 
 * Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
-* Support of Generic & Internet passwords, Keys and Certificates
+* Support of Generic/Internet Passwords, Keys, Certificates and Identities
 * [Accessibility](#accessibility)
 
 ## Installation
@@ -87,7 +87,18 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
-## Advanced
+### Obtaining Info
+
+```swift
+// Get info
+
+if let info = try keychain.info(for: .credential(for: "OpenAI")) {
+    info.creationDate // Creation date
+    info.comment // Comment
+}
+```
+
+### Advanced
 
 ```swift
 // Create query
@@ -96,6 +107,7 @@ var query = SecItemQuery<GenericPassword>()
 // Customize
 query.synchronizable = true
 query.service = "OpenAI"
+query.label = "OpenAI Access Token"
 
 // Perform query
 try keychain.store(secret, query: query)
@@ -121,7 +133,7 @@ let secKey = SecItemQuery<SecKey>
 let secCertificate = SecItemQuery<SecCertificate>
 ```
 
-### Data Types
+## Data Types
 
 You you could store and retrieve different types of data.
 
