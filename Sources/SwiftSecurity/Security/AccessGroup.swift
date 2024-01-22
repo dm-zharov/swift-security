@@ -25,12 +25,6 @@ public enum AccessGroup {
     case keychainGroup(teamID: String, nameID: String)
     
     /**
-     The app ID string.
-     - Note: `Bundle.main.bundleIdentifier`
-     */
-    case appID
-    
-    /**
      The string from the [App Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_application-groups)
      - Example: `group.com.example.app`
      */

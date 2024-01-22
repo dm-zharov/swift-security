@@ -37,8 +37,6 @@ extension Keychain {
             self.init(accessGroup: nil)
         case .keychainGroup(let teamID, let nameID):
             self.init(accessGroup: "\(teamID).\(nameID)")
-        case .appID:
-            self.init(accessGroup: Bundle.main.bundleIdentifier)
         case .appGroupID(let groupID):
             self.init(accessGroup: groupID)
         case .token:
@@ -102,6 +100,7 @@ extension Keychain {
         guard let data = try retrieve(attributes, authenticationContext: authenticationContext) as? Data else {
             return nil
         }
+
         return try T(rawRepresentation: data)  // Convert back to a key.
     }
     
@@ -127,7 +126,7 @@ extension Keychain: SecKeyStore {
         if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, &error) {
             attributes[kSecValueRef as String] = secKey
         } else {
-            throw SwiftSecurityError(rawValue: errSecBadReq)
+            throw SwiftSecurityError(rawValue: errSecConversionError)
         }
 
         try store(attributes, accessPolicy: accessPolicy)
@@ -148,17 +147,14 @@ extension Keychain: SecKeyStore {
         guard let data = SecKeyCopyExternalRepresentation(secKey, &error) as Data? else {
             throw SwiftSecurityError(rawValue: errSecConversionError)
         }
-        
-        do {
-            return try T(x963Representation: data)
-        } catch  {
-            throw SwiftSecurityError(rawValue: errSecInvalidValue)
-        }
+
+        return try T(x963Representation: data)
     }
     
     @discardableResult
     public func remove(_ query: SecItemQuery<SecKey>) throws -> Bool {
         let attributes = query.attributes
+
         return try remove(attributes)
     }
 }
@@ -172,7 +168,7 @@ extension Keychain: SecCertificateStore {
     
     public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: SecAccessPolicy) throws {
         guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
-            throw SwiftSecurityError(rawValue: errSecBadReq)
+            throw SwiftSecurityError(rawValue: errSecConversionError)
         }
         
         var attributes = query.attributes
@@ -199,6 +195,7 @@ extension Keychain: SecCertificateStore {
     @discardableResult
     public func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool {
         let attributes = query.attributes
+
         return try remove(attributes)
     }
 }

@@ -80,7 +80,7 @@ extension String: SecDataConvertible {
         if let value = String(data: try Data(rawRepresentation: data), encoding: .utf8) {
             self = value
         } else {
-            throw SwiftSecurityError(rawValue: errSecInvalidEncoding)
+            throw SwiftSecurityError(rawValue: errSecParam)
         }
     }
     

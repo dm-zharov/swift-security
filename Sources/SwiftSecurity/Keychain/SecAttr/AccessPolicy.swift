@@ -208,6 +208,7 @@ extension SecAccessPolicy.Accessibility: RawRepresentable, CustomStringConvertib
 
 
 internal extension SecAccessPolicy {
+    /// The corresponding value containing access control conditions for the item.
     var accessControl: SecAccessControl? {
         get throws {
             guard let options else {
@@ -228,6 +229,7 @@ internal extension SecAccessPolicy {
         }
     }
     
+    /// The corresponding value indicates when your app needs access to the data in a keychain item.
     var accessibility: String? {
         guard options == nil else {
             return nil
