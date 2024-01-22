@@ -1,31 +1,36 @@
 # SwiftSecurity
 
-![Platforms](https://img.shields.io/badge/platforms-ios%20-lightgrey.svg)
+[![Platforms](https://img.shields.io/badge/platform-iOS_|_macOS_|_watchOS_|_tvOS_|_visionOS-lightgrey.svg?style=flat)](https://developer.apple.com/resources/)
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern wrapper for Keychain Services API. Use value types easily, and get extra safety and convenient compile-time checks for free. Securely store small chunks of data on behalf of the user.
+SwiftSecurity is a modern wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety and convenient compile-time checks.
 
-## Features
+## 🌟 Features
 
+What the difference between **SwiftSecurity** and any other wrapper?
+
+* Support for every Keychain item class: Generic & Internet Password, Key, Certificate and Identity
+* Generic code prevents the creation of an incorrect set of attributes for items
 * Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
-* Support of Generic/Internet Passwords, Keys, Certificates and Identities
-* [Accessibility](#accessibility)
+* Compatability with [SwiftUI](https://developer.apple.com/documentation/swiftui/)
+* Native-like API experience
 
-## Installation
+## ⚙️ Installation
 
 ### Swift Package Manager
 
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "0.1.0")
+        .package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "1.0.0")
     ]
 )
 ```
 
-## Usage
+##  📖 Quick Start
 
-### Basic
+###  Basic
 
 ```swift
 // Choose Keychain
@@ -34,7 +39,7 @@ let keychain = Keychain.default
 // Store secret
 try keychain.store("8e9c0a7f", query: .credential(for: "OpenAI"))
 
-// Get secret
+// Retrieve secret
 let token: String? = try keychain.retrieve(.credential(for: "OpenAI"))
 
 // Remove secret
@@ -60,20 +65,20 @@ struct AuthView: View {
         }
         .onChange(of: token) {
             if let token {
-                // Get value
+                // Use value
             }
         }
     }
 } 
 ```
 
-### Web Credential
+### 🕸️ Web Credential
 
 ```swift
 // Store value
 try keychain.store(password, query: .credential(for: "login", space: .website("https://example.com"))
 
-// Get value
+// Retrieve value
 let password: String? = try keychain.retrieve(query: .credential(for: "login", space: .website("https://example.com"))
 ```
 
@@ -87,20 +92,7 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
-### Info
-
-```swift
-// Get info
-if let info = try keychain.info(for: .credential(for: "OpenAI")) {
-    // Creation date
-    info.creationDate
-    // Comment
-    info.comment
-    ...
-}
-```
-
-### Advanced
+### 👨‍💻 Advanced
 
 ```swift
 // Create query
@@ -112,8 +104,8 @@ query.service = "OpenAI"
 query.label = "OpenAI Access Token"
 
 // Perform query
-try keychain.store(secret, query: query)
-try keychain.retrieve(query)
+try keychain.store(secret, query: query, accessPolicy: .init(.whenUnlocked, options: .biometryAny))
+try keychain.retrieve(query, authenticationContext: LAContext())
 try keychain.remove(query)
 ```
 
@@ -136,7 +128,38 @@ SecItemQuery<SecCertificate>
 SecItemQuery<SecIdentity>
 ```
 
-## Data Types
+### ✍️ Other
+
+#### Get Attribute
+
+```swift
+// Get attributes
+if let info = try keychain.info(for: .credential(for: "OpenAI")) {
+    // Creation date
+    print(info.creationDate)
+    // Comment
+    print(info.comment)
+    ...
+}
+```
+
+#### Remove All
+
+```swift
+try keychain.removeAll()
+```
+
+#### Debug
+
+```swift
+// Print all attributes
+print(query.debugDescription)
+
+// Print all items
+print(keychain.debugDescription)
+```
+
+## 🔖 Data Types
 
 You you could store and retrieve different types of data.
 
@@ -161,11 +184,17 @@ extension CustomType: SecDataConvertible {}
 
 // Store as Key (SecKey)
 extension CustomType: SecKeyConvertible {}
+
+// Store as Certificate (X.509)
+extension CustomType: SecCertificateConvertible {}
+
+// Import as Identity ()
+extension CustomType: SecIdentityConvertible {}
 ```
 
-This protocol implementation is inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) 
+This protocols are inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain).
 
-## Choose Keychain
+## 🤔 Choose Keychain
 
 ### Default
 ```swift
@@ -194,9 +223,9 @@ The same sharing behavior could also be achieved by using [App Groups](https://d
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
-## <a name="accessibility"> Protection with Face ID (Touch ID) and/or Passcode
+## 🔓 Protection with Face ID (Touch ID) and Passcode
 
-### Store
+### Store protected item
 
 ```swift
 try keychain.store(
@@ -206,12 +235,12 @@ try keychain.store(
 )
 ```
 
-### Retrieval
+### Retrieve protected item
 
 If you requested the protected item, an authentication screen will appear automatically.
 
 ```swift
-// Get value
+// Retrieve value
 try keychain.retrieve(.credential(for: "FBI"), authenticationContext: context)
 ```
 
@@ -228,9 +257,9 @@ do {
     // Handle LAError error
 }
 
-// Check for authentication 
+// Check authentication result 
 if success {
-    // Get value
+    // Retrieve value
     try keychain.retrieve(.credential(for: "FBI"), authenticationContext: context)
 }
 
@@ -239,17 +268,27 @@ if success {
 Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
 
 
-## Defaults
+## Security
 
 The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
 - `kSecUseDataProtectionKeychain == true`. This attribute helps to improve the portability of code across platforms.
-- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` by default.
+- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` processes.
 
 ## Knowledge
 
+* [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/)
 * [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain)
 * [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+
+## Requirements
+
+* iOS 14.0
+* macOS 11.0
+* macCatalyst 14.0
+* watchOS 7.0
+* tvOS 14.0
+* visionOS 1.0
 
 ## Author
 

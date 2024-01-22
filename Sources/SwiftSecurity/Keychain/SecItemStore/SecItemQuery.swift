@@ -287,10 +287,26 @@ public extension SecItemQuery where Value == SecKey {
         get { attributes[kSecAttrKeySizeInBits as String] as? Int }
         set { attributes[kSecAttrKeySizeInBits as String] = newValue }
     }
-
+    
+    /// The corresponding value indicates the effective number of bits in this cryptographic key. For example, a DES key has a `keySizeInBits` of 64, but a `effectiveKeySize` of 56 bits.
     var effectiveKeySize: Int? {
         get { attributes[kSecAttrEffectiveKeySize as String] as? Int }
         set { attributes[kSecAttrEffectiveKeySize as String] = newValue }
+    }
+    
+    /**
+     Presence of this key indicates that the item is backed by an external store, as uniquely identified by the value. An item without this attribute is stored as normal in the keychain database.
+     - Note: You can’t change this attribute after creating the keychain item. It isn’t possible to migrate existing items between stores.
+     */
+    var tokenID: TokenID? {
+        get {
+            if let rawValue = attributes[kSecAttrTokenID as String] as? String {
+                return TokenID(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set { attributes[kSecAttrTokenID as String] = newValue?.rawValue }
     }
     
     // MARK: - Attributes
