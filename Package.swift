@@ -17,5 +17,8 @@ let package = Package(
             name: "SwiftSecurity",
             dependencies: []
         ),
+        .testTarget(
+            name: "SwiftSecurityTests"
+        ),
     ]
 )

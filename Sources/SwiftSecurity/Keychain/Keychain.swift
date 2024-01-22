@@ -136,11 +136,11 @@ extension Keychain: SecKeyStore {
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
         
-        guard let secItem = try retrieve(attributes, authenticationContext: authenticationContext) else {
+        guard let result = try retrieve(attributes, authenticationContext: authenticationContext) else {
             return nil
         }
 
-        let secKey = secItem as! SecKey
+        let secKey = result as! SecKey
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(secKey, &error) as Data? else {
@@ -186,11 +186,11 @@ extension Keychain: SecCertificateStore {
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
         
-        guard let secItem = try retrieve(attributes, authenticationContext: authenticationContext) else {
+        guard let result = try retrieve(attributes, authenticationContext: authenticationContext) else {
             return nil
         }
         
-        let certificate = secItem as! SecCertificate
+        let certificate = result as! SecCertificate
         let data = SecCertificateCopyData(certificate) as Data
     
         return try T(derRepresentation: data)
@@ -232,10 +232,10 @@ extension Keychain: SecIdentityStore {
     public func `import`<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
         let attributes = [kSecImportExportPassphrase as String: passphrase]
         
-        var secItems: CFArray?
-        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &secItems) {
+        var result: CFArray?
+        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &result) {
         case errSecSuccess:
-            if let items = secItems as? Array<[String: Any]> {
+            if let items = result as? Array<[String: Any]> {
                 return items.map { item in
                     PKCS12.SecImportItem(attributes: item)
                 }
@@ -256,7 +256,7 @@ extension Keychain: SecItemStore {
     }
 }
 
-internal extension Keychain {
+private extension Keychain {
     func store(_ query: [String: Any], accessControl: SecAccessControl) throws {
         var query = query
         query[kSecAttrAccessGroup as String] = accessGroup
@@ -279,10 +279,10 @@ internal extension Keychain {
             query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
         }
         
-        var secItem: CFTypeRef?
-        switch SecItemCopyMatching(query as CFDictionary, &secItem) {
+        var result: AnyObject?
+        switch SecItemCopyMatching(query as CFDictionary, &result) {
         case errSecSuccess:
-            return secItem as CFTypeRef
+            return result
         case errSecItemNotFound:
             return nil
         case let status:
@@ -309,7 +309,24 @@ internal extension Keychain {
 
 extension Keychain: CustomDebugStringConvertible {
     public var debugDescription: String {
-        ""
+        var query = [String: Any]()
+        query[kSecAttrAccessGroup as String] = accessGroup
+        query[kSecMatchLimit as String] = kSecMatchLimitAll
+        query[kSecReturnAttributes as String] = true
+
+        var result: AnyObject?
+        switch SecItemCopyMatching(query as CFDictionary, &result) {
+        case errSecSuccess:
+            if let items = result as? [[String: Any]] {
+                return items.debugDescription
+            }
+        case errSecItemNotFound:
+            return ""
+        case let status:
+            return status.debugDescription
+        }
+        
+        return ""
     }
 }
 
