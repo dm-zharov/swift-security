@@ -87,14 +87,16 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
-### Obtaining Info
+### Info
 
 ```swift
 // Get info
-
 if let info = try keychain.info(for: .credential(for: "OpenAI")) {
-    info.creationDate // Creation date
-    info.comment // Comment
+    // Creation date
+    info.creationDate
+    // Comment
+    info.comment
+    ...
 }
 ```
 
@@ -127,10 +129,11 @@ query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 
 Queries:
 ```swift
-let genericPassword = SecItemQuery<GenericPassword>
-let internetPassword = SecItemQuery<InternetPassword>
-let secKey = SecItemQuery<SecKey>
-let secCertificate = SecItemQuery<SecCertificate>
+SecItemQuery<GenericPassword>
+SecItemQuery<InternetPassword>
+SecItemQuery<SecKey>
+SecItemQuery<SecCertificate>
+SecItemQuery<SecIdentity>
 ```
 
 ## Data Types
@@ -191,9 +194,7 @@ The same sharing behavior could also be achieved by using [App Groups](https://d
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
-## <a name="accessibility"> Accessibility
-
-Default accessibility is suitable for background running applications (`.afterFirstUnlock`, `kSecAttrAccessibleAfterFirstUnlock`). That is not the most secure way to store items, so you might consider to change it.
+## <a name="accessibility"> Protection with Face ID (Touch ID) and/or Passcode
 
 ### Store
 
@@ -201,18 +202,20 @@ Default accessibility is suitable for background running applications (`.afterFi
 try keychain.store(
     secret,
     query: .credential(for: "FBI"),
-    accessPolicy: AccessPolicy(.whenUnlocked)
+    accessPolicy: AccessPolicy(.whenUnlocked, options: .userPresence) // Requires biometry/passcode authentication
 )
-
-try keychain.store(
-    secret,
-    query: .credential(for: "FBI"),
-    accessPolicy: AccessPolicy(.whenUnlocked, options: .biometryAny) // Requires user authentication
-)
-
 ```
 
-### Get
+### Retrieval
+
+If you requested the protected item, an authentication screen will appear automatically.
+
+```swift
+// Get value
+try keychain.retrieve(.credential(for: "FBI"), authenticationContext: context)
+```
+
+If you want manually perform authentication before making a request, provide an evaluated [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the `retrieve()` and `info()` methods.
 
 ```swift
 // Create an LAContext
@@ -220,7 +223,7 @@ var context = LAContext()
 
 // Authenticate
 do {
-    let success = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Log in with Biometrics")
+    let success = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Authenticate to proceed.")
 } else {
     // Handle LAError error
 }
