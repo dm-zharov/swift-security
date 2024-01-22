@@ -32,7 +32,7 @@ public extension SharedWebCredential {
             password as CFString
         ) { error in
             if let error {
-                completion(.failure(SwiftSecurityError.failedToWriteItem(description: error.localizedDescription)))
+                completion(.failure(error))
             } else {
                 completion(.success(()))
             }
@@ -48,7 +48,7 @@ public extension SharedWebCredential {
             nil
         ) { error in
             if let error {
-                completion(.failure(SwiftSecurityError.failedToWriteItem(description: error.localizedDescription)))
+                completion(.failure(error))
             } else {
                 completion(.success(()))
             }

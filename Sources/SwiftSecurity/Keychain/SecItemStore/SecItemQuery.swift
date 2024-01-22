@@ -72,6 +72,8 @@ extension SecItemQuery {
     }
 }
 
+// MARK: - Common
+
 public extension SecItemQuery {
     /// The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
     var synchronizable: Bool? {
@@ -473,9 +475,3 @@ public extension SecItemQuery {
     }
 }
 #endif
-
-extension SecItemQuery: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        attributes.debugDescription
-    }
-}

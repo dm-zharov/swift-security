@@ -127,7 +127,7 @@ extension Keychain: SecKeyStore {
         if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, &error) {
             attributes[kSecValueRef as String] = secKey
         } else {
-            throw SwiftSecurityError.missingSecKeyRepresentation
+            throw SwiftSecurityError(rawValue: errSecBadReq)
         }
 
         try store(attributes, accessPolicy: accessPolicy)
@@ -146,13 +146,13 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(secKey, &error) as Data? else {
-            throw SwiftSecurityError.missingSecKeyRepresentation
+            throw SwiftSecurityError(rawValue: errSecConversionError)
         }
         
         do {
             return try T(x963Representation: data)
         } catch  {
-            throw SwiftSecurityError.failedSecKeyConversion
+            throw SwiftSecurityError(rawValue: errSecInvalidValue)
         }
     }
     
@@ -172,9 +172,7 @@ extension Keychain: SecCertificateStore {
     
     public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: SecAccessPolicy) throws {
         guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
-            throw SwiftSecurityError.failedSecCertificateConversion(
-                description: "Data parameter is not a valid DER-encoded X.509 certificate."
-            )
+            throw SwiftSecurityError(rawValue: errSecBadReq)
         }
         
         var attributes = query.attributes
@@ -222,7 +220,7 @@ extension Keychain: SecIdentityStore {
                 return []
             }
         case let status:
-            throw SwiftSecurityError.failedToWriteItem(description: status.debugDescription)
+            throw SwiftSecurityError(rawValue: status)
         }
     }
     
@@ -232,7 +230,7 @@ extension Keychain: SecIdentityStore {
     
     public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessPolicy: SecAccessPolicy) throws {
         guard let identity = item.identity else {
-            throw SwiftSecurityError.failedToWriteItem(description: "Identity is not found.")
+            throw SwiftSecurityError(rawValue: errSecMissingValue)
         }
         
         var attributes = query.attributes
@@ -279,7 +277,7 @@ private extension Keychain {
         case errSecSuccess:
             return
         case let status:
-            throw SwiftSecurityError.failedToWriteItem(description: status.debugDescription)
+            throw SwiftSecurityError(rawValue: status)
         }
     }
     
@@ -299,7 +297,7 @@ private extension Keychain {
         case errSecItemNotFound:
             return nil
         case let status:
-            throw SwiftSecurityError.failedToReadItem(description: status.debugDescription)
+            throw SwiftSecurityError(rawValue: status)
         }
     }
     
@@ -314,10 +312,16 @@ private extension Keychain {
         case errSecItemNotFound:
             return false
         case let status:
-            throw SwiftSecurityError.failedToRemoveItem(description: status.debugDescription)
+            throw SwiftSecurityError(rawValue: status)
         }
     }
     
+}
+
+extension Keychain: CustomStringConvertible {
+    public var description: String {
+        return "Keychain(accessGroup: \(accessGroup ?? ".default"))"
+    }
 }
 
 extension Keychain: CustomDebugStringConvertible {
@@ -327,7 +331,7 @@ extension Keychain: CustomDebugStringConvertible {
         query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
         query[kSecMatchLimit as String] = kSecMatchLimitAll
         query[kSecReturnAttributes as String] = true
-        query[kSecUseOperationPrompt as String] = "debugDescription"
+        query[kSecUseOperationPrompt as String] = "A debugger is requesting access to the protected items stored in the keychain."
 
         var result: AnyObject?
         switch SecItemCopyMatching(query as CFDictionary, &result) {
@@ -336,21 +340,11 @@ extension Keychain: CustomDebugStringConvertible {
                 return items.debugDescription
             }
         case errSecItemNotFound:
-            return ""
+            return "[]"
         case let status:
-            return status.debugDescription
+            return SwiftSecurityError(rawValue: status).errorDescription ?? "Couldn't retrieve items."
         }
         
-        return ""
-    }
-}
-
-extension OSStatus: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        if let debugDescription = SecCopyErrorMessageString(self, nil) as String? {
-            return debugDescription
-        } else {
-            return description
-        }
+        return "[]"
     }
 }

@@ -221,11 +221,7 @@ internal extension SecAccessPolicy {
                 SecAccessControlCreateFlags(rawValue: CFOptionFlags(options.rawValue)),
                 &error
             ) else {
-                if let error = error?.takeUnretainedValue() {
-                    throw SwiftSecurityError.failedAccessControlCreation(description: error.localizedDescription)
-                } else {
-                    throw SwiftSecurityError.failedAccessControlCreation(description: "")
-                }
+                throw SwiftSecurityError(rawValue: errSecBadReq)
             }
             
             return accessControl
