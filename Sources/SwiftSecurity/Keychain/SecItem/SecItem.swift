@@ -10,12 +10,8 @@ import Security
 public protocol SecItem { }
 public protocol Password: SecItem { }
 
-public class GenericPassword: Password {
-    private init() { }
-}
-public class InternetPassword: Password {
-    private init() { }
-}
+public struct GenericPassword: Password { }
+public struct InternetPassword: Password { }
 
 extension SecKey: SecItem { }
 extension SecCertificate: SecItem { }

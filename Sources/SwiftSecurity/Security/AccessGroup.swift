@@ -35,4 +35,10 @@ public enum AccessGroup {
      - Example: `group.com.example.app`
      */
     case appGroupID(_ groupID: String)
+    
+    /**
+     Use this access group to access external tokens such as smart cards.
+     - Note: Access to this group is granted by default and does not require an explicit entry in your app's [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups).
+     */
+    case token
 }

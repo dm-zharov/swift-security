@@ -189,13 +189,13 @@ Default accessibility is suitable for background running applications (`.afterFi
 try keychain.store(
     secret,
     query: .credential(for: "FBI"),
-    accessControl: .init(.whenUnlocked)
+    accessPolicy: AccessPolicy(.whenUnlocked)
 )
 
 try keychain.store(
     secret,
     query: .credential(for: "FBI"),
-    accessControl: .init(.whenUnlocked, options: .biometryAny) // Requires user authentication
+    accessPolicy: AccessPolicy(.whenUnlocked, options: .biometryAny) // Requires user authentication
 )
 
 ```

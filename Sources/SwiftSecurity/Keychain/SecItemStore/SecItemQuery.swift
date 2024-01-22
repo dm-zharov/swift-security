@@ -11,9 +11,9 @@ import Security
 public struct SecItemQuery<Value> where Value: SecItem {
     private(set) var attributes: [String: Any]
     
-    private init(credentialType: CredentialType) {
+    private init(class: SecItemClass) {
         self.attributes = [
-            kSecClass: credentialType.rawValue,
+            kSecClass: `class`.rawValue,
             kSecUseDataProtectionKeychain: true, // This key affects only macOS.
         ] as [String: Any]
     }
@@ -52,23 +52,23 @@ public extension SecItemQuery {
 
 extension SecItemQuery {
     public init() where Value == GenericPassword {
-        self.init(credentialType: .genericPassword)
+        self.init(class: .genericPassword)
     }
     
     public init() where Value == InternetPassword {
-        self.init(credentialType: .internetPassword)
+        self.init(class: .internetPassword)
     }
     
     public init() where Value == SecKey {
-        self.init(credentialType: .key)
+        self.init(class: .key)
     }
     
     public init() where Value == SecCertificate {
-        self.init(credentialType: .certificate)
+        self.init(class: .certificate)
     }
     
     public init() where Value == SecIdentity {
-        self.init(credentialType: .identity)
+        self.init(class: .identity)
     }
 }
 

@@ -1,5 +1,5 @@
 //
-//  CredentialType.swift
+//  SecItemClass.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum CredentialType {
+public enum SecItemClass: CaseIterable {
     case genericPassword
     case internetPassword
     case key
@@ -15,7 +15,7 @@ public enum CredentialType {
     case identity
 }
 
-extension CredentialType: RawRepresentable, CustomStringConvertible {
+extension SecItemClass: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecClassGenericPassword):

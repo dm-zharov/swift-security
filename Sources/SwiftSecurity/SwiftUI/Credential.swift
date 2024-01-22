@@ -76,7 +76,7 @@ final private class SecItemProvider<Value>: ObservableObject where Value: SecDat
         objectWillChange.send()
         
         if let newValue {
-            try store.store(newValue, query: query, accessControl: AccessControl())
+            try store.store(newValue, query: query, accessPolicy: .default)
         } else {
             _ = try store.remove(query)
         }
