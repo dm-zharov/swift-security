@@ -4,7 +4,7 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety and convenient compile-time checks.
+SwiftSecurity is a modern Swift wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety and convenient compile-time checks.
 
 ## 🌟 Features
 
@@ -55,17 +55,17 @@ struct AuthView: View {
     var body: some View {
         VStack {
             Button("Save") {
-                // Store value
+                // Store secret
                 try? _token.store("8e9c0a7f")
             }
             Button("Delete") {
-                // Remove value
+                // Remove secret
                 try? _token.remove()
             }
         }
         .onChange(of: token) {
             if let token {
-                // Use value
+                // Use secret
             }
         }
     }
@@ -76,10 +76,15 @@ struct AuthView: View {
 
 ```swift
 // Store value
-try keychain.store(password, query: .credential(for: "login", space: .website("https://example.com"))
+try keychain.store(
+    password,
+    query: .credential(for: "login", space: .website("https://example.com")
+)
 
 // Retrieve value
-let password: String? = try keychain.retrieve(query: .credential(for: "login", space: .website("https://example.com"))
+let password: String? = try keychain.retrieve(
+    .credential(for: "login", space: .website("https://example.com")
+)
 ```
 
 For example, if you need to store distinct ports credentials for the same user working on the same server, you might further characterize the query by specifying protection space.
@@ -121,11 +126,11 @@ query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 
 Queries:
 ```swift
-SecItemQuery<GenericPassword>
-SecItemQuery<InternetPassword>
-SecItemQuery<SecKey>
-SecItemQuery<SecCertificate>
-SecItemQuery<SecIdentity>
+SecItemQuery<GenericPassword>   // kSecClassGenericPassword
+SecItemQuery<InternetPassword>  // kSecClassInternetPassword
+SecItemQuery<SecKey>.           // kSecClassSecKey
+SecItemQuery<SecCertificate>    // kSecClassSecCertificate
+SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```
 
 ### ✍️ Other
@@ -158,41 +163,6 @@ print(query.debugDescription)
 // Print all items
 print(keychain.debugDescription)
 ```
-
-## 🔖 Data Types
-
-You you could store and retrieve different types of data.
-
-```swift
-Foundation:
-    - Data // GenericPassword, InternetPassword
-    - String // GenericPassword, InternetPassword
-CryptoKit:
-    - SymmetricKey // GenericPassword
-    - Curve25519 // GenericPassword
-    - P256, P384, P521 // SecKey (Elliptic Curves)
-SwiftSecurity:
-    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
-    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
-```
-
-If you need to support your own types, you could extend them by implementing next protocols:
-
-```swift
-// Store as Data (GenericPassword, InternetPassword)
-extension CustomType: SecDataConvertible {}
-
-// Store as Key (SecKey)
-extension CustomType: SecKeyConvertible {}
-
-// Store as Certificate (X.509)
-extension CustomType: SecCertificateConvertible {}
-
-// Import as Identity ()
-extension CustomType: SecIdentityConvertible {}
-```
-
-This protocols are inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain).
 
 ## 🤔 Choose Keychain
 
@@ -267,12 +237,46 @@ if success {
 
 Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
 
+## 🔖 Custom Type
+
+You you could store and retrieve different types of data.
+
+```swift
+Foundation:
+    - Data // GenericPassword, InternetPassword
+    - String // GenericPassword, InternetPassword
+CryptoKit:
+    - SymmetricKey // GenericPassword
+    - Curve25519 // GenericPassword
+    - P256, P384, P521 // SecKey (Elliptic Curves)
+SwiftSecurity:
+    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
+    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
+```
+
+If you need to support your own types, you could extend them by implementing next protocols:
+
+```swift
+// Store as Data (GenericPassword, InternetPassword)
+extension CustomType: SecDataConvertible {}
+
+// Store as Key (SecKey)
+extension CustomType: SecKeyConvertible {}
+
+// Store as Certificate (X.509)
+extension CustomType: SecCertificateConvertible {}
+
+// Import as Identity (PKCS #12)
+extension CustomType: SecIdentityConvertible {}
+```
+
+This protocols are inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain).
 
 ## Security
 
 The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
-- `kSecUseDataProtectionKeychain == true`. This attribute helps to improve the portability of code across platforms.
+- `kSecUseDataProtectionKeychain: true`. This attribute helps to improve the portability of code across platforms.
 - `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` processes.
 
 ## Knowledge
