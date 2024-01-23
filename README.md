@@ -75,14 +75,14 @@ struct AuthView: View {
 ### 🕸️ Web Credential
 
 ```swift
-// Store value
+// Store password for a website
 try keychain.store(
-    password, query: .credential(for: "login", space: .website("https://example.com")
+    password, query: .credential(for: "username", space: .website("https://example.com")
 )
 
-// Retrieve value
+// Retrieve password for a website
 let password: String? = try keychain.retrieve(
-    .credential(for: "login", space: .website("https://example.com")
+    .credential(for: "username", space: .website("https://example.com")
 )
 ```
 
