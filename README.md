@@ -77,12 +77,12 @@ struct AuthView: View {
 ```swift
 // Store password for a website
 try keychain.store(
-    password, query: .credential(for: "username", space: .website("https://example.com")
+    password, query: .credential(for: "username", space: .website("https://example.com"))
 )
 
 // Retrieve password for a website
 let password: String? = try keychain.retrieve(
-    .credential(for: "username", space: .website("https://example.com")
+    .credential(for: "username", space: .website("https://example.com"))
 )
 ```
 
@@ -137,7 +137,6 @@ SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 #### Get Attribute
 
 ```swift
-// Get attributes
 if let info = try keychain.info(for: .credential(for: "OpenAI")) {
     // Creation date
     print(info.creationDate)
@@ -210,7 +209,7 @@ If you requested the protected item, an authentication screen will appear automa
 
 ```swift
 // Retrieve value
-try keychain.retrieve(.credential(for: "FBI"), authenticationContext: context)
+try keychain.retrieve(.credential(for: "FBI"))
 ```
 
 If you want manually perform authentication before making a request, provide an evaluated [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the `retrieve()` and `info()` methods.
@@ -221,7 +220,10 @@ var context = LAContext()
 
 // Authenticate
 do {
-    let success = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Authenticate to proceed.")
+    let success = try await context.evaluatePolicy(
+        .deviceOwnerAuthentication,
+        localizedReason: "Authenticate to proceed." // Authentication prompt
+    )
 } else {
     // Handle LAError error
 }
@@ -234,7 +236,38 @@ if success {
 
 ```
 
-Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
+>  Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
+
+## 🔑 Shared Web Credential
+
+> [SharedWebCredentials API](https://developer.apple.com/documentation/security/shared_web_credentials) makes it possible to share credentials with their website counterparts. For example, a user may log in to a website in Safari, enter a username and password, and save those credentials using the iCloud Keychain. Later, the user may run a native app from the same developer, and instead of the app requiring the user to reenter a user name and password, API gives it access to the credentials that were entered earlier in Safari. The user can also create new accounts, update passwords, or delete her account from within the app. These changes are then saved and used by Safari.
+
+```swift
+let credential = SharedWebCredential("https://example.com", account: "username")
+
+// Store
+credential.store(password) { result in
+    switch result {
+    case .failure(let error):
+        // Handle error
+    case .success:
+        // Handle success
+    }
+}
+
+// Remove
+credential.remove(completion: { result in
+    switch result {
+    case .failure(let error):
+        // Handle error
+    case .success:
+        // Handle success
+    }
+})
+
+// Retrieve
+Use `ASAuthorizationController` to make an `ASAuthorizationPasswordRequest`.
+```
 
 ## 🔖 Custom Type
 
