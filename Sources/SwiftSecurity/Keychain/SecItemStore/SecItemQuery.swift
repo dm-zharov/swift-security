@@ -428,7 +428,7 @@ public extension SecItemQuery where Value == SecKey {
 public extension SecItemQuery {
     @available(tvOS 16.0, *)
     var useUserIndependentKeychain: Bool? {
-        get { attributes[kSecUseUserIndependentKeychain as String] as? String }
+        get { attributes[kSecUseUserIndependentKeychain as String] as? Bool }
         set { attributes[kSecUseUserIndependentKeychain as String] = newValue }
     }
 }

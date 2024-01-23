@@ -59,7 +59,11 @@ extension Keychain: SecDataStore {
         try store(attributes, accessPolicy: accessPolicy)
     }
     
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext? = nil) throws -> T? {
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>) throws -> T? {
+        return try retrieve(query, authenticationContext: nil)
+    }
+    
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -93,7 +97,11 @@ extension Keychain {
         try store(attributes, accessPolicy: accessPolicy)
     }
     
-    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>) throws -> T? {
+        return try retrieve(query, authenticationContext: nil)
+    }
+    
+    public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnData as String] = true
@@ -133,7 +141,11 @@ extension Keychain: SecKeyStore {
         try store(attributes, accessPolicy: accessPolicy)
     }
     
-    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
+    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>) throws -> T? {
+        return try retrieve(query, authenticationContext: nil)
+    }
+    
+    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
@@ -176,6 +188,10 @@ extension Keychain: SecCertificateStore {
         attributes[kSecValueRef as String] = certificate
         
         try store(attributes, accessPolicy: accessPolicy)
+    }
+    
+    public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>) throws -> T? {
+        return try retrieve(query, authenticationContext: nil)
     }
     
     public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext?) throws -> T? {
@@ -237,7 +253,11 @@ extension Keychain: SecIdentityStore {
         try store(attributes, accessPolicy: accessPolicy)
     }
     
-    public func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext? = nil) throws -> SecIdentity? {
+    public func retrieve(_ query: SecItemQuery<SecIdentity>) throws -> SecIdentity? {
+        return try retrieve(query, authenticationContext: nil)
+    }
+    
+    public func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> SecIdentity? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnRef as String] = true
@@ -255,7 +275,11 @@ extension Keychain: SecIdentityStore {
 // MARK: - Common
 
 extension Keychain: SecItemStore {
-    public func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
+    public func info<SecItem>(for query: SecItemQuery<SecItem>) throws -> SecItemInfo<SecItem>? {
+        return try info(for: query, authenticationContext: nil)
+    }
+    
+    public func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext?) throws -> SecItemInfo<SecItem>? {
         var attributes = query.attributes
         attributes[kSecMatchLimit as String] = kSecMatchLimitOne
         attributes[kSecReturnAttributes as String] = true
@@ -336,14 +360,20 @@ extension Keychain: CustomStringConvertible {
 
 extension Keychain: CustomDebugStringConvertible {
     public var debugDescription: String {
+        #if os(tvOS)
+        let context: LAContext? = nil
+        #else
+        let context: LAContext? = LAContext()
+        context?.localizedReason = "A debugger is requesting access to the protected items stored in the keychain."
+        #endif
+        
         func retrieveAll<S: SecItem>(_ query: SecItemQuery<S>) -> Array<[String: Any]> where S: SecItem {
             var attributes = query.attributes
             attributes[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             attributes[kSecMatchLimit as String] = kSecMatchLimitAll
             attributes[kSecReturnAttributes as String] = true
-            attributes[kSecUseOperationPrompt as String] = "A debugger is requesting access to the protected items stored in the keychain."
             
-            if let items = try? retrieve(attributes, authenticationContext: nil) as? Array<[String: Any]> {
+            if let items = try? retrieve(attributes, authenticationContext: context) as? Array<[String: Any]> {
                 return items
             } else {
                 return []
@@ -360,3 +390,10 @@ extension Keychain: CustomDebugStringConvertible {
         return attributes.debugDescription
     }
 }
+
+#if os(tvOS)
+public struct LAContext {
+    @available(tvOS, unavailable)
+    public init() { }
+}
+#endif

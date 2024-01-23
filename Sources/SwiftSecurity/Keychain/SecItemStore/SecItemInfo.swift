@@ -397,7 +397,7 @@ public extension SecItemInfo where Value == SecCertificate {
 public extension SecItemInfo {
     @available(tvOS 16.0, *)
     var useUserIndependentKeychain: Bool? {
-        get { attributes[kSecUseUserIndependentKeychain as String] as? String }
+        get { attributes[kSecUseUserIndependentKeychain as String] as? Bool }
     }
 }
 #endif
