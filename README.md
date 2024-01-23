@@ -4,17 +4,16 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety and convenient compile-time checks.
+SwiftSecurity is a modern Swift wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety from compile-time checks.
 
 ## 🌟 Features
 
 What the difference between **SwiftSecurity** and any other wrapper?
 
-* Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values): Generic & Internet Password, Key, Certificate and Identity
-* Generic code prevents the creation of an incorrect set of attributes for items
-* Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/)
-* Compatability with [SwiftUI](https://developer.apple.com/documentation/swiftui/)
-* Native-like API experience
+* Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
+* Generic code prevents the creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
+* Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
+* Native-like API experience. Clear of any deprecated and legacy calls.
 
 ## ⚙️ Installation
 
@@ -96,13 +95,15 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
-### 👨‍💻 Advanced
+## 👨‍💻 Advanced
+
+#### Query
 
 ```swift
 // Create query
 var query = SecItemQuery<GenericPassword>()
 
-// Customize
+// Customize query
 query.synchronizable = true
 query.service = "OpenAI"
 query.label = "OpenAI Access Token"
@@ -132,8 +133,6 @@ SecItemQuery<SecCertificate>    // kSecClassSecCertificate
 SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```
 
-### ✍️ Other
-
 #### Get Attribute
 
 ```swift
@@ -146,25 +145,26 @@ if let info = try keychain.info(for: .credential(for: "OpenAI")) {
 }
 ```
 
+#### Debug
+
+```swift
+// Print all query attributes
+print(query.debugDescription)
+
+// Print all stored items
+print(keychain.debugDescription)
+```
+
 #### Remove All
 
 ```swift
 try keychain.removeAll()
 ```
 
-#### Debug
-
-```swift
-// Print all attributes
-print(query.debugDescription)
-
-// Print all items
-print(keychain.debugDescription)
-```
-
 ## 🤔 Choose Keychain
 
 ### Default
+
 ```swift
 let keychain = Keychain.default
 ```
@@ -175,25 +175,25 @@ The system considers the default storage by list of [access groups](https://deve
 
 ### Sharing within Keychain Group
 
-[Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability makes it possible to share keychain items between multiple apps belonging to the same developer (or between an app and extensions).
-
-If you don't want to rely on the automatic behavior of default storage selection, you could explicitly specify a keychain sharing group.
-
 ```swift
 let keychain = Keychain(accessGroup: .keychainGroup(teamID: "J42EP42PB2", nameID: "com.example.app"))
 ```
 
-### Sharing within App Group
+[Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability makes it possible to share keychain items between multiple apps belonging to the same developer (or between an app and extensions).
 
-The same sharing behavior could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably the most convenient choice.
+If you don't want to rely on the automatic behavior of default storage selection, you could explicitly specify a keychain sharing group.
+
+### Sharing within App Group
 
 ```swift
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
+The same sharing behavior could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably would be the most convenient choice.
+
 ## 🔓 Protection with Face ID (Touch ID) and Passcode
 
-### Store protected item
+#### Store protected item
 
 ```swift
 try keychain.store(
@@ -203,7 +203,7 @@ try keychain.store(
 )
 ```
 
-### Retrieve protected item
+#### Retrieve protected item
 
 If you requested the protected item, an authentication screen will appear automatically.
 
@@ -236,11 +236,11 @@ if success {
 
 ```
 
->  Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file if your app allows biometric authentication. Otherwise, authorization requests may fail.
+>  Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authorization requests may fail.
 
 ## 🔑 Shared Web Credential
 
-> [SharedWebCredentials API](https://developer.apple.com/documentation/security/shared_web_credentials) makes it possible to share credentials with their website counterparts. For example, a user may log in to a website in Safari and save credentials to the iCloud Keychain. Later, the user may run an app from the same developer, and instead of asking the user to reenter a username and password, it could access the existing credentials. The user can create new accounts, update passwords, or delete account from within the app. These changes are could be saved from the app and used by Safari.
+> [SharedWebCredentials API](https://developer.apple.com/documentation/security/shared_web_credentials) makes it possible to share credentials with the website counterpart. For example, a user may log in to a website in Safari and save credentials to the iCloud Keychain. Later, the user may run an app from the same developer, and instead of asking the user to reenter a username and password, it could access the existing credentials. The user can create new accounts, update passwords, or delete account from within the app. These changes should be saved from the app to be used by Safari.
 
 ```swift
 let credential = SharedWebCredential("https://example.com", account: "username")
@@ -266,12 +266,12 @@ credential.remove(completion: { result in
 })
 
 // Retrieve
-Use `ASAuthorizationController` to make an `ASAuthorizationPasswordRequest`.
+// - Use `ASAuthorizationController` to make an `ASAuthorizationPasswordRequest`.
 ```
 
-## 🔖 Custom Type
+## 🔖 Data Types
 
-You you could store and retrieve different types of data.
+You you could store, retrieve and remove different types of values.
 
 ```swift
 Foundation:
@@ -286,7 +286,7 @@ SwiftSecurity:
     - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
 ```
 
-If you need to support your own types, you could extend them by implementing next protocols:
+To add support for own types, you can extend them by conforming to the following protocols.
 
 ```swift
 // Store as Data (GenericPassword, InternetPassword)
@@ -302,14 +302,14 @@ extension CustomType: SecCertificateConvertible {}
 extension CustomType: SecIdentityConvertible {}
 ```
 
-This protocols are inspired by Apple's sample code [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain).
+This protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
 
 ## Security
 
 The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
-- `kSecUseDataProtectionKeychain: true`. This attribute helps to improve the portability of code across platforms.
-- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` processes.
+- `kSecUseDataProtectionKeychain: true`. This attribute helps to improve the portability of code across platforms. Can't be changed.
+- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` processes. Could be changed by using custom `accessPolicy`.
 
 ## Knowledge
 
@@ -319,12 +319,12 @@ The framework’s default behavior provides a reasonable trade-off between secur
 
 ## Requirements
 
-* iOS 14.0
-* macOS 11.0
-* macCatalyst 14.0
-* watchOS 7.0
-* tvOS 14.0
-* visionOS 1.0
+* iOS 14.0+
+* macOS 11.0+
+* macCatalyst 14.0+
+* watchOS 7.0+
+* tvOS 14.0+
+* visionOS 1.0+
 
 ## Author
 
