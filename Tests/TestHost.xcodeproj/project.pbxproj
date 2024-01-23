@@ -25,8 +25,8 @@
 
 /* Begin PBXFileReference section */
 		230F22B72B5FEF0400D2843A /* KeychainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTests.swift; sourceTree = "<group>"; };
-		230F22BC2B5FF35100D2843A /* TestHost-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TestHost-macOS.entitlements"; sourceTree = "<group>"; };
 		230F22BD2B5FF8D200D2843A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		232BD3F92B600EC1003F4EA7 /* TestHost-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TestHost-macOS.entitlements"; sourceTree = "<group>"; };
 		23E8EEE82B5FEAF400A0A188 /* TestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		23E8EEEB2B5FEAF400A0A188 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		23E8EEF12B5FEAF500A0A188 /* TestHost.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TestHost.entitlements; sourceTree = "<group>"; };
@@ -76,7 +76,7 @@
 			children = (
 				23E8EEEB2B5FEAF400A0A188 /* AppDelegate.swift */,
 				23E8EEF12B5FEAF500A0A188 /* TestHost.entitlements */,
-				230F22BC2B5FF35100D2843A /* TestHost-macOS.entitlements */,
+				232BD3F92B600EC1003F4EA7 /* TestHost-macOS.entitlements */,
 			);
 			path = TestHost;
 			sourceTree = "<group>";

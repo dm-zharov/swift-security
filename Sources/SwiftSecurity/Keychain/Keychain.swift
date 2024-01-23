@@ -35,10 +35,10 @@ extension Keychain {
         switch accessGroup {
         case .default:
             self.init(accessGroup: nil)
-        case .keychainGroup(let teamID, let nameID):
+        case let .keychainGroup(teamID: teamID, nameID: nameID):
             self.init(accessGroup: "\(teamID).\(nameID)")
-        case .appGroupID(let groupID):
-            self.init(accessGroup: groupID)
+        case let .appGroupID(nameID):
+            self.init(accessGroup: "\(nameID)")
         case .token:
             self.init(accessGroup: kSecAttrAccessGroupToken as String)
         }
@@ -135,7 +135,11 @@ extension Keychain: SecKeyStore {
         if let secKey = SecKeyCreateWithData(key.x963Representation as CFData, attributes as CFDictionary, &error) {
             attributes[kSecValueRef as String] = secKey
         } else {
-            throw SwiftSecurityError(rawValue: errSecConversionError)
+            if let error = error?.takeUnretainedValue() {
+                throw SwiftSecurityError(error: error)
+            } else {
+                throw SwiftSecurityError(rawValue: errSecBadReq)
+            }
         }
 
         try store(attributes, accessPolicy: accessPolicy)
@@ -158,7 +162,11 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(secKey, &error) as Data? else {
-            throw SwiftSecurityError(rawValue: errSecConversionError)
+            if let error = error?.takeUnretainedValue() {
+                throw SwiftSecurityError(error: error)
+            } else {
+                throw SwiftSecurityError(rawValue: errSecBadReq)
+            }
         }
 
         return try T(x963Representation: data)

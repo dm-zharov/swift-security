@@ -173,6 +173,8 @@ The system considers the default storage by list of [access groups](https://deve
 - If [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability enabled, then by the first entry in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups).
 - Otherwise, by the application bundle identifier.
 
+> 💡 If you are supporting `macOS` as a target, ensure the `Keychain Sharing` capability is added, and create at least one sharing group. Otherwise, you will encounter `A required entitlement isn't present` error for all operations. I suggest using `${TeamIdentifierPrefix}your.bundle.identifier`, as this sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms.
+
 ### Sharing within Keychain Group
 
 ```swift
@@ -190,6 +192,8 @@ let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
 The same sharing behavior could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably would be the most convenient choice.
+
+> 💡 Use `Sharing within Keychain Group` for sharing on `macOS`, cause this method of sharing isn't available.
 
 ## 🔓 Protection with Face ID (Touch ID) and Passcode
 

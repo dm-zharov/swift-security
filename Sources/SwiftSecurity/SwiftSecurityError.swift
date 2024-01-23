@@ -10,22 +10,40 @@ import Foundation
 /**
  - SeeAlso: [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes)
  */
-public struct SwiftSecurityError: RawRepresentable, Error {
-    public var rawValue: OSStatus
+public struct SwiftSecurityError: CustomStringConvertible, Error {
+    public let code: OSStatus
+    public let description: String
     
-    public init(rawValue: OSStatus) {
-        self.rawValue = rawValue
+    private init(code: OSStatus, description: String?) {
+        self.code = code
+        self.description = description ?? code.description
     }
 }
 
-extension SwiftSecurityError: CustomStringConvertible {
-    public var description: String {
-        errorDescription ?? rawValue.description
+extension SwiftSecurityError {
+    public init(error: CFError) {
+        self.init(
+            code: OSStatus(CFErrorGetCode(error)),
+            description: CFErrorCopyDescription(error) as String?
+        )
+    }
+}
+
+extension SwiftSecurityError: RawRepresentable {
+    public var rawValue: OSStatus {
+        code
+    }
+    
+    public init(rawValue: OSStatus) {
+        self.init(
+            code: rawValue,
+            description: SecCopyErrorMessageString(rawValue, nil) as String?
+        )
     }
 }
 
 extension SwiftSecurityError: LocalizedError {
     public var errorDescription: String? {
-        SecCopyErrorMessageString(rawValue, nil) as String?
+        description
     }
 }
