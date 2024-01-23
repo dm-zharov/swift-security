@@ -10,6 +10,8 @@
 		230F22B82B5FEF0400D2843A /* KeychainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230F22B72B5FEF0400D2843A /* KeychainTests.swift */; };
 		230F22BB2B5FEF4100D2843A /* SwiftSecurity in Frameworks */ = {isa = PBXBuildFile; productRef = 230F22BA2B5FEF4100D2843A /* SwiftSecurity */; };
 		230F22BE2B5FF8D200D2843A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 230F22BD2B5FF8D200D2843A /* README.md */; };
+		235B8F672B60842A0007969B /* EnumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B8F662B60842A0007969B /* EnumTests.swift */; };
+		235B8F692B6084E00007969B /* AccessPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B8F682B6084E00007969B /* AccessPolicyTests.swift */; };
 		23E8EEEC2B5FEAF400A0A188 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E8EEEB2B5FEAF400A0A188 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +29,8 @@
 		230F22B72B5FEF0400D2843A /* KeychainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTests.swift; sourceTree = "<group>"; };
 		230F22BD2B5FF8D200D2843A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		232BD3F92B600EC1003F4EA7 /* TestHost-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TestHost-macOS.entitlements"; sourceTree = "<group>"; };
+		235B8F662B60842A0007969B /* EnumTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTests.swift; sourceTree = "<group>"; };
+		235B8F682B6084E00007969B /* AccessPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessPolicyTests.swift; sourceTree = "<group>"; };
 		23E8EEE82B5FEAF400A0A188 /* TestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		23E8EEEB2B5FEAF400A0A188 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		23E8EEF12B5FEAF500A0A188 /* TestHost.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TestHost.entitlements; sourceTree = "<group>"; };
@@ -84,7 +88,9 @@
 		23E8EEFC2B5FEAF600A0A188 /* SwiftSecurityTests */ = {
 			isa = PBXGroup;
 			children = (
+				235B8F662B60842A0007969B /* EnumTests.swift */,
 				230F22B72B5FEF0400D2843A /* KeychainTests.swift */,
+				235B8F682B6084E00007969B /* AccessPolicyTests.swift */,
 			);
 			path = SwiftSecurityTests;
 			sourceTree = "<group>";
@@ -204,6 +210,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				230F22B82B5FEF0400D2843A /* KeychainTests.swift in Sources */,
+				235B8F692B6084E00007969B /* AccessPolicyTests.swift in Sources */,
+				235B8F672B60842A0007969B /* EnumTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

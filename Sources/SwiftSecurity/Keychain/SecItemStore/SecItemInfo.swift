@@ -158,13 +158,13 @@ public extension SecItemInfo where Value: Password {
     }
     
     /// The corresponding value represents the item's creator. This number is the unsigned integer representation of a four-character code (for example, 'aCrt').
-    var creator: NSNumber? {
-        get { attributes[kSecAttrCreator as String] as? NSNumber }
+    var creator: UInt? {
+        get { attributes[kSecAttrCreator as String] as? UInt }
     }
     
     /// The corresponding value  represents the item's type. This number is the unsigned integer representation of a four-character code (for example, 'aTyp').
-    var type: NSNumber? {
-        get { attributes[kSecAttrType as String] as? NSNumber }
+    var type: UInt? {
+        get { attributes[kSecAttrType as String] as? UInt }
     }
     
     /// The corresponding value is kCFBooleanTrue if the item is invisible (that is, should not be displayed).
