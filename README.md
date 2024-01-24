@@ -142,7 +142,7 @@ query.service = "OpenAI"     // ❌ Only for `GenericPassword`, so not accessibl
 query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 ```
 
-Queries:
+Possible queries:
 
 ```swift
 SecItemQuery<GenericPassword>   // kSecClassGenericPassword
@@ -176,7 +176,7 @@ The system considers the first item in the list of [keychain access groups](http
 
 If the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability is not enabled, the default access group is `app ID`.
 
-> 💡 To enable `macOS` support, make sure to include the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms. You could refer to [TestHost.xcodeproj](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
+> 💡 To enable macOS support, make sure to include the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms. You could refer to [TestHost.xcodeproj](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
 
 ### Sharing within Keychain Group
 
@@ -194,7 +194,7 @@ Sharing could also be achieved by using [App Groups](https://developer.apple.com
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
-> 💡 Use `Sharing within Keychain Group` for sharing on `macOS`, as the described behavior is not present on this platform. There's no issue with using one sharing solution on one platform and a different one on another.
+> 💡 Use `Sharing within Keychain Group` for sharing on macOS, as the described behavior is not present on this platform. There's no issue with using one sharing solution on one platform and a different one on another.
 
 ## 🔓 Protection with Face ID (Touch ID) and Passcode
 
