@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if canImport(LocalAuthentication)
 import LocalAuthentication
+#endif
 
 public struct Keychain: Hashable, Codable, Sendable {
     private let accessGroup: String?
@@ -368,7 +370,7 @@ extension Keychain: CustomStringConvertible {
 
 extension Keychain: CustomDebugStringConvertible {
     public var debugDescription: String {
-        #if os(tvOS)
+        #if os(watchOS) || os(tvOS)
         let context: LAContext? = nil
         #else
         let context: LAContext? = LAContext()
@@ -399,8 +401,9 @@ extension Keychain: CustomDebugStringConvertible {
     }
 }
 
-#if os(tvOS)
+#if os(watchOS) || os(tvOS)
 public struct LAContext {
+    @available(watchOS, unavailable)
     @available(tvOS, unavailable)
     public init() { }
 }

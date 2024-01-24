@@ -7,7 +7,9 @@
 
 import Foundation
 import Security
+#if canImport(LocalAuthentication)
 import LocalAuthentication
+#endif
 
 /**
  - SeeAlso: [Restricting keychain item accessibility](https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility)
