@@ -4,32 +4,37 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift wrapper for Security API (Keychain Services, SharedWebCredentials). Use value types and get safety from compile-time checks.
+SwiftSecurity is a modern Swift wrapper for [Security](https://developer.apple.com/documentation/security) framework (Keychain Services API, SharedWebCredentials API). Use value types and get safety from compile-time checks.
 
-## 🌟 Features
+## Features
 
-What the difference between **SwiftSecurity** and any other wrapper?
+How does SwiftSecurity differ from other keychain wrappers?
 
 * Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
 * Generic code prevents the creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
 * Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
 * Native-like API experience. Clear of any deprecated and legacy calls.
 
-## ⚙️ Installation
+## Installation
 
-### Swift Package Manager
+#### Requirements
+
+* iOS 14.0+ / macCatalyst 14.0+ / macOS 11.0+ / watchOS 7.0+ / tvOS 14.0+ / visionOS 1.0+
+* Swift 5.7 / Xcode 14+
+
+#### Swift Package Manager
+
+To use the `SwiftSecurity`, add the following dependency in your `Package.swift`:
 
 ```swift
-let package = Package(
-    dependencies: [
-        .package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "1.0.0")
-    ]
-)
+.package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "1.0.0")
 ```
 
-##  📖 Quick Start
+Finally, add `import SwiftSecurity` to your source code.
 
-###  Basic
+##  Quick Start
+
+####  Basic
 
 ```swift
 // Choose Keychain
@@ -45,7 +50,7 @@ let token: String? = try keychain.retrieve(.credential(for: "OpenAI"))
 try keychain.remove(.credential(for: "OpenAI"))
 ```
 
-### Basic (SwiftUI)
+#### Basic (SwiftUI)
 
 ```swift
 struct AuthView: View {
@@ -71,7 +76,7 @@ struct AuthView: View {
 } 
 ```
 
-### Web Credential
+#### Web Credential
 
 ```swift
 // Store password for a website
@@ -95,7 +100,7 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
-### Get Attribute
+#### Get Attribute
 
 ```swift
 if let info = try keychain.info(for: .credential(for: "OpenAI")) {
@@ -113,7 +118,7 @@ if let info = try keychain.info(for: .credential(for: "OpenAI")) {
 try keychain.removeAll()
 ```
 
-## 👨‍💻 Advanced
+## Advanced Usage
 
 #### Query
 
@@ -162,7 +167,7 @@ print(query.debugDescription)
 print(keychain.debugDescription)
 ```
 
-## 🤔 Choose Keychain
+## How to Choose Keychain
 
 ### Default
 
@@ -321,15 +326,6 @@ The framework’s default behavior provides a reasonable trade-off between secur
 * [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/)
 * [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain)
 * [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
-
-## Requirements
-
-* iOS 14.0+
-* macOS 11.0+
-* macCatalyst 14.0+
-* watchOS 7.0+
-* tvOS 14.0+
-* visionOS 1.0+
 
 ## Author
 
