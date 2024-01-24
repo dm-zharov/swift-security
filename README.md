@@ -71,7 +71,7 @@ struct AuthView: View {
 } 
 ```
 
-### 🕸️ Web Credential
+### Web Credential
 
 ```swift
 // Store password for a website
@@ -95,6 +95,24 @@ let space2 = WebProtectionSpace(host: "https://example.com", port: 8443)
 try keychain.store(password2, query: .credential(for: user, space: space2))
 ```
 
+### Get Attribute
+
+```swift
+if let info = try keychain.info(for: .credential(for: "OpenAI")) {
+    // Creation date
+    print(info.creationDate)
+    // Comment
+    print(info.comment)
+    ...
+}
+```
+
+#### Remove All
+
+```swift
+try keychain.removeAll()
+```
+
 ## 👨‍💻 Advanced
 
 #### Query
@@ -114,7 +132,7 @@ try keychain.retrieve(query, authenticationContext: LAContext())
 try keychain.remove(query)
 ```
 
-The generics system prevents API misuses at compile time:
+Query prevents the creation of an incorrect set of attributes for item:
 
 ```swift
 var query = SecItemQuery<InternetPassword>()
@@ -125,6 +143,7 @@ query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 ```
 
 Queries:
+
 ```swift
 SecItemQuery<GenericPassword>   // kSecClassGenericPassword
 SecItemQuery<InternetPassword>  // kSecClassInternetPassword
@@ -133,32 +152,14 @@ SecItemQuery<SecCertificate>    // kSecClassSecCertificate
 SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```
 
-#### Get Attribute
-
-```swift
-if let info = try keychain.info(for: .credential(for: "OpenAI")) {
-    // Creation date
-    print(info.creationDate)
-    // Comment
-    print(info.comment)
-    ...
-}
-```
-
 #### Debug
 
 ```swift
-// Print all query attributes
+// Print query attributes
 print(query.debugDescription)
 
 // Print all stored items
 print(keychain.debugDescription)
-```
-
-#### Remove All
-
-```swift
-try keychain.removeAll()
 ```
 
 ## 🤔 Choose Keychain
@@ -169,31 +170,31 @@ try keychain.removeAll()
 let keychain = Keychain.default
 ```
 
-The system considers the default storage by list of [access groups](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/) in this order:
-- If [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability enabled, then by the first entry in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups).
-- Otherwise, by the application bundle identifier prefixed with team identifier.
+The system considers the first item in the list of [keychain access groups](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/) to be the app’s default access group, evaluated in this order:
+- The optional [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups) holds an array of strings, each of which names an access group.
+- Application identifier, formed as the team identifier (team ID) plus the bundle identifier (bundle ID). For example, `J42EP42PB2.com.example.app`.
 
-> 💡 If you are supporting `macOS` as a target, ensure that the `Keychain Sharing` capability is added, and create at least one sharing group. Otherwise, you will encounter `A required entitlement isn't present` error for all operations. I suggest using `${TeamIdentifierPrefix}com.example.app`, as this sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms.
+If the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability is not enabled, the default access group is `app ID`.
+
+> 💡 To enable `macOS` support, make sure to include the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms. You could refer to [TestHost.xcodeproj](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
 
 ### Sharing within Keychain Group
+
+If you prefer not to rely on the automatic behavior of default storage selection, you have the option to explicitly specify a keychain sharing group.
 
 ```swift
 let keychain = Keychain(accessGroup: .keychainGroup(teamID: "J42EP42PB2", nameID: "com.example.app"))
 ```
 
-[Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing) capability makes it possible to share keychain items between multiple apps belonging to the same developer (or between an app and extensions).
-
-If you don't want to rely on the automatic behavior of default storage selection, you could explicitly specify a keychain sharing group.
-
 ### Sharing within App Group
+
+Sharing could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably would be the most convenient choice.
 
 ```swift
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
-The same sharing behavior could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably would be the most convenient choice.
-
-> 💡 Use `Sharing within Keychain Group` for sharing on `macOS`, cause this method of sharing isn't available.
+> 💡 Use `Sharing within Keychain Group` for sharing on `macOS`, as the described behavior is not present on this platform. There's no issue with using one sharing solution on one platform and a different one on another.
 
 ## 🔓 Protection with Face ID (Touch ID) and Passcode
 
@@ -209,14 +210,14 @@ try keychain.store(
 
 #### Retrieve protected item
 
-If you requested the protected item, an authentication screen will appear automatically.
+If you request the protected item, an authentication screen will automatically appear.
 
 ```swift
 // Retrieve value
 try keychain.retrieve(.credential(for: "FBI"))
 ```
 
-If you want manually perform authentication before making a request, provide an evaluated [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the `retrieve()` and `info()` methods.
+If you want to manually authenticate before making a request or customize authentication screen, provide [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the retrieval method.
 
 ```swift
 // Create an LAContext
@@ -240,7 +241,7 @@ if success {
 
 ```
 
->  Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authorization requests may fail.
+> 💡 Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
 
 ## 🔑 Shared Web Credential
 
@@ -275,7 +276,7 @@ credential.remove(completion: { result in
 
 ## 🔖 Data Types
 
-You you could store, retrieve and remove different types of values.
+You can store, retrieve, and remove various types of values.
 
 ```swift
 Foundation:
@@ -290,7 +291,7 @@ SwiftSecurity:
     - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
 ```
 
-To add support for own types, you can extend them by conforming to the following protocols.
+To add support for custom types, you can extend them by conforming to the following protocols.
 
 ```swift
 // Store as Data (GenericPassword, InternetPassword)
@@ -306,14 +307,14 @@ extension CustomType: SecCertificateConvertible {}
 extension CustomType: SecIdentityConvertible {}
 ```
 
-This protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
+These protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
 
 ## Security
 
 The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
-- `kSecUseDataProtectionKeychain: true`. This attribute helps to improve the portability of code across platforms. Can't be changed.
-- `kSecAttrAccessibleWhenUnlocked`. This attribute makes keychain items accessible from `background` processes. Could be changed by using custom `accessPolicy`.
+- `kSecUseDataProtectionKeychain: true` helps to improve the portability of code across platforms. Can't be changed.
+- `kSecAttrAccessibleWhenUnlocked` makes keychain items accessible from `background` processes. Could be changed by using custom `accessPolicy`.
 
 ## Knowledge
 
