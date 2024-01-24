@@ -4,11 +4,11 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift wrapper for [Security](https://developer.apple.com/documentation/security) framework (Keychain Services API, SharedWebCredentials API). Use value types and get safety from compile-time checks.
+SwiftSecurity is a modern Swift wrapper for [Security](https://developer.apple.com/documentation/security) framework (Keychain Services API, SharedWebCredentials API). Secure the data your app manages in a much easier way with compile-time checks. 
 
 ## Features
 
-How does SwiftSecurity differ from other keychain wrappers?
+How does SwiftSecurity differ from other wrappers?
 
 * Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
 * Generic code prevents the creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
@@ -169,7 +169,7 @@ print(keychain.debugDescription)
 
 ## How to Choose Keychain
 
-### Default
+#### Default
 
 ```swift
 let keychain = Keychain.default
@@ -183,7 +183,7 @@ If the [Keychain Sharing](https://developer.apple.com/documentation/xcode/config
 
 > 💡 To enable macOS support, make sure to include the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms. You could refer to [TestHost.xcodeproj](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
 
-### Sharing within Keychain Group
+#### Sharing within Keychain Group
 
 If you prefer not to rely on the automatic behavior of default storage selection, you have the option to explicitly specify a keychain sharing group.
 
@@ -191,7 +191,7 @@ If you prefer not to rely on the automatic behavior of default storage selection
 let keychain = Keychain(accessGroup: .keychainGroup(teamID: "J42EP42PB2", nameID: "com.example.app"))
 ```
 
-### Sharing within App Group
+#### Sharing within App Group
 
 Sharing could also be achieved by using [App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups) capability. Unlike a keychain sharing group, the app group can’t automatically became the default storage for keychain items. You might already be using an app group, so it's probably would be the most convenient choice.
 
