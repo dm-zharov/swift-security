@@ -370,8 +370,10 @@ extension Keychain: CustomStringConvertible {
 
 extension Keychain: CustomDebugStringConvertible {
     public var debugDescription: String {
-        #if os(watchOS) || os(tvOS)
+        #if os(tvOS)
         let context: LAContext? = nil
+        #elseif os(watchOS)
+        let context: LAContext? = LAContext()
         #else
         let context: LAContext? = LAContext()
         context?.localizedReason = "A debugger is requesting access to the protected items stored in the keychain."
@@ -401,7 +403,7 @@ extension Keychain: CustomDebugStringConvertible {
     }
 }
 
-#if os(watchOS) || os(tvOS)
+#if os(tvOS)
 public struct LAContext {
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
