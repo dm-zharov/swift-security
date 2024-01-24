@@ -181,7 +181,8 @@ The system considers the first item in the list of [keychain access groups](http
 
 If the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability is not enabled, the default access group is `app ID`.
 
-> 💡 To enable macOS support, make sure to include the [Keychain Sharing](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms. You could refer to [TestHost.xcodeproj](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
+> [!NOTE]
+> To enable macOS support, make sure to include the [Keychain Sharing (macOS)](https://developer.apple.com/documentation/xcode/configuring-keychain-sharing#Specify-the-default-keychain-group) capability and create a group `${TeamIdentifierPrefix}com.example.app`, to prevent errors in operations. This sharing group is [automatically generated](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/#2974917) for other platforms and accessible without capability. You could refer to [TestHost](https://github.com/dm-zharov/swift-security/tree/main/Tests/TestHost.xcodeproj) for information regarding project configuration.
 
 #### Sharing within Keychain Group
 
@@ -199,7 +200,8 @@ Sharing could also be achieved by using [App Groups](https://developer.apple.com
 let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 ```
 
-> 💡 Use `Sharing within Keychain Group` for sharing on macOS, as the described behavior is not present on this platform. There's no issue with using one sharing solution on one platform and a different one on another.
+> [!NOTE]
+> Use `Sharing within Keychain Group` for sharing on macOS, as the described behavior is not present on this platform. There's no issue with using one sharing solution on one platform and a different one on another.
 
 ## 🔓 Protection with Face ID (Touch ID) and Passcode
 
@@ -246,10 +248,12 @@ if success {
 
 ```
 
-> 💡 Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
+> [!WARNING]
+> Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
 
 ## 🔑 Shared Web Credential
 
+> [!TIP]
 > [SharedWebCredentials API](https://developer.apple.com/documentation/security/shared_web_credentials) makes it possible to share credentials with the website counterpart. For example, a user may log in to a website in Safari and save credentials to the iCloud Keychain. Later, the user may run an app from the same developer, and instead of asking the user to reenter a username and password, it could access the existing credentials. The user can create new accounts, update passwords, or delete account from within the app. These changes should be saved from the app to be used by Safari.
 
 ```swift
