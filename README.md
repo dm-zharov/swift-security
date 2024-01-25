@@ -25,9 +25,8 @@ How does SwiftSecurity differ from other wrappers?
 #### Swift Package Manager
 
 To use the `SwiftSecurity`, add the following dependency in your `Package.swift`:
-
 ```swift
-.package(url: "https://github.com/dm-zharov/SwiftSecurity.git", from: "1.0.0")
+.package(url: "https://github.com/dm-zharov/swift-security.git", from: "1.0.0")
 ```
 
 Finally, add `import SwiftSecurity` to your source code.
