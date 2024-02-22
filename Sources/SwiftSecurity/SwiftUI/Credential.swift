@@ -17,6 +17,10 @@ import Security
         get { provider() }
     }
     
+    public var projectedValue: Credential<Value> {
+        self
+    }
+    
     /// An error encountered during the most recent operation on secure storage.
     public var fetchError: Error? {
         provider.fetchError
