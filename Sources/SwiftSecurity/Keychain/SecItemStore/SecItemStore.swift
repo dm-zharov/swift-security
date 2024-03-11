@@ -55,3 +55,15 @@ public protocol SecIdentityStore: SecItemStore {
     func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> SecIdentity?
     func remove(_ query: SecItemQuery<SecIdentity>) throws -> Bool
 }
+
+// MARK: - Convenient
+
+public extension SecDataStore {
+    func retrieve(_ query: SecItemQuery<GenericPassword>) throws -> Data? {
+        try self.retrieve<Data>(query, authenticationContext: nil)
+    }
+
+    func retrieve(_ query: SecItemQuery<InternetPassword>) throws -> Data? {
+        try self.retrieve<Data>(query, authenticationContext: nil)
+    }
+}

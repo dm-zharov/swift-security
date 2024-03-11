@@ -188,6 +188,30 @@ final class KeychainTests: XCTestCase {
         }
     }
     
+    func testConvenientSyntax() throws {
+        // Keychain
+        let keychain = Keychain.default
+        
+        // Store
+        do {
+            try keychain.store("password", query: .credential(for: "service"))
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+        // Check
+        let data1 = try keychain.retrieve(.credential(for: "service"))
+        let data2: Data? = try keychain.retrieve(.credential(for: "service"))
+        XCTAssertEqual(data1, data2)
+        
+        // Remove
+        do {
+            try keychain.remove(.credential(for: "service"))
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
     func testRemoveAll() throws {
         // Keychain
         let keychain = Keychain.default
