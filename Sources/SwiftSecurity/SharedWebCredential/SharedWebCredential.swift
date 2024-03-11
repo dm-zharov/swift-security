@@ -71,7 +71,7 @@ public extension SharedWebCredential {
     /// - Returns: Returns a randomly generated password.
     static func generatePassword() -> String {
         #if os(tvOS) || os(watchOS)
-        fatalError()
+        fatalError("generatePassword() is not available")
         #else
         return SecCreateSharedWebCredentialPassword()! as String
         #endif
