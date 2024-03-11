@@ -12,7 +12,7 @@ How does SwiftSecurity differ from other wrappers?
 
 * Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
 * Generic code prevents the creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
-* Compatability with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
+* Compatibility with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
 * Native-like API experience. Clear of any deprecated and legacy calls.
 
 ## Installation
