@@ -132,7 +132,7 @@ query.label = "OpenAI Access Token"
 
 // Perform query
 try keychain.store(secret, query: query, accessPolicy: .init(.whenUnlocked, options: .biometryAny))
-try keychain.retrieve(query, authenticationContext: LAContext())
+_ = try keychain.retrieve(query, authenticationContext: LAContext())
 try keychain.remove(query)
 ```
 
