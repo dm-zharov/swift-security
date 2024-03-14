@@ -11,7 +11,7 @@ import Foundation
  Item Attribute Keys
  - SeeAlso: https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values
  */
-struct SecItemAttr: RawRepresentable {
+struct SecItemAttr: Equatable, RawRepresentable {
     var rawValue: String
 }
 
@@ -42,7 +42,7 @@ extension SecItemAttr {
 
     #if os(tvOS)
     @available(tvOS 16.0, *)
-    static let useUserIndependentKeychain = SecItemAttr(rawValue: kSecUseUserIndependentKeychain)
+    static let useUserIndependentKeychain = SecItemAttr(rawValue: kSecUseUserIndependentKeychain as String)
     #endif
 }
 
@@ -101,6 +101,124 @@ extension SecItemAttr {
     static let canVerify           = SecItemAttr(rawValue: kSecAttrCanVerify as String)
     static let canWrap             = SecItemAttr(rawValue: kSecAttrCanWrap as String)
     static let canUnwrap           = SecItemAttr(rawValue: kSecAttrCanUnwrap as String)
+}
+
+extension SecItemAttr: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .accessControl:
+            return "Access Control"
+        case .accessible:
+            return "Accessible"
+        case .accessGroup:
+            return "Access Group"
+        case .synchronizable:
+            return "Synchronizable"
+        case .creationDate:
+            return "Creation Date"
+        case .modificationDate:
+            return "Modification Date"
+        case .description:
+            return "Description"
+        case .comment:
+            return "Comment"
+        case .creator:
+            return "Creator"
+        case .type:
+            return "Type"
+        case .label:
+            return "Label"
+        case .isInvisible:
+            return "Is Invisible"
+        case .isNegative:
+            return "Is Negative"
+        case .syncViewHint:
+            return "Sync View Hint"
+        case .persistentReference:
+            return "Persistent Reference"
+        case .account:
+            return "Account"
+        case .service:
+            return "Service"
+        case .generic:
+            return "Generic"
+        case .securityDomain:
+            return "Security Domain"
+        case .server:
+            return "Server"
+        case .protocolType:
+            return "Protocol"
+        case .authenticationType:
+            return "Authentication Type"
+        case .port:
+            return "Port"
+        case .path:
+            return "Path"
+        case .subject:
+            return "Subject"
+        case .issuer:
+            return "Issuer"
+        case .serialNumber:
+            return "Serial Number"
+        case .subjectKeyID:
+            return "Subject Key ID"
+        case .publicKeyHash:
+            return "Public Key Hash"
+        case .certificateType:
+            return "Certificate Type"
+        case .certificateEncoding:
+            return "Certificate Encoding"
+        case .keyClass:
+            return "Key Class"
+        case .applicationLabel:
+            return "Application Label"
+        case .applicationTag:
+            return "Application Tag"
+        case .keyType:
+            return "Key Type"
+        case .keySizeInBits:
+            return "Key Size In Bits"
+        case .effectiveKeySize:
+            return "Effective Key Size"
+        case .tokenID:
+            return "Token ID"
+        #if os(macOS)
+        case .prf:
+            return "PRF"
+        case .salt:
+            return "Salt"
+        case .rounds:
+            return "Rounds"
+        #endif
+        case .isPermament:
+            return "Is Permament"
+        case .isSensitive:
+            return "Is Sensitive"
+        case .isExtractable:
+            return "Is Extractable"
+        case .canEncrypt:
+            return "Can Encrypt"
+        case .canDecrypt:
+            return "Can Decrypt"
+        case .canDerive:
+            return "Can Derive"
+        case .canSign:
+            return "Can Sign"
+        case .canVerify:
+            return "Can Verify"
+        case .canWrap:
+            return "Can Wrap"
+        case .canUnwrap:
+            return "Can Unwrap"
+        default:
+            #if os(tvOS)
+            if #available(tvOS 16.0, *), self == .useUserIndependentKeychain {
+                return "Use User Independent Keychain"
+            }
+            #endif
+            return rawValue
+        }
+    }
 }
 
 extension Dictionary where Key == String {

@@ -11,7 +11,7 @@ import Foundation
  Search Attribute Keys and Values
  - SeeAlso: https://developer.apple.com/documentation/security/keychain_services/keychain_items/search_attribute_keys_and_values
  */
-struct SecItemSearch: RawRepresentable {//
+struct SecItemSearch: Equatable, RawRepresentable {
     var rawValue: String
 }
 
