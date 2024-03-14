@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum SecItemClass: CaseIterable {
+enum SecItemClass: CaseIterable {
     case genericPassword
     case internetPassword
     case key
@@ -16,7 +16,7 @@ public enum SecItemClass: CaseIterable {
 }
 
 extension SecItemClass: RawRepresentable, CustomStringConvertible {
-    public init?(rawValue: String) {
+    init?(rawValue: String) {
         switch rawValue {
         case String(kSecClassGenericPassword):
             self = .genericPassword
@@ -33,7 +33,7 @@ extension SecItemClass: RawRepresentable, CustomStringConvertible {
         }
     }
     
-    public var rawValue: String {
+    var rawValue: String {
         switch self {
         case .genericPassword:
             return String(kSecClassGenericPassword)
@@ -48,7 +48,7 @@ extension SecItemClass: RawRepresentable, CustomStringConvertible {
         }
     }
     
-    public var description: String {
+    var description: String {
         switch self {
         case .genericPassword:
             return "GenericPassword"
