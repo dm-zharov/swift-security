@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum AccessGroup {
+public enum AccessGroup: Hashable, Codable, Sendable {
     /**
      The system considers the first item in the list of access groups to be the app’s default access group. The list of an app’s access groups consists of the following string identifiers, in this order:
      - The strings in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups)
@@ -42,4 +42,19 @@ public enum AccessGroup {
      - Note: Access to this group is granted by default and does not require an explicit entry in your app's [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups).
      */
     case token
+}
+
+extension AccessGroup /* RawRepresentable */ {
+    public var rawValue: String? {
+        switch self {
+        case .default:
+            return nil
+        case let .keychainGroup(teamID: teamID, nameID: nameID):
+            return "\(teamID).\(nameID)"
+        case let .appGroupID(nameID):
+            return "\(nameID)"
+        case .token:
+            return kSecAttrAccessGroupToken as String
+        }
+    }
 }

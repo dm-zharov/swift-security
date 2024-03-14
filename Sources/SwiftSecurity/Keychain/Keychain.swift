@@ -11,18 +11,10 @@ import LocalAuthentication
 #endif
 
 public struct Keychain: Hashable, Codable, Sendable {
-    private let accessGroup: String?
+    private let accessGroup: AccessGroup
 
-    private init(accessGroup: String?) {
-        self.accessGroup = accessGroup
-    }
-}
-
-extension Keychain {
-    public static let `default` = Keychain(accessGroup: .default)
-    
     /**
-     Create.
+     Keychain Storage Specifier.
      
      - Parameter accessGroup: The corresponding value indicates the item’s one and only access group.
      
@@ -34,17 +26,20 @@ extension Keychain {
      Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
      */
     public init(accessGroup: AccessGroup) {
-        switch accessGroup {
-        case .default:
-            self.init(accessGroup: nil)
-        case let .keychainGroup(teamID: teamID, nameID: nameID):
-            self.init(accessGroup: "\(teamID).\(nameID)")
-        case let .appGroupID(nameID):
-            self.init(accessGroup: "\(nameID)")
-        case .token:
-            self.init(accessGroup: kSecAttrAccessGroupToken as String)
-        }
+        self.accessGroup = accessGroup
     }
+}
+
+public extension Keychain {
+    /**
+     The system considers the first item in the list of access groups to be the app’s default access group. The list of an app’s access groups consists of the following string identifiers, in this order:
+     - The strings in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups)
+     - The app ID string.
+     - The strings in the [App Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_application-groups)
+     
+     - SeeAlso: [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps)
+    */
+    static let `default` = Keychain(accessGroup: .default)
 }
 
 // MARK: - GenericPassword
