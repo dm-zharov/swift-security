@@ -103,6 +103,11 @@ extension SecItemAttr {
     static let canUnwrap           = SecItemAttr(rawValue: kSecAttrCanUnwrap as String)
 }
 
+extension SecItemAttr {
+    static let `class`                   = SecItemAttr(rawValue: kSecClass as String)
+    static let useDataProtectionKeychain = SecItemAttr(rawValue: kSecUseDataProtectionKeychain as String)
+}
+
 extension SecItemAttr: CustomStringConvertible {
     var description: String {
         switch self {
@@ -210,6 +215,10 @@ extension SecItemAttr: CustomStringConvertible {
             return "Can Wrap"
         case .canUnwrap:
             return "Can Unwrap"
+        case .class:
+            return "Class"
+        case .useDataProtectionKeychain:
+            return "Use Advanced Data Protection"
         default:
             #if os(tvOS)
             if #available(tvOS 16.0, *), self == .useUserIndependentKeychain {

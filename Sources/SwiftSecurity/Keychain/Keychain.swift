@@ -10,6 +10,7 @@ import Foundation
 import LocalAuthentication
 #endif
 
+/// Securely store small chunks of data on behalf of the user.
 public struct Keychain: Hashable, Codable, Sendable {
     private let accessGroup: AccessGroup
 
@@ -339,23 +340,63 @@ extension Keychain: CustomDebugStringConvertible {
             }
         }
         
+        let gps: [SecItemInfo<GenericPassword>] = info(matching: SecItemQuery<GenericPassword>())
+        let ips: [SecItemInfo<InternetPassword>] = info(matching: SecItemQuery<InternetPassword>())
+        let sks: [SecItemInfo<SecKey>] = info(matching: SecItemQuery<SecKey>())
+        let scs: [SecItemInfo<SecCertificate>] = info(matching: SecItemQuery<SecCertificate>())
+        let sis: [SecItemInfo<SecIdentity>] = info(matching: SecItemQuery<SecIdentity>())
+        
         var strings: [String] = []
-        for info in info(matching: SecItemQuery<GenericPassword>()) {
-            strings.append(info.debugDescription)
-        }
-        for info in info(matching: SecItemQuery<InternetPassword>()) {
-            strings.append(info.debugDescription)
-        }
-        for info in info(matching: SecItemQuery<SecKey>()) {
-            strings.append(info.debugDescription)
-        }
-        for info in info(matching: SecItemQuery<SecCertificate>()) {
-            strings.append(info.debugDescription)
-        }
-        for info in info(matching: SecItemQuery<SecIdentity>()) {
-            strings.append(info.debugDescription)
-        }
+        strings.append(contentsOf: gps.map(\.debugDescription))
+        strings.append(contentsOf: ips.map(\.debugDescription))
+        strings.append(contentsOf: sks.map(\.debugDescription))
+        strings.append(contentsOf: scs.map(\.debugDescription))
+        strings.append(contentsOf: sis.map(\.debugDescription))
+        
         return strings.debugDescription
+    }
+}
+
+extension Keychain {
+    struct DebugFormatStyle: FormatStyle {
+        typealias FormatInput = [String: Any]
+        typealias FormatOutput = String
+        
+        func format(_ attributes: [String: Any]) -> String {
+            attributes.map { rawKey, rawValue in
+                let key = SecItemAttr(rawValue: rawKey)
+                if let rawString = rawValue as? String, let description = description(of: rawString, for: key) {
+                    return "\(key.description): \(description)"
+                } else {
+                    return "\(key.description): \(rawValue)"
+                }
+            }.debugDescription
+        }
+        
+        private func description(of rawValue: String, for attribute: SecItemAttr) -> String? {
+            switch attribute {
+            case .accessible:
+                return SecAccessPolicy.Accessibility(rawValue: rawValue)?.description
+            case .protocolType:
+                return ProtocolType(rawValue: rawValue)?.description
+            case .authenticationType:
+                return AuthenticationMethod(rawValue: rawValue)?.description
+            case .keyClass:
+                return KeyType(rawValue: rawValue)?.description
+            case .keyType:
+                return KeyCipher(rawValue: rawValue)?.description
+            case .tokenID:
+                return TokenID(rawValue: rawValue)?.description
+            #if os(macOS)
+            case .prf:
+                return PRFHmacAlg(rawValue: rawValue)?.description
+            #endif
+            case .class:
+                return SecItemClass(rawValue: rawValue)?.description
+            default:
+                return nil
+            }
+        }
     }
 }
 

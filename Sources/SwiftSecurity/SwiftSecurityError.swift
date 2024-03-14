@@ -8,10 +8,13 @@
 import Foundation
 
 /**
- - SeeAlso: [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes)
+ Security Error.
  */
 public struct SwiftSecurityError: CustomStringConvertible, Error {
+    /// Security Error Code.
+    /// - SeeAlso: [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes)
     public let code: OSStatus
+    /// Security Error Description.
     public let description: String
     
     private init(code: OSStatus, description: String?) {

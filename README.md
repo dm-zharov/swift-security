@@ -159,10 +159,10 @@ SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 #### Debug
 
 ```swift
-// Print query attributes
-print(query.debugDescription)
+// Print Query (or use LLDB po command)
+print(query.debugDescription) // ["Class: GenericPassword", ..., "Service: OpenAI"]
 
-// Print all stored items
+// Print Keychain 
 print(keychain.debugDescription)
 ```
 

@@ -410,10 +410,6 @@ public extension SecItemInfo {
 
 extension SecItemInfo: CustomDebugStringConvertible {
     public var debugDescription: String {
-        Dictionary(
-            uniqueKeysWithValues: attributes.map { attribute, value -> (String, Any) in
-                (SecItemAttr(rawValue: attribute).description, value)
-            }
-        ).debugDescription
+        return Keychain.DebugFormatStyle().format(attributes)
     }
 }
