@@ -324,6 +324,12 @@ The framework’s default behavior provides a reasonable trade-off between secur
 - `kSecUseDataProtectionKeychain: true` helps to improve the portability of code across platforms. Can't be changed.
 - `kSecAttrAccessibleWhenUnlocked` makes keychain items accessible from `background` processes. Could be changed by using custom `accessPolicy`.
 
+## Communication
+
+- If you **found a bug**, open an issue.
+- If you **have a feature request**, open an issue.
+- If you **want to contribute**, submit a pull request.
+
 ## Knowledge
 
 * [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/)
@@ -336,4 +342,4 @@ Dmitriy Zharov, contact@zharov.dev
 
 ## License
 
-SwiftSecurity is available under the MIT license. See the [LICENSE file](https://github.com/dm-zharov/SwiftSecurity/blob/master/LICENSE) for more info.
+SwiftSecurity is available under the MIT license. See the [LICENSE file](https://github.com/dm-zharov/swift-security/blob/master/LICENSE) for more info.
