@@ -14,11 +14,11 @@ import LocalAuthentication
 /**
  - SeeAlso: [Restricting keychain item accessibility](https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility)
  */
-public struct SecAccessPolicy {
+public struct SecAccessPolicy: Sendable {
     /// The corresponding value specifies when the item can be accessed.
-    public var protection: Accessibility
+    public let protection: Accessibility
     /// The corresponding value specifies what type of authentication is needed.
-    public var options: Options?
+    public let options: Options?
     
     /// Keychain item access policy.
     /// - Parameters:
@@ -33,13 +33,11 @@ public struct SecAccessPolicy {
 public extension SecAccessPolicy {
     /// The data in the keychain item cannot be accessed after a restart until the device has been unlocked once by the user.
     /// - Note: After the first unlock, the data remains accessible until the next restart. This is recommended for items that need to be accessed by background applications. Items with this attribute migrate to a new device when using encrypted backups.
-    static var `default`: SecAccessPolicy {
-        SecAccessPolicy(.afterFirstUnlock)
-    }
+    static let `default`: SecAccessPolicy = SecAccessPolicy(.afterFirstUnlock)
 }
 
 extension SecAccessPolicy {
-    public enum Accessibility {
+    public enum Accessibility: Sendable {
         /**
          If the user hasn’t set a passcode, you can’t store an item with this setting.
          If the user removes the passcode from a device, any items with this setting are automatically deleted from the keychain.
@@ -77,7 +75,7 @@ extension SecAccessPolicy {
 }
 
 extension SecAccessPolicy {
-    public struct Options: OptionSet {
+    public struct Options: OptionSet, Sendable {
         // MARK: - Constraints
         
         /**
