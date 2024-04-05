@@ -9,13 +9,13 @@ import Foundation
 
 @available(watchOS, unavailable)
 @available(tvOS, unavailable)
-public struct SharedWebCredential {
+public struct SharedWebCredential: Equatable, Sendable {
     /// The fully qualified domain name of the website requiring the password.
-    public var fqdn: String
+    public let fqdn: String
     /// The account name.
-    public var account: String
+    public let account: String
     
-    public  init(_ fqdn: String, account: String) {
+    public init(_ fqdn: String, account: String) {
         self.fqdn = fqdn
         self.account = account
     }

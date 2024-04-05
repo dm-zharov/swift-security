@@ -14,7 +14,7 @@ import LocalAuthentication
 /**
  - SeeAlso: [Restricting keychain item accessibility](https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility)
  */
-public struct SecAccessPolicy: Sendable {
+public struct SecAccessPolicy: Equatable, Sendable {
     /// The corresponding value specifies when the item can be accessed.
     public let protection: Accessibility
     /// The corresponding value specifies what type of authentication is needed.
