@@ -14,7 +14,7 @@ public struct SecItemQuery<Value> where Value: SecItem {
     private init(class: SecItemClass) {
         self.attributes = [
             kSecClass: `class`.rawValue,
-            kSecUseDataProtectionKeychain: true, // This key affects only macOS.
+            kSecUseDataProtectionKeychain: true, // This key affects operations only in macOS.
         ] as [String: Any]
     }
 }
