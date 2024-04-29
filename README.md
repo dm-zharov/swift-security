@@ -164,7 +164,7 @@ let privateKey = P256.KeyAgreement.PrivateKey()
 try Keychain.default.store(privateKey, query: .privateKey(tag: "Alice"))
 
 // Retrieve private key (+ public key)
-let privateKey: P256.KeyAgreement.PrivateKey? = try? Keychain.default.retrieve(.privateKey(tag: "Alice"))
+let privateKey: P256.KeyAgreement.PrivateKey? = try Keychain.default.retrieve(.privateKey(tag: "Alice"))
 let publicKey = privateKey.publicKey
 ```
 
@@ -280,7 +280,7 @@ if success {
 > [SharedWebCredentials API](https://developer.apple.com/documentation/security/shared_web_credentials) makes it possible to share credentials with the website counterpart. For example, a user may log in to a website in Safari and save credentials to the iCloud Keychain. Later, the user may run an app from the same developer, and instead of asking the user to reenter a username and password, it could access the existing credentials. The user can create new accounts, update passwords, or delete account from within the app. These changes should be saved from the app to be used by Safari.
 
 ```swift
-/ Store
+// Store
 SharedWebCredential.store("https://example.com", account: "username", password: "secret") { result in
     switch result {
     case .failure(let error):
