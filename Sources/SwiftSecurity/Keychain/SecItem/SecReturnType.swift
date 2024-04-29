@@ -13,6 +13,8 @@ public struct SecReturnType: OptionSet {
     public static let reference            = SecReturnType(rawValue: 1 << 2)
     public static let persistentReference  = SecReturnType(rawValue: 1 << 3)
     
+    public static let all: SecReturnType = [.data, .info, .reference, .persistentReference]
+    
     public var rawValue: UInt
     
     public init(rawValue: UInt) {

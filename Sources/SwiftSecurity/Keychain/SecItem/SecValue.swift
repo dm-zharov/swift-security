@@ -12,7 +12,7 @@ public enum SecValue<Value> where Value: SecItem {
     case data(Data)
     
     /// Item attributes.
-    case info(SecItemInfo<Value>)
+    case dictionary(SecItemInfo<Value>)
 
     /// Reference to the item.
     ///
@@ -31,8 +31,8 @@ extension SecValue: CustomStringConvertible {
         switch self {
         case .data(let data):
             return "Data: \(data)"
-        case .info(let info):
-            return "Info: \(info)"
+        case .dictionary(let info):
+            return "Dictionary: \(info)"
         case .reference:
             return "Reference"
         case .persistentReference(let data):

@@ -61,7 +61,7 @@ public protocol SecIdentityStore: SecItemStore {
 
 public extension SecDataStore {
     func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
-        if let value = try retrieve(.info, query: query, authenticationContext: authenticationContext), case let .info(info) = value {
+        if let value = try retrieve(.info, query: query, authenticationContext: authenticationContext), case let .dictionary(info) = value {
             return info
         } else {
             return nil

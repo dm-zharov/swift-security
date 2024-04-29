@@ -59,7 +59,7 @@ public extension SecItemQuery {
     /// An ANSI x9.63 representable private key. 
     /// - Note: Suitable for asymmetric CryptoKit Keys.
     /// - SeeAlso: `SecKey`.
-    static func privateKey(with tag: String? = nil) -> SecItemQuery<Value> where Value == SecKey {
+    static func privateKey(tag: String? = nil) -> SecItemQuery<Value> where Value == SecKey {
         var query = SecItemQuery<SecKey>()
         query.keyClass = .private
         query.keyType = .ecsecPrimeRandom

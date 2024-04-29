@@ -95,7 +95,7 @@ extension Keychain: SecItemStore {
                 }
             default:
                 if let attributes = result as? [String: Any] {
-                    return .info(SecItemInfo<SecItem>(rawValue: attributes))
+                    return .dictionary(SecItemInfo<SecItem>(rawValue: attributes))
                 } else {
                     return nil
                 }
@@ -107,7 +107,7 @@ extension Keychain: SecItemStore {
         }
     }
     
-    public func retrieveAll<SecItem>(_ returnType: SecReturnType, query: SecItemQuery<SecItem>) throws -> [SecValue<SecItem>] {
+    public func retrieveAll<SecItem>(_ returnType: SecReturnType = .all, query: SecItemQuery<SecItem>) throws -> [SecValue<SecItem>] {
         var query = query
         query[.accessGroup] = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitAll
@@ -156,7 +156,7 @@ extension Keychain: SecItemStore {
             default:
                 if let dictionaryList = result as? Array<[String: Any]> {
                     return dictionaryList.map { attributes in
-                        return .info(SecItemInfo<SecItem>(rawValue: attributes))
+                        return .dictionary(SecItemInfo<SecItem>(rawValue: attributes))
                     }
                 } else {
                     return []
@@ -355,7 +355,7 @@ private extension Keychain {
             query[kSecValueData as String] = data
         case .reference(let reference):
             query[kSecValueRef as String] = reference
-        case .info, .persistentReference:
+        case .dictionary, .persistentReference:
             throw SwiftSecurityError(rawValue: errSecBadReq)
         }
         
@@ -373,7 +373,7 @@ private extension Keychain {
         query[.accessGroup] = accessGroup.rawValue
         
         switch item {
-        case .data, .info:
+        case .data, .dictionary:
             throw SwiftSecurityError(rawValue: errSecBadReq)
         case let .reference(reference):
             query[search: .matchItemList] = [reference] as CFArray
@@ -416,9 +416,9 @@ extension Keychain: CustomDebugStringConvertible {
             var query = query
             query[.synchronizable] = kSecAttrSynchronizableAny
             
-            if let items = try? retrieveAll(.info, query: query) {
+            if let items = try? retrieveAll(query: query) {
                 return items.compactMap { value in
-                    if case let .info(info) = value {
+                    if case let .dictionary(info) = value {
                         return info
                     } else {
                         return nil
@@ -442,7 +442,7 @@ extension Keychain: CustomDebugStringConvertible {
         strings.append(contentsOf: scs.map(\.debugDescription))
         strings.append(contentsOf: sis.map(\.debugDescription))
 
-        return strings.debugDescription
+        return strings.joined(separator: "\n\n")
     }
 }
 
