@@ -7,39 +7,15 @@
 
 import Foundation
 
-enum SecReturnType {
-    case data
-    case attributes
-    case reference
-    case persistentReference
-}
-
-extension SecReturnType: RawRepresentable {
-    init?(rawValue: String) {
-        switch rawValue {
-        case String(kSecReturnData):
-            self = .data
-        case String(kSecReturnAttributes):
-            self = .attributes
-        case String(kSecReturnRef):
-            self = .reference
-        case String(kSecReturnPersistentRef):
-            self = .persistentReference
-        default:
-            return nil
-        }
-    }
+public struct SecReturnType: OptionSet {
+    public static let data                 = SecReturnType(rawValue: 1 << 0)
+    public static let info                 = SecReturnType(rawValue: 1 << 1)
+    public static let reference            = SecReturnType(rawValue: 1 << 2)
+    public static let persistentReference  = SecReturnType(rawValue: 1 << 3)
     
-    var rawValue: String {
-        switch self {
-        case .data:
-            return String(kSecReturnData)
-        case .attributes:
-            return String(kSecReturnAttributes)
-        case .reference:
-            return String(kSecReturnRef)
-        case .persistentReference:
-            return String(kSecReturnPersistentRef)
-        }
+    public var rawValue: UInt
+    
+    public init(rawValue: UInt) {
+        self.rawValue = rawValue
     }
 }

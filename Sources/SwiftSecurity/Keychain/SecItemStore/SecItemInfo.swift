@@ -48,6 +48,21 @@ public extension SecItemInfo {
     var label: String? {
         get { self[.label] as? String }
     }
+    
+    /// For keys and password items, the data is secret (encrypted) and may require the user to enter a password for access.
+    var data: Data? {
+        get { self[kSecValueData as String] as? Data }
+    }
+    
+    /// Depending on the item class requested, the returned references may be of type `SecKey`, `SecCertificate`, `SecIdentity`, or `Data`.
+    var reference: AnyObject? {
+        get { self[kSecValueRef as String] as? AnyObject }
+    }
+    
+    /// The bytes in this object can be stored by the caller and used on a subsequent invocation of the application (or even a different application) to retrieve the item referenced by it.
+    var persistentReference: Data? {
+        get { self[kSecValuePersistentRef as String] as? Data }
+    }
 }
 
 #if os(tvOS)
@@ -199,6 +214,8 @@ public extension SecItemInfo where Value == SecKey {
      The corresponding value contains a label for this item.
      This attribute is different from the ``label`` attribute, which is intended to be human-readable.
      Instead, this attribute is used to look up a key programmatically; in particular, for `public` and `private` keys, the value of this attribute is the hash of the public key.
+     
+     - Note: To form a digital identity, this value must match the ``publicKeyHash`` ('pkhh') attribute of the `SecCertificate`.
      */
     var applicationLabel: Data? {
         get { self[.applicationLabel] as? Data }
@@ -394,8 +411,8 @@ public extension SecItemInfo where Value == SecCertificate {
     }
     
     /**
-     The corresponding value contains the hash of a certificate's public key..
-     - Note: Read only.
+     The corresponding value contains the hash of a certificate's public key.
+     - Note: Read only. To form a digital identity, this value must match the ``applicationLabel`` ('klbl') attribute of the `SecKey`.
      */
     var publicKeyHash: Data? {
         get { self[.publicKeyHash] as? Data }
@@ -408,18 +425,18 @@ extension SecItemInfo: CustomDebugStringConvertible {
     }
 }
 
-public extension SecItemInfo {
-    subscript(attribute: String) -> Any? {
+extension SecItemInfo {
+    public subscript(attribute: String) -> Any? {
         get { rawValue[attribute] }
     }
 }
 
 extension SecItemInfo {
-    subscript(attribute: SwiftSecurity.SecItemAttr) -> Any? {
-        get { self[attribute.rawValue] }
+    subscript(key: SecItemAttrKey) -> Any? {
+        get { self[key.rawValue] }
     }
     
-    subscript(search attribute: SwiftSecurity.SecItemSearch) -> Any? {
-        get { self[attribute.rawValue] }
+    subscript(search key: SecItemSearchKey) -> Any? {
+        get { self[key.rawValue] }
     }
 }

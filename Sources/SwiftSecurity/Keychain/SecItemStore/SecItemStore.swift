@@ -11,7 +11,8 @@ import LocalAuthentication
 #endif
 
 public protocol SecItemStore {
-    func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext?) throws -> SecItemInfo<SecItem>?
+    func retrieve<SecItem>(_ returnType: SecReturnType, query: SecItemQuery<SecItem>, authenticationContext: LAContext?) throws -> SecValue<SecItem>?
+    func retrieveAll<SecItem>(_ returnType: SecReturnType, query: SecItemQuery<SecItem>) throws -> [SecValue<SecItem>]
     func removeAll() throws
 }
 
@@ -59,6 +60,14 @@ public protocol SecIdentityStore: SecItemStore {
 // MARK: - Convenient
 
 public extension SecDataStore {
+    func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
+        if let value = try retrieve(.info, query: query, authenticationContext: authenticationContext), case let .info(info) = value {
+            return info
+        } else {
+            return nil
+        }
+    }
+    
     func retrieve(_ query: SecItemQuery<GenericPassword>) throws -> Data? {
         try self.retrieve<Data>(query, authenticationContext: nil)
     }

@@ -23,7 +23,8 @@ public struct SecItemQuery<Value> where Value: SecItem {
 
 public extension SecItemQuery {
     /// A data-based credential for the specified service.
-    /// - Note: GenericPassword.
+    /// - Note: The most popular type of query. Suitable for tokens, symmetric CryptoKit keys and other sensitive data types.
+    /// - SeeAlso: `GenericPassword`.
     static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
         var query = SecItemQuery<GenericPassword>()
         query.service = service
@@ -31,7 +32,8 @@ public extension SecItemQuery {
     }
     
     /// A data-based credential for the specified account and service.
-    /// - Note: GenericPassword.
+    /// - Note: Suitable for tokens, symmetric CryptoKit keys and other sensitive data types. Provides the ability to specify an account.
+    /// - SeeAlso: `GenericPassword`.
     static func credential(for account: String, service: String?) -> SecItemQuery<Value> where Value == GenericPassword {
         var query = SecItemQuery<GenericPassword>()
         query.service = service
@@ -40,7 +42,8 @@ public extension SecItemQuery {
     }
     
     /// A web credential for the specified account and server or an area on server, that requires authentication.
-    /// - Note: InternetPassword.
+    /// - Note: Suitable for websites with user logins.
+    /// - SeeAlso: `InternetPassword`.
     static func credential(for user: String, space: WebProtectionSpace) -> SecItemQuery<Value> where Value == InternetPassword {
         var query = SecItemQuery<InternetPassword>()
         query.account = user
@@ -50,6 +53,19 @@ public extension SecItemQuery {
         query.protocol = space.protocol
         query.securityDomain = space.securityDomain
         query.authenticationMethod = space.authenticationMethod
+        return query
+    }
+    
+    /// An ANSI x9.63 representable private key. 
+    /// - Note: Suitable for asymmetric CryptoKit Keys.
+    /// - SeeAlso: `SecKey`.
+    static func privateKey(with tag: String? = nil) -> SecItemQuery<Value> where Value == SecKey {
+        var query = SecItemQuery<SecKey>()
+        query.keyClass = .private
+        query.keyType = .ecsecPrimeRandom
+        if let tag {
+            query.applicationTag = tag.data(using: .utf8)!
+        }
         return query
     }
 }
@@ -95,6 +111,8 @@ public extension SecItemQuery {
     }
     
     /// The corresponding value contains the user-visible label for this item.
+    ///
+    /// - Note: - Note: On macOS, this shows up in the `Name` field in the info window in `Keychain Access` (accessed via File > Get Info)
     var label: String? {
         get { self[.label] as? String }
         set { self[.label] = newValue }
@@ -263,6 +281,8 @@ public extension SecItemQuery where Value == SecKey {
      The corresponding value contains a label for this item.
      This attribute is different from the ``label`` attribute, which is intended to be human-readable.
      Instead, this attribute is used to look up a key programmatically; in particular, for `public` and `private` keys, the value of this attribute is the hash of the public key.
+     
+     - Note: To form a digital identity, this value must match the ``publicKeyHash`` ('pkhh') attribute of the `SecCertificate`.
      */
     var applicationLabel: Data? {
         get { self[.applicationLabel] as? Data }
@@ -270,6 +290,8 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value contains private tag data.
+    ///
+    /// - Note: On macOS, this shows up in the `Comments` field in the info window in `Keychain Access` (accessed via File > Get Info)
     var applicationTag: Data? {
         get { self[.applicationTag] as? Data }
         set { self[.applicationTag] = newValue }
@@ -447,21 +469,21 @@ extension SecItemQuery: CustomDebugStringConvertible {
     }
 }
 
-public extension SecItemQuery {
-    subscript(attribute: String) -> Any? {
+extension SecItemQuery {
+    public subscript(attribute: String) -> Any? {
         get { rawValue[attribute] }
         set { rawValue[attribute] = newValue }
     }
 }
 
 extension SecItemQuery {
-    subscript(attribute: SwiftSecurity.SecItemAttr) -> Any? {
-        get { self[attribute.rawValue] }
-        set { self[attribute.rawValue] = newValue }
+    subscript(key: SecItemAttrKey) -> Any? {
+        get { self[key.rawValue] }
+        set { self[key.rawValue] = newValue }
     }
     
-    subscript(search attribute: SwiftSecurity.SecItemSearch) -> Any? {
-        get { self[attribute.rawValue] }
-        set { self[attribute.rawValue] = newValue }
+    subscript(search key: SecItemSearchKey) -> Any? {
+        get { self[key.rawValue] }
+        set { self[key.rawValue] = newValue }
     }
 }
