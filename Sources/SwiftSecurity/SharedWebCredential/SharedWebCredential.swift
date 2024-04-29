@@ -15,6 +15,10 @@ public struct SharedWebCredential: Equatable, Sendable {
     /// The account name.
     public let account: String
     
+    /// Identifier for a website.
+    /// - Parameters:
+    ///   - fqdn: The fully qualified domain name of the website requiring the password.
+    ///   - account: The account name.
     public init(_ fqdn: String, account: String) {
         self.fqdn = fqdn
         self.account = account

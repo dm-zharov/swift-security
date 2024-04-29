@@ -9,7 +9,7 @@ import Foundation
 
 public enum PKCS12 {
     public struct SecImportItem {
-        private(set) var attributes: [String: Any]
+        private(set) var rawValue: [String: Any]
     }
     
     /// PKCS #12–formatted blob (a file with extension .p12)
@@ -25,12 +25,12 @@ public enum PKCS12 {
 public extension PKCS12.SecImportItem {
     /// The corresponding value is item label. The format of the label is implementation specific.
     var label: String? {
-        get { attributes[kSecImportItemLabel as String] as? String }
+        get { self[kSecImportItemLabel as String] as? String }
     }
     
     /// The corresponding value is key ID. This unique ID is often the SHA-1 digest of the public encryption key.
     var itemKeyID: String? {
-        get { attributes[kSecImportItemLabel as String] as? String }
+        get { self[kSecImportItemKeyID as String] as? String }
     }
     
     /**
@@ -40,7 +40,7 @@ public extension PKCS12.SecImportItem {
      You can use the `SecTrustEvaluate(_:_:)` function if you want to know whether the certificate chain is complete and valid (according to the basic X.509 policy). There is no guarantee that the evaluation will succeed.
      */
     var trust: SecTrust? {
-        get { attributes[kSecImportItemTrust as String] as! SecTrust? }
+        get { self[kSecImportItemTrust as String] as! SecTrust? }
     }
     
     /**
@@ -50,11 +50,17 @@ public extension PKCS12.SecImportItem {
      (for example, an intermediate certificate that is not yet valid but might be needed to establish validity in the near future).
      */
     var certChain: [SecCertificate]? {
-        get { attributes[kSecImportItemTrust as String] as! [SecCertificate]? }
+        get { self[kSecImportItemCertChain as String] as! [SecCertificate]? }
     }
     
     /// The corresponding value represents one identity contained in the PKCS #12 blob.
     var identity: SecIdentity? {
-        get { attributes[kSecImportItemIdentity as String] as! SecIdentity?  }
+        get { self[kSecImportItemIdentity as String] as! SecIdentity?  }
+    }
+}
+
+extension PKCS12.SecImportItem {
+    subscript(attribute: String) -> Any? {
+        rawValue[attribute]
     }
 }

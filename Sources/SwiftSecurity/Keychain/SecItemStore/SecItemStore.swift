@@ -20,13 +20,13 @@ public protocol SecItemStore {
 public protocol SecDataStore: SecItemStore {
     // MARK: - Generic
     
-    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>, accessPolicy: SecAccessPolicy) throws
+    func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: SecAccessPolicy) throws
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool
     
     // MARK: - Internet
     
-    func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<InternetPassword>, accessPolicy: SecAccessPolicy) throws
+    func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<InternetPassword>, accessPolicy: SecAccessPolicy) throws
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool
 }

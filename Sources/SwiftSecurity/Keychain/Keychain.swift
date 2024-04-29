@@ -24,7 +24,7 @@ public struct Keychain: Hashable, Codable, Sendable {
      - The app ID string
      - The strings in the [App Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_application-groups)
      
-     Two or more apps that are in the same access group can share keychain items. For more details, see Sharing access to keychain items among a collection of apps.
+     Two or more apps that are in the same access group can share keychain items. For more details, see [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/).
      */
     public init(accessGroup: AccessGroup) {
         self.accessGroup = accessGroup
@@ -33,9 +33,11 @@ public struct Keychain: Hashable, Codable, Sendable {
 
 public extension Keychain {
     /**
+     Keychain with default access group.
+
      The system considers the first item in the list of access groups to be the app’s default access group. The list of an app’s access groups consists of the following string identifiers, in this order:
      - The strings in the app’s [Keychain Access Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/keychain-access-groups)
-     - The app ID string.
+     - The app ID string
      - The strings in the [App Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_application-groups)
      
      - SeeAlso: [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps)
@@ -47,14 +49,14 @@ public extension Keychain {
 
 extension Keychain: SecItemStore {
     public func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
         
-        guard let result = try retrieve(.none, with: attributes, authenticationContext: nil) as? [String: Any] else {
+        guard let attributes = try retrieve(.attributes, with: query, authenticationContext: nil) as? [String: Any] else {
             return nil
         }
 
-        return SecItemInfo<SecItem>(result)
+        return SecItemInfo<SecItem>(rawValue: attributes)
     }
     
     public func removeAll() throws {
@@ -69,15 +71,15 @@ extension Keychain: SecItemStore {
 // MARK: - GenericPassword
 
 extension Keychain: SecDataStore {
-    public func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<GenericPassword>, accessPolicy: SecAccessPolicy = .default) throws {
-        try store(.data(key.rawRepresentation), with: query.attributes, accessPolicy: accessPolicy)
+    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: SecAccessPolicy = .default) throws {
+        try store(.data(data.rawRepresentation), with: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext? = nil) throws -> T? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
 
-        guard let data = try retrieve(.data, with: attributes, authenticationContext: authenticationContext) as? Data else {
+        guard let data = try retrieve(.data, with: query, authenticationContext: authenticationContext) as? Data else {
             return nil
         }
         return try T(rawRepresentation: data)  // Convert back to a key.
@@ -85,22 +87,22 @@ extension Keychain: SecDataStore {
 
     @discardableResult
     public func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool {
-        return try remove(query.attributes)
+        return try remove(nil, with: query)
     }
 }
 
 // MARK: - InternetPassword
 
 extension Keychain {
-    public func store<T: SecDataConvertible>(_ key: T, query: SecItemQuery<InternetPassword>, accessPolicy: SecAccessPolicy = .default) throws {
-        try store(.data(key.rawRepresentation), with: query.attributes, accessPolicy: accessPolicy)
+    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<InternetPassword>, accessPolicy: SecAccessPolicy = .default) throws {
+        try store(.data(data.rawRepresentation), with: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
 
-        guard let data = try retrieve(.data, with: attributes, authenticationContext: authenticationContext) as? Data else {
+        guard let data = try retrieve(.data, with: query, authenticationContext: authenticationContext) as? Data else {
             return nil
         }
         return try T(rawRepresentation: data)  // Convert back to a key.
@@ -108,17 +110,17 @@ extension Keychain {
 
     @discardableResult
     public func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool {
-        return try remove(query.attributes)
+        return try remove(nil, with: query)
     }
 }
 
 // MARK: - SecKey
 
 extension Keychain: SecKeyStore {
-    public func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store<T: SecKeyConvertible>(_ data: T, query: SecItemQuery<SecKey>, accessPolicy: SecAccessPolicy = .default) throws {
         var error: Unmanaged<CFError>?
         guard
-            let secKey = SecKeyCreateWithData(key.x963Representation as CFData, query.attributes as CFDictionary, &error)
+            let key = SecKeyCreateWithData(data.x963Representation as CFData, query.rawValue as CFDictionary, &error)
         else {
             if let error = error?.takeUnretainedValue() {
                 throw SwiftSecurityError(error: error)
@@ -127,14 +129,14 @@ extension Keychain: SecKeyStore {
             }
         }
 
-        try store(.reference(secKey), with: query.attributes, accessPolicy: accessPolicy)
+        try store(.reference(key), with: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
         
-        guard let result = try retrieve(.reference, with: attributes, authenticationContext: authenticationContext) else {
+        guard let result = try retrieve(.reference, with: query, authenticationContext: authenticationContext) else {
             return nil
         }
 
@@ -154,7 +156,7 @@ extension Keychain: SecKeyStore {
     
     @discardableResult
     public func remove(_ query: SecItemQuery<SecKey>) throws -> Bool {
-        return try remove(query.attributes)
+        return try remove(nil, with: query)
     }
 }
 
@@ -165,14 +167,14 @@ extension Keychain: SecCertificateStore {
         guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
             throw SwiftSecurityError(rawValue: errSecConversionError)
         }
-        try store(.reference(certificate), with: query.attributes, accessPolicy: accessPolicy)
+        try store(.reference(certificate), with: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext? = nil) throws -> T? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
         
-        guard let result = try retrieve(.reference, with: attributes, authenticationContext: authenticationContext) else {
+        guard let result = try retrieve(.reference, with: query, authenticationContext: authenticationContext) else {
             return nil
         }
         
@@ -184,9 +186,7 @@ extension Keychain: SecCertificateStore {
     
     @discardableResult
     public func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool {
-        let attributes = query.attributes
-
-        return try remove(attributes)
+        return try remove(nil, with: query)
     }
 }
 
@@ -194,14 +194,15 @@ extension Keychain: SecCertificateStore {
 
 extension Keychain: SecIdentityStore {
     public func `import`<T: SecIdentityConvertible>(_ data: T, passphrase: String) throws -> [PKCS12.SecImportItem] {
-        let attributes = [kSecImportExportPassphrase as String: passphrase]
-        
         var result: CFArray?
-        switch SecPKCS12Import(data.pkcs12Representation as CFData, attributes as CFDictionary, &result) {
+        switch SecPKCS12Import(
+            data.pkcs12Representation as CFData,
+            [kSecImportExportPassphrase as String: passphrase] as CFDictionary, &result
+        ) {
         case errSecSuccess:
             if let items = result as? Array<[String: Any]> {
                 return items.map { item in
-                    PKCS12.SecImportItem(attributes: item)
+                    PKCS12.SecImportItem(rawValue: item)
                 }
             } else {
                 return []
@@ -215,14 +216,14 @@ extension Keychain: SecIdentityStore {
         guard let identity = item.identity else {
             throw SwiftSecurityError(rawValue: errSecMissingValue)
         }
-        try store(.reference(identity), with: query.attributes, accessPolicy: accessPolicy)
+        try store(.reference(identity), with: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext? = nil) throws -> SecIdentity? {
-        var attributes = query.attributes
-        attributes[search: .matchLimit] = kSecMatchLimitOne as String
+        var query = query
+        query[search: .matchLimit] = kSecMatchLimitOne as String
         
-        guard let result = try retrieve(.reference, with: attributes, authenticationContext: authenticationContext) else {
+        guard let result = try retrieve(.reference, with: query, authenticationContext: authenticationContext) else {
             return nil
         }
         
@@ -233,29 +234,29 @@ extension Keychain: SecIdentityStore {
     
     @discardableResult
     public func remove(_ query: SecItemQuery<SecIdentity>) throws -> Bool {
-        return try remove(query.attributes)
+        return try remove(nil, with: query)
     }
 }
 
 // MARK: - Private
 
 private extension Keychain {
-    func store(_ value: SecValue, with attributes: [String: Any], accessPolicy: SecAccessPolicy) throws {
-        var attributes = attributes
-        attributes[.accessGroup] = accessGroup.rawValue
-        attributes[.accessControl] = try accessPolicy.accessControl
-        attributes[.accessible] = accessPolicy.accessibility
+    func store<SecItem>(_ value: SecValue, with query: SecItemQuery<SecItem>, accessPolicy: SecAccessPolicy) throws {
+        var query = query
+        query[.accessGroup] = accessGroup.rawValue
+        query[.accessControl] = try accessPolicy.accessControl
+        query[.accessible] = accessPolicy.accessibility
         
         switch value {
         case .data(let data):
-            attributes[kSecValueData as String] = data
+            query[kSecValueData as String] = data
         case .reference(let reference):
-            attributes[kSecValueRef as String] = reference
+            query[kSecValueRef as String] = reference
         case .persistentReference:
             throw SwiftSecurityError(rawValue: errSecBadReq)
         }
         
-        switch SecItemAdd(attributes as CFDictionary, nil) {
+        switch SecItemAdd(query.rawValue as CFDictionary, nil) {
         case errSecSuccess:
             return
         case let status:
@@ -263,28 +264,28 @@ private extension Keychain {
         }
     }
     
-    func retrieve(_ type: SecValueType?, with attributes: [String: Any], authenticationContext: LAContext?) throws -> AnyObject? {
-        var attributes = attributes
-        attributes[.accessGroup] = accessGroup.rawValue
+    func retrieve<SecItem>(_ type: SecReturnType, with query: SecItemQuery<SecItem>, authenticationContext: LAContext?) throws -> AnyObject? {
+        var query = query
+        query[.accessGroup] = accessGroup.rawValue
         
         if let authenticationContext {
-            attributes[kSecUseAuthenticationContext as String] = authenticationContext
-            attributes[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+            query[kSecUseAuthenticationContext as String] = authenticationContext
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
         }
         
         switch type {
         case .data:
-            attributes[kSecReturnData as String] = true
+            query[kSecReturnData as String] = true
+        case .attributes:
+            query[kSecReturnAttributes as String] = true
         case .reference:
-            attributes[kSecReturnRef as String] = true
+            query[kSecReturnRef as String] = true
         case .persistentReference:
-            attributes[kSecReturnPersistentRef as String] = true
-        case .none:
-            attributes[kSecReturnAttributes as String] = true
+            query[kSecReturnPersistentRef as String] = true
         }
         
         var result: AnyObject?
-        switch SecItemCopyMatching(attributes as CFDictionary, &result) {
+        switch SecItemCopyMatching(query.rawValue as CFDictionary, &result) {
         case errSecSuccess:
             return result
         case errSecItemNotFound:
@@ -295,11 +296,22 @@ private extension Keychain {
     }
     
     @discardableResult
-    func remove(_ attributes: [String: Any]) throws -> Bool {
-        var attributes = attributes
-        attributes[.accessGroup] = accessGroup.rawValue
+    func remove<SecItem>(_ item: SecValue?, with query: SecItemQuery<SecItem>) throws -> Bool {
+        var query = query
+        query[.accessGroup] = accessGroup.rawValue
         
-        switch SecItemDelete(attributes as CFDictionary) {
+        switch item {
+        case .data:
+            throw SwiftSecurityError(rawValue: errSecBadReq)
+        case let .reference(reference):
+            query[search: .matchItemList] = [reference] as CFArray
+        case let .persistentReference(reference):
+            query[search: .matchItemList] = [reference] as CFArray
+        case .none:
+            break
+        }
+        
+        switch SecItemDelete(query.rawValue as CFDictionary) {
         case errSecSuccess:
             return true
         case errSecItemNotFound:
@@ -329,24 +341,24 @@ extension Keychain: CustomDebugStringConvertible {
         #endif
         
         func info<SecItem>(matching query: SecItemQuery<SecItem>) -> [SecItemInfo<SecItem>] {
-            var attributes = query.attributes
-            attributes[.synchronizable] = kSecAttrSynchronizableAny
-            attributes[search: .matchLimit] = kSecMatchLimitAll
+            var query = query
+            query[.synchronizable] = kSecAttrSynchronizableAny
+            query[search: .matchLimit] = kSecMatchLimitAll
             
-            if let items = try? retrieve(.none, with: attributes, authenticationContext: context) as? Array<[String: Any]> {
-                return items.map { result in
-                    SecItemInfo<SecItem>(result)
+            if let items = try? retrieve(.attributes, with: query, authenticationContext: context) as? Array<[String: Any]> {
+                return items.map { attributes in
+                    SecItemInfo<SecItem>(rawValue: attributes)
                 }
             } else {
                 return []
             }
         }
         
-        let gps: [SecItemInfo<GenericPassword>] = info(matching: SecItemQuery<GenericPassword>())
+        let gps: [SecItemInfo<GenericPassword>]  = info(matching: SecItemQuery<GenericPassword>())
         let ips: [SecItemInfo<InternetPassword>] = info(matching: SecItemQuery<InternetPassword>())
-        let sks: [SecItemInfo<SecKey>] = info(matching: SecItemQuery<SecKey>())
-        let scs: [SecItemInfo<SecCertificate>] = info(matching: SecItemQuery<SecCertificate>())
-        let sis: [SecItemInfo<SecIdentity>] = info(matching: SecItemQuery<SecIdentity>())
+        let sks: [SecItemInfo<SecKey>]           = info(matching: SecItemQuery<SecKey>())
+        let scs: [SecItemInfo<SecCertificate>]   = info(matching: SecItemQuery<SecCertificate>())
+        let sis: [SecItemInfo<SecIdentity>]      = info(matching: SecItemQuery<SecIdentity>())
         
         var strings: [String] = []
         strings.append(contentsOf: gps.map(\.debugDescription))
@@ -354,7 +366,7 @@ extension Keychain: CustomDebugStringConvertible {
         strings.append(contentsOf: sks.map(\.debugDescription))
         strings.append(contentsOf: scs.map(\.debugDescription))
         strings.append(contentsOf: sis.map(\.debugDescription))
-        
+
         return strings.debugDescription
     }
 }

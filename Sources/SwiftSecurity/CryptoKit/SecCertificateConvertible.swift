@@ -10,7 +10,7 @@ import Foundation
 // MARK: - DER-Encoded X.509 Certificate
 
 public protocol SecCertificateConvertible {
-    /// Creates a certificate from anDER-encoded X.509 data representation.
+    /// Creates a certificate from an DER-encoded X.509 data representation.
     init<Bytes>(derRepresentation: Bytes) throws where Bytes: ContiguousBytes
     
     /// An DER-Encoded X.509 data representation.

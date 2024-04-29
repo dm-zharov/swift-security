@@ -35,10 +35,3 @@ extension SecItemSearch {
     static let matchWidthInsensitive      = SecItemSearch(rawValue: kSecMatchWidthInsensitive as String)
     #endif
 }
-
-extension Dictionary where Key == String {
-    subscript(search attribute: SwiftSecurity.SecItemSearch) -> Value? {
-        get { self[attribute.rawValue] }
-        set { self[attribute.rawValue] = newValue }
-    }
-}

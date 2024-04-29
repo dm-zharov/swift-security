@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct SecItemInfo<Value> where Value: SecItem {
-    private(set) var attributes: [String: Any]
+public struct SecItemInfo<Value>: RawRepresentable where Value: SecItem {
+    public let rawValue: [String: Any]
     
-    internal init(_ attributes: [String: Any]) {
-        self.attributes = attributes
+    public init(rawValue: [String: Any]) {
+        self.rawValue = rawValue
     }
 }
 
@@ -20,18 +20,18 @@ public struct SecItemInfo<Value> where Value: SecItem {
 public extension SecItemInfo {
     /// The corresponding value indicates the item’s one and only access group.
     var accessGroup: String? {
-        get { attributes[.accessGroup] as? String }
+        get { self[.accessGroup] as? String }
     }
     
     /// The corresponding value contains access control conditions for the item.
     var accessControl: SecAccessControl? {
-        get { attributes[.accessControl] as! SecAccessControl? }
+        get { self[.accessControl] as! SecAccessControl? }
     }
     
     /// The corresponding value indicates the item’s one and only access group.
     var accessible: SecAccessPolicy.Accessibility? {
         get {
-            if let rawValue = attributes[.accessible] as? String {
+            if let rawValue = self[.accessible] as? String {
                 return SecAccessPolicy.Accessibility(rawValue: rawValue)
             } else {
                 return nil
@@ -41,12 +41,12 @@ public extension SecItemInfo {
     
     /// The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
     var synchronizable: Bool? {
-        get { attributes[.synchronizable] as? Bool }
+        get { self[.synchronizable] as? Bool }
     }
     
     /// The corresponding value contains the user-visible label for this item.
     var label: String? {
-        get { attributes[.label] as? String }
+        get { self[.label] as? String }
     }
 }
 
@@ -54,7 +54,7 @@ public extension SecItemInfo {
 public extension SecItemInfo {
     @available(tvOS 16.0, *)
     var useUserIndependentKeychain: Bool? {
-        get { attributes[.useUserIndependentKeychain] as? Bool }
+        get { self[.useUserIndependentKeychain] as? Bool }
     }
 }
 #endif
@@ -66,19 +66,19 @@ public extension SecItemInfo where Value == GenericPassword {
     
     /// The corresponding value contains an account name.
     var account: String? {
-        get { attributes[.account] as? String }
+        get { self[.account] as? String }
     }
     
     /// The corresponding value represents the service associated with this item.
     var service: String? {
-        get { attributes[.service] as? String }
+        get { self[.service] as? String }
     }
     
     // MARK: - Attributes
     
     /// The corresponding value contains a user-defined attribute.
     var generic: Data? {
-        get { attributes[.generic] as? Data }
+        get { self[.generic] as? Data }
     }
 }
 
@@ -89,13 +89,13 @@ public extension SecItemInfo where Value == InternetPassword {
     
     /// The corresponding value contains an account name.
     var account: String? {
-        get { attributes[.account] as? String }
+        get { self[.account] as? String }
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
     var authenticationMethod: AuthenticationMethod? {
         get {
-            if let value = attributes[.authenticationType] as? String {
+            if let value = self[.authenticationType] as? String {
                 return AuthenticationMethod(rawValue: value)
             } else {
                 return nil
@@ -105,13 +105,13 @@ public extension SecItemInfo where Value == InternetPassword {
     
     /// The corresponding value represents a path, typically the path component of the URL.
     var path: String? {
-        get { attributes[.path] as? String }
+        get { self[.path] as? String }
     }
     
     /// The corresponding represents an Internet port number.
     var port: Int? {
         get {
-            if let number = attributes[.port] as? NSNumber {
+            if let number = self[.port] as? NSNumber {
                 return number.intValue
             } else {
                 return nil
@@ -122,7 +122,7 @@ public extension SecItemInfo where Value == InternetPassword {
     /// The corresponding value denotes the protocol for this item.
     var `protocol`: ProtocolType? {
         get {
-            if let value = attributes[.protocolType] as? String {
+            if let value = self[.protocolType] as? String {
                 return ProtocolType(rawValue: value)
             } else {
                 return nil
@@ -132,12 +132,12 @@ public extension SecItemInfo where Value == InternetPassword {
     
     /// The corresponding value represents the Internet security domain.
     var securityDomain: String? {
-        get { attributes[.securityDomain] as? String }
+        get { self[.securityDomain] as? String }
     }
     
     /// The corresponding value contains the server's domain name or IP address.
     var server: String? {
-        get { attributes[.server] as? String }
+        get { self[.server] as? String }
     }
 }
 
@@ -148,37 +148,37 @@ public extension SecItemInfo where Value: Password {
     
     /// The corresponding value represents the date the item was created. Read only.
     var creationDate: Date? {
-        get { attributes[.creationDate] as? Date }
+        get { self[.creationDate] as? Date }
     }
     
     /// The corresponding value contains the user-visible label for this item.
     var modificationDate: Date? {
-        get { attributes[.modificationDate] as? Date }
+        get { self[.modificationDate] as? Date }
     }
     
     /// The corresponding value specifies a user-visible string describing this kind of item (for example, "Disk image password").
     var description: String? {
-        get { attributes[.description] as? String }
+        get { self[.description] as? String }
     }
     
     /// The corresponding value contains the user-editable comment for this item.
     var comment: String? {
-        get { attributes[.comment] as? String }
+        get { self[.comment] as? String }
     }
     
     /// The corresponding value represents the item's creator. This number is the unsigned integer representation of a four-character code (for example, 'aCrt').
-    var creator: UInt? {
-        get { attributes[.creator] as? UInt }
+    var creator: FourCharCode? {
+        get { self[.creator] as? FourCharCode }
     }
     
     /// The corresponding value  represents the item's type. This number is the unsigned integer representation of a four-character code (for example, 'aTyp').
     var type: FourCharCode? {
-        get { attributes[.type] as? FourCharCode }
+        get { self[.type] as? FourCharCode }
     }
     
     /// The corresponding value is kCFBooleanTrue if the item is invisible (that is, should not be displayed).
     var isInvisible: Bool? {
-        get { attributes[.isInvisible] as? Bool }
+        get { self[.isInvisible] as? Bool }
     }
     
     /**
@@ -186,7 +186,7 @@ public extension SecItemInfo where Value: Password {
      This is useful if your application doesn't want a password for some particular service to be stored in the keychain, but prefers that it always be entered by the user.
      */
     var isNegative: Bool? {
-        get { attributes[.isNegative] as? Bool }
+        get { self[.isNegative] as? Bool }
     }
 }
 
@@ -201,18 +201,18 @@ public extension SecItemInfo where Value == SecKey {
      Instead, this attribute is used to look up a key programmatically; in particular, for `public` and `private` keys, the value of this attribute is the hash of the public key.
      */
     var applicationLabel: Data? {
-        get { attributes[.applicationLabel] as? Data }
+        get { self[.applicationLabel] as? Data }
     }
     
     /// The corresponding value contains private tag data.
     var applicationTag: Data? {
-        get { attributes[.applicationTag] as? Data }
+        get { self[.applicationTag] as? Data }
     }
     
     /// The corresponding value specifies a type of cryptographic key.
     var keyClass: KeyType? {
         get {
-            if let rawValue = attributes[.keyClass] as? String {
+            if let rawValue = self[.keyClass] as? String {
                 return KeyType(rawValue: rawValue)
             } else {
                 return nil
@@ -223,7 +223,7 @@ public extension SecItemInfo where Value == SecKey {
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
     var keyType: KeyCipher? {
         get {
-            if let rawValue = attributes[.keyType] as? String {
+            if let rawValue = self[.keyType] as? String {
                 return KeyCipher(rawValue: rawValue)
             } else {
                 return nil
@@ -233,11 +233,11 @@ public extension SecItemInfo where Value == SecKey {
 
     /// The corresponding value indicates the total number of bits in this cryptographic key.
     var keySizeInBits: Int? {
-        get { attributes[.keySizeInBits] as? Int }
+        get { self[.keySizeInBits] as? Int }
     }
 
     var effectiveKeySize: Int? {
-        get { attributes[.effectiveKeySize] as? Int }
+        get { self[.effectiveKeySize] as? Int }
     }
     
     // MARK: - Usage
@@ -247,7 +247,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false`.
      */
     var isPermament: Bool? {
-        get { attributes[.isPermament] as? Bool }
+        get { self[.isPermament] as? Bool }
     }
     
     /**
@@ -255,7 +255,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false`for private keys and `true` for public keys.
      */
     var canEncrypt: Bool? {
-        get { attributes[.canEncrypt] as? Bool }
+        get { self[.canEncrypt] as? Bool }
     }
     
     /**
@@ -263,7 +263,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canDecrypt: Bool? {
-        get { attributes[.canDecrypt] as? Bool }
+        get { self[.canDecrypt] as? Bool }
     }
     
     /**
@@ -271,7 +271,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true`.
      */
     var canDerive: Bool? {
-        get { attributes[.canDerive] as? Bool }
+        get { self[.canDerive] as? Bool }
     }
     
     /**
@@ -279,7 +279,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canSign: Bool? {
-        get { attributes[.canSign] as? Bool }
+        get { self[.canSign] as? Bool }
     }
     
     /**
@@ -287,7 +287,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
      */
     var canVerify: Bool? {
-        get { attributes[.canVerify] as? Bool }
+        get { self[.canVerify] as? Bool }
     }
     
     /**
@@ -295,7 +295,7 @@ public extension SecItemInfo where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
      */
     var canWrap: Bool? {
-        get { attributes[.canWrap] as? Bool }
+        get { self[.canWrap] as? Bool }
     }
     
     /**
@@ -303,7 +303,7 @@ public extension SecItemInfo where Value == SecKey {
      On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canUnwrap: Bool? {
-        get { attributes[.canUnwrap] as? Bool }
+        get { self[.canUnwrap] as? Bool }
     }
 }
 
@@ -312,7 +312,7 @@ public extension SecItemInfo where Value == SecKey {
     /// The corresponding value indicates the pseudorandom function associated with this cryptographic key.
     var prf: PRFHmacAlg? {
         get {
-            if let rawValue = attributes[.prf] as? String {
+            if let rawValue = self[.prf] as? String {
                 return PRFHmacAlg(rawValue: rawValue)
             } else {
                 return nil
@@ -322,13 +322,13 @@ public extension SecItemInfo where Value == SecKey {
     
     /// The corresponding value indicates the salt to use with this cryptographic key.
     var salt: Data? {
-        get { attributes[.salt] as? Data }
+        get { self[.salt] as? Data }
     }
 
     /// The corresponding value indicates the number of rounds to run the pseudorandom function specified by ``prf`` for a cryptographic key.
     var rounds: Int? {
         get {
-            if let number = attributes[.rounds] as? NSNumber {
+            if let number = self[.rounds] as? NSNumber {
                 return number.intValue
             } else {
                 return nil
@@ -348,7 +348,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var certificateType: NSNumber? {
-        get { attributes[.certificateType] as? NSNumber }
+        get { self[.certificateType] as? NSNumber }
     }
     
     /**
@@ -356,7 +356,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var issuer: Data? {
-        get { attributes[.issuer] as? Data }
+        get { self[.issuer] as? Data }
     }
     
     /**
@@ -364,7 +364,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var serialNumber: Data? {
-        get { attributes[.serialNumber] as? Data }
+        get { self[.serialNumber] as? Data }
     }
 
     // MARK: - Attributes
@@ -374,7 +374,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var certificateEncoding: NSNumber? {
-        get { attributes[.certificateEncoding] as? NSNumber }
+        get { self[.certificateEncoding] as? NSNumber }
     }
     
     /**
@@ -382,7 +382,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var subject: Data? {
-        get { attributes[.subject] as? Data }
+        get { self[.subject] as? Data }
     }
     
     /**
@@ -390,7 +390,7 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var subjectKeyID: Data? {
-        get { attributes[.subjectKeyID] as? Data }
+        get { self[.subjectKeyID] as? Data }
     }
     
     /**
@@ -398,18 +398,28 @@ public extension SecItemInfo where Value == SecCertificate {
      - Note: Read only.
      */
     var publicKeyHash: Data? {
-        get { attributes[.publicKeyHash] as? Data }
-    }
-}
-
-public extension SecItemInfo {
-    subscript(attribute: String) -> Any? {
-        get { attributes[attribute] }
+        get { self[.publicKeyHash] as? Data }
     }
 }
 
 extension SecItemInfo: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return Keychain.DebugFormatStyle().format(attributes)
+        return Keychain.DebugFormatStyle().format(rawValue)
+    }
+}
+
+public extension SecItemInfo {
+    subscript(attribute: String) -> Any? {
+        get { rawValue[attribute] }
+    }
+}
+
+extension SecItemInfo {
+    subscript(attribute: SwiftSecurity.SecItemAttr) -> Any? {
+        get { self[attribute.rawValue] }
+    }
+    
+    subscript(search attribute: SwiftSecurity.SecItemSearch) -> Any? {
+        get { self[attribute.rawValue] }
     }
 }

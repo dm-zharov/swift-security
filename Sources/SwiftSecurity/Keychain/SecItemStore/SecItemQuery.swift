@@ -9,12 +9,12 @@ import Foundation
 import Security
 
 public struct SecItemQuery<Value> where Value: SecItem {
-    private(set) var attributes: [String: Any]
+    private(set) var rawValue: [String: Any]
     
     private init(class: SecItemClass) {
-        self.attributes = [
+        self.rawValue = [
             kSecClass: `class`.rawValue,
-            kSecUseDataProtectionKeychain: true, // This key affects operations only in macOS.
+            kSecUseDataProtectionKeychain: true, // The data protection key affects operations only in macOS.
         ] as [String: Any]
     }
 }
@@ -81,16 +81,23 @@ extension SecItemQuery {
 // MARK: - Common
 
 public extension SecItemQuery {
-    /// The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
+    /**
+     The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
+     
+     The following caveats apply when you specify this key:
+     - You can set the key on tvOS, but tvOS doesn’t synchronize your app’s keychain items through iCloud.
+     - Updating or deleting items using the key affects all copies of the item, not just the one on your local device. Be sure that it makes sense to use the same password on all devices before making a password synchronizable.
+     - Items stored or obtained using the key may not also specify a ``accessPolicy`` value that is incompatible with syncing (namely, those whose names end with ThisDeviceOnly).
+     */
     var synchronizable: Bool? {
-        get { attributes[.synchronizable] as? Bool }
-        set { attributes[.synchronizable] = newValue }
+        get { self[.synchronizable] as? Bool }
+        set { self[.synchronizable] = newValue }
     }
     
     /// The corresponding value contains the user-visible label for this item.
     var label: String? {
-        get { attributes[.label] as? String }
-        set { attributes[.label] = newValue }
+        get { self[.label] as? String }
+        set { self[.label] = newValue }
     }
 }
 
@@ -98,8 +105,8 @@ public extension SecItemQuery {
 public extension SecItemQuery {
     @available(tvOS 16.0, *)
     var useUserIndependentKeychain: Bool? {
-        get { attributes[.useUserIndependentKeychain] as? Bool }
-        set { attributes[.useUserIndependentKeychain] = newValue }
+        get { self[.useUserIndependentKeychain] as? Bool }
+        set { self[.useUserIndependentKeychain] = newValue }
     }
 }
 #endif
@@ -111,22 +118,22 @@ public extension SecItemQuery where Value == GenericPassword {
     
     /// The corresponding value contains an account name.
     var account: String? {
-        get { attributes[.account] as? String }
-        set { attributes[.account] = newValue }
+        get { self[.account] as? String }
+        set { self[.account] = newValue }
     }
     
     /// The corresponding value represents the service associated with this item.
     var service: String? {
-        get { attributes[.service] as? String }
-        set { attributes[.service] = newValue }
+        get { self[.service] as? String }
+        set { self[.service] = newValue }
     }
     
     // MARK: - Attributes
     
     /// The corresponding value contains a user-defined attribute.
     var generic: Data? {
-        get { attributes[.generic] as? Data }
-        set { attributes[.generic] = newValue }
+        get { self[.generic] as? Data }
+        set { self[.generic] = newValue }
     }
 }
 
@@ -137,32 +144,32 @@ public extension SecItemQuery where Value == InternetPassword {
     
     /// The corresponding value contains an account name.
     var account: String? {
-        get { attributes[.account] as? String }
-        set { attributes[.account] = newValue }
+        get { self[.account] as? String }
+        set { self[.account] = newValue }
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
     var authenticationMethod: AuthenticationMethod? {
         get {
-            if let value = attributes[.authenticationType] as? String {
+            if let value = self[.authenticationType] as? String {
                 return AuthenticationMethod(rawValue: value)
             } else {
                 return nil
             }
         }
-        set { attributes[.authenticationType] = newValue?.rawValue }
+        set { self[.authenticationType] = newValue?.rawValue }
     }
     
     /// The corresponding value represents a path, typically the path component of the URL.
     var path: String? {
-        get { attributes[.path] as? String }
-        set { attributes[.path] = newValue }
+        get { self[.path] as? String }
+        set { self[.path] = newValue }
     }
     
     /// The corresponding represents an Internet port number.
     var port: Int? {
         get {
-            if let number = attributes[.port] as? NSNumber {
+            if let number = self[.port] as? NSNumber {
                 return number.intValue
             } else {
                 return nil
@@ -170,9 +177,9 @@ public extension SecItemQuery where Value == InternetPassword {
         }
         set {
             if let newValue {
-                attributes[.port] = NSNumber(integerLiteral: newValue)
+                self[.port] = NSNumber(integerLiteral: newValue)
             } else {
-                attributes[.port] = nil
+                self[.port] = nil
             }
         }
     }
@@ -180,25 +187,25 @@ public extension SecItemQuery where Value == InternetPassword {
     /// The corresponding value denotes the protocol for this item.
     var `protocol`: ProtocolType? {
         get {
-            if let value = attributes[.protocolType] as? String {
+            if let value = self[.protocolType] as? String {
                 return ProtocolType(rawValue: value)
             } else {
                 return nil
             }
         }
-        set { attributes[.protocolType] = newValue?.rawValue }
+        set { self[.protocolType] = newValue?.rawValue }
     }
     
     /// The corresponding value represents the Internet security domain.
     var securityDomain: String? {
-        get { attributes[.securityDomain] as? String }
-        set { attributes[.securityDomain] = newValue }
+        get { self[.securityDomain] as? String }
+        set { self[.securityDomain] = newValue }
     }
     
     /// The corresponding value contains the server's domain name or IP address.
     var server: String? {
-        get { attributes[.server] as? String }
-        set { attributes[.server] = newValue }
+        get { self[.server] as? String }
+        set { self[.server] = newValue }
     }
 }
 
@@ -209,32 +216,32 @@ public extension SecItemQuery where Value: Password {
     
     /// The corresponding value specifies a user-visible string describing this kind of item (for example, "Disk image password").
     var description: String? {
-        get { attributes[.description] as? String }
-        set { attributes[.description] = newValue }
+        get { self[.description] as? String }
+        set { self[.description] = newValue }
     }
     
     /// The corresponding value contains the user-editable comment for this item.
     var comment: String? {
-        get { attributes[.comment] as? String }
-        set { attributes[.comment] = newValue }
+        get { self[.comment] as? String }
+        set { self[.comment] = newValue }
     }
     
     /// The corresponding value represents the item's creator. This number is the unsigned integer representation of a four-character code (for example, 'aCrt').
     var creator: FourCharCode? {
-        get { attributes[.creator] as? FourCharCode }
-        set { attributes[.creator] = newValue }
+        get { self[.creator] as? FourCharCode }
+        set { self[.creator] = newValue }
     }
     
     /// The corresponding value  represents the item's type. This number is the unsigned integer representation of a four-character code (for example, 'aTyp').
     var type: FourCharCode? {
-        get { attributes[.type] as? FourCharCode }
-        set { attributes[.type] = newValue }
+        get { self[.type] as? FourCharCode }
+        set { self[.type] = newValue }
     }
     
     /// The corresponding value is kCFBooleanTrue if the item is invisible (that is, should not be displayed).
     var isInvisible: Bool? {
-        get { attributes[.isInvisible] as? Bool }
-        set { attributes[.isInvisible] = newValue }
+        get { self[.isInvisible] as? Bool }
+        set { self[.isInvisible] = newValue }
     }
     
     /**
@@ -242,8 +249,8 @@ public extension SecItemQuery where Value: Password {
      This is useful if your application doesn't want a password for some particular service to be stored in the keychain, but prefers that it always be entered by the user.
      */
     var isNegative: Bool? {
-        get { attributes[.isNegative] as? Bool }
-        set { attributes[.isNegative] = newValue }
+        get { self[.isNegative] as? Bool }
+        set { self[.isNegative] = newValue }
     }
 }
 
@@ -258,50 +265,50 @@ public extension SecItemQuery where Value == SecKey {
      Instead, this attribute is used to look up a key programmatically; in particular, for `public` and `private` keys, the value of this attribute is the hash of the public key.
      */
     var applicationLabel: Data? {
-        get { attributes[.applicationLabel] as? Data }
-        set { attributes[.applicationLabel] = newValue }
+        get { self[.applicationLabel] as? Data }
+        set { self[.applicationLabel] = newValue }
     }
     
     /// The corresponding value contains private tag data.
     var applicationTag: Data? {
-        get { attributes[.applicationTag] as? Data }
-        set { attributes[.applicationTag] = newValue }
+        get { self[.applicationTag] as? Data }
+        set { self[.applicationTag] = newValue }
     }
     
     /// The corresponding value specifies a type of cryptographic key.
     var keyClass: KeyType? {
         get {
-            if let rawValue = attributes[.keyClass] as? String {
+            if let rawValue = self[.keyClass] as? String {
                 return KeyType(rawValue: rawValue)
             } else {
                 return nil
             }
         }
-        set { attributes[.keyClass] = newValue?.rawValue }
+        set { self[.keyClass] = newValue?.rawValue }
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
     var keyType: KeyCipher? {
         get {
-            if let rawValue = attributes[.keyType] as? String {
+            if let rawValue = self[.keyType] as? String {
                 return KeyCipher(rawValue: rawValue)
             } else {
                 return nil
             }
         }
-        set { attributes[.keyType] = newValue?.rawValue }
+        set { self[.keyType] = newValue?.rawValue }
     }
 
     /// The corresponding value indicates the total number of bits in this cryptographic key.
     var keySizeInBits: Int? {
-        get { attributes[.keySizeInBits] as? Int }
-        set { attributes[.keySizeInBits] = newValue }
+        get { self[.keySizeInBits] as? Int }
+        set { self[.keySizeInBits] = newValue }
     }
     
     /// The corresponding value indicates the effective number of bits in this cryptographic key. For example, a DES key has a `keySizeInBits` of 64, but a `effectiveKeySize` of 56 bits.
     var effectiveKeySize: Int? {
-        get { attributes[.effectiveKeySize] as? Int }
-        set { attributes[.effectiveKeySize] = newValue }
+        get { self[.effectiveKeySize] as? Int }
+        set { self[.effectiveKeySize] = newValue }
     }
     
     /**
@@ -310,13 +317,13 @@ public extension SecItemQuery where Value == SecKey {
      */
     var tokenID: TokenID? {
         get {
-            if let rawValue = attributes[.tokenID] as? String {
+            if let rawValue = self[.tokenID] as? String {
                 return TokenID(rawValue: rawValue)
             } else {
                 return nil
             }
         }
-        set { attributes[.tokenID] = newValue?.rawValue }
+        set { self[.tokenID] = newValue?.rawValue }
     }
     
     // MARK: - Usage
@@ -326,8 +333,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false`.
      */
     var isPermament: Bool? {
-        get { attributes[.isPermament] as? Bool }
-        set { attributes[.isPermament] = newValue }
+        get { self[.isPermament] as? Bool }
+        set { self[.isPermament] = newValue }
     }
     
     /**
@@ -335,8 +342,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false`for private keys and `true` for public keys.
      */
     var canEncrypt: Bool? {
-        get { attributes[.canEncrypt] as? Bool }
-        set { attributes[.canEncrypt] = newValue }
+        get { self[.canEncrypt] as? Bool }
+        set { self[.canEncrypt] = newValue }
     }
     
     /**
@@ -344,8 +351,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canDecrypt: Bool? {
-        get { attributes[.canDecrypt] as? Bool }
-        set { attributes[.canDecrypt] = newValue }
+        get { self[.canDecrypt] as? Bool }
+        set { self[.canDecrypt] = newValue }
     }
     
     /**
@@ -353,8 +360,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true`.
      */
     var canDerive: Bool? {
-        get { attributes[.canDerive] as? Bool }
-        set { attributes[.canDerive] = newValue }
+        get { self[.canDerive] as? Bool }
+        set { self[.canDerive] = newValue }
     }
     
     /**
@@ -362,8 +369,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canSign: Bool? {
-        get { attributes[.canSign] as? Bool }
-        set { attributes[.canSign] = newValue }
+        get { self[.canSign] as? Bool }
+        set { self[.canSign] = newValue }
     }
     
     /**
@@ -371,8 +378,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
      */
     var canVerify: Bool? {
-        get { attributes[.canVerify] as? Bool }
-        set { attributes[.canVerify] = newValue }
+        get { self[.canVerify] as? Bool }
+        set { self[.canVerify] = newValue }
     }
     
     /**
@@ -380,8 +387,8 @@ public extension SecItemQuery where Value == SecKey {
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false` for private keys and `true` for public keys.
      */
     var canWrap: Bool? {
-        get { attributes[.canWrap] as? Bool }
-        set { attributes[.canWrap] = newValue }
+        get { self[.canWrap] as? Bool }
+        set { self[.canWrap] = newValue }
     }
     
     /**
@@ -389,8 +396,8 @@ public extension SecItemQuery where Value == SecKey {
      On key creation, if not explicitly specified, this attribute defaults to `true` for private keys and `false` for public keys.
      */
     var canUnwrap: Bool? {
-        get { attributes[.canUnwrap] as? Bool }
-        set { attributes[.canUnwrap] = newValue }
+        get { self[.canUnwrap] as? Bool }
+        set { self[.canUnwrap] = newValue }
     }
 }
 
@@ -399,25 +406,25 @@ public extension SecItemQuery where Value == SecKey {
     /// The corresponding value indicates the pseudorandom function associated with this cryptographic key.
     var prf: PRFHmacAlg? {
         get {
-            if let rawValue = attributes[.prf] as? String {
+            if let rawValue = self[.prf] as? String {
                 return PRFHmacAlg(rawValue: rawValue)
             } else {
                 return nil
             }
         }
-        set { attributes[.prf] = newValue?.rawValue }
+        set { self[.prf] = newValue?.rawValue }
     }
     
     /// The corresponding value indicates the salt to use with this cryptographic key.
     var salt: Data? {
-        get { attributes[.salt] as? Data }
-        set { attributes[.salt] = newValue }
+        get { self[.salt] as? Data }
+        set { self[.salt] = newValue }
     }
 
     /// The corresponding value indicates the number of rounds to run the pseudorandom function specified by ``prf`` for a cryptographic key.
     var rounds: Int? {
         get {
-            if let number = attributes[.rounds] as? NSNumber {
+            if let number = self[.rounds] as? NSNumber {
                 return number.intValue
             } else {
                 return nil
@@ -425,24 +432,36 @@ public extension SecItemQuery where Value == SecKey {
         }
         set {
             if let newValue {
-                attributes[.rounds] = NSNumber(integerLiteral: newValue)
+                self[.rounds] = NSNumber(integerLiteral: newValue)
             } else {
-                attributes[.rounds] = nil
+                self[.rounds] = nil
             }
         }
     }
 }
 #endif
 
-public extension SecItemQuery {
-    subscript(attribute: String) -> Any? {
-        get { attributes[attribute] }
-        set { attributes[attribute] = newValue }
+extension SecItemQuery: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return Keychain.DebugFormatStyle().format(rawValue)
     }
 }
 
-extension SecItemQuery: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return Keychain.DebugFormatStyle().format(attributes)
+public extension SecItemQuery {
+    subscript(attribute: String) -> Any? {
+        get { rawValue[attribute] }
+        set { rawValue[attribute] = newValue }
+    }
+}
+
+extension SecItemQuery {
+    subscript(attribute: SwiftSecurity.SecItemAttr) -> Any? {
+        get { self[attribute.rawValue] }
+        set { self[attribute.rawValue] = newValue }
+    }
+    
+    subscript(search attribute: SwiftSecurity.SecItemSearch) -> Any? {
+        get { self[attribute.rawValue] }
+        set { self[attribute.rawValue] = newValue }
     }
 }

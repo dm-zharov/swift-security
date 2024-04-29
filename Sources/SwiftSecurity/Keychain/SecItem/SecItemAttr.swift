@@ -229,10 +229,3 @@ extension SecItemAttr: CustomStringConvertible {
         }
     }
 }
-
-extension Dictionary where Key == String {
-    subscript(attribute: SwiftSecurity.SecItemAttr) -> Value? {
-        get { self[attribute.rawValue] }
-        set { self[attribute.rawValue] = newValue }
-    }
-}
