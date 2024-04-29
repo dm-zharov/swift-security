@@ -9,31 +9,15 @@ import Foundation
 
 @available(watchOS, unavailable)
 @available(tvOS, unavailable)
-public struct SharedWebCredential: Equatable, Sendable {
-    /// The fully qualified domain name of the website requiring the password.
-    public let fqdn: String
-    /// The account name.
-    public let account: String
-    
-    /// Identifier for a website.
-    /// - Parameters:
-    ///   - fqdn: The fully qualified domain name of the website requiring the password.
-    ///   - account: The account name.
-    public init(_ fqdn: String, account: String) {
-        self.fqdn = fqdn
-        self.account = account
-    }
-}
-
-@available(watchOS, unavailable)
-@available(tvOS, unavailable)
-public extension SharedWebCredential {
+public struct SharedWebCredential {
     /// Stores a shared password item that will be accessible by Safari and apps that have the specified fully qualified domain name in their [Associated Domains Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains). If a shared password item already exists, it is updated with the provided password.
     /// - Parameters:
+    ///   - fqdn: The fully qualified domain name of the website requiring the password.
+    ///   - account: The account name associated with this password.
     ///   - password: The password.
     ///   - completion: A block invoked when the function has completed.
     /// - Note: Because a request involving shared web credentials may potentially require user interaction or other verification to be approved, this function is dispatched asynchronously; your code provides a completion handler that is called as soon as the results (if any) are available.
-    func store(_ password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    static func store(_ fqdn: String, account: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
         #if !os(watchOS) && !os(tvOS)
         SecAddSharedWebCredential(
             fqdn as CFString,
@@ -46,12 +30,14 @@ public extension SharedWebCredential {
                 completion(.success(()))
             }
         }
+        #else
+        completion(.failure(SwiftSecurityError(rawValue: errSecServiceNotAvailable)))
         #endif
     }
     
     /// Removes a shared password item that will be accessible by Safari and apps that have the specified fully qualified domain name in their [Associated Domains Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains).
     /// - Parameter completion: A block invoked when the function has completed.
-    func remove(completion: @escaping (Result<Void, Error>) -> Void) {
+    static func remove(_ fqdn: String, account: String, completion: @escaping (Result<Void, Error>) -> Void) {
         #if !os(watchOS) && !os(tvOS)
         SecAddSharedWebCredential(
             fqdn as CFString,
@@ -64,6 +50,8 @@ public extension SharedWebCredential {
                 completion(.success(()))
             }
         }
+        #else
+        completion(.failure(SwiftSecurityError(rawValue: errSecServiceNotAvailable)))
         #endif
     }
 }

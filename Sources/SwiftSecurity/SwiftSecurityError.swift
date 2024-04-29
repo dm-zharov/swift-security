@@ -10,7 +10,7 @@ import Foundation
 /**
  Security Error.
  */
-public struct SwiftSecurityError: CustomStringConvertible, Error {
+public struct SwiftSecurityError: Error, CustomStringConvertible {
     /// Security Error Code.
     /// - SeeAlso: [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes)
     public let code: OSStatus
