@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftSecurity
 
 @main
 struct TestApp: App {

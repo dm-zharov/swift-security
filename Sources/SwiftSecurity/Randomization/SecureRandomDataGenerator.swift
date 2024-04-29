@@ -5,6 +5,7 @@
 //  Created by Dmitriy Zharov on 29.04.2024.
 //
 
+import Foundation
 import Security
 
 public protocol RandomDataGenerator {
@@ -18,7 +19,7 @@ public protocol RandomDataGenerator {
 }
 
 /// Generates a data with cryptographically secure random bytes.
-public struct SecureRandomDataGenerator: RandomDataGenerator {
+public struct SecureRandomDataGenerator {
     /// The number of random bytes to return in the array pointed to by the bytes parameter.
     public let count: Int
     

@@ -15,7 +15,7 @@ import Foundation
     
  - Note: If you need to store distinct FTP and HTTP credentials for the same user working on the same server, you might set the ``protocol`` attribute to distinguish between them.
  */
-public struct WebProtectionSpace: Equatable {
+public struct WebProtectionSpace: Equatable, Sendable {
     /// The host name, typically the domain name or IP address.
     public private(set) var host: String
     /// The port number.
