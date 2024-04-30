@@ -4,16 +4,16 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift wrapper for [Security](https://developer.apple.com/documentation/security) framework (Keychain Services API, SharedWebCredentials API). Secure the data your app manages in a much easier way with compile-time checks. 
+SwiftSecurity is a modern Swift API for Apple [Security](https://developer.apple.com/documentation/security) framework (Keychain API, SharedWebCredentials API, etc). Secure the data your app manages in a much easier way with compile-time checks. 
 
 ## Features
 
 How does SwiftSecurity differ from other wrappers?
 
-* Support for every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
-* Generic code prevents the creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
-* Compatibility with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
-* Native-like API experience. Clear of any deprecated and legacy calls.
+* Supports every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
+* Prevents creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
+* Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
+* Clear of deprecated and legacy calls.
 
 ## Installation
 
@@ -190,6 +190,21 @@ print(query.debugDescription) // ["Class: GenericPassword", ..., "Service: OpenA
 print(keychain.debugDescription)
 ```
 
+#### Error Handling
+
+```swift
+do {
+    let token: String? = try Keychain.default.store("8e9c0a7f", query: .credential(for: "OpenAI"))
+} catch {
+    switch error as? SwiftSecurityError {
+    case .duplicateItem:
+        // handle duplicate
+    default:
+        // unhandled
+    }
+}
+```
+
 ## How to Choose Keychain
 
 #### Default
@@ -231,6 +246,7 @@ let keychain = Keychain(accessGroup: .appGroupID("group.com.example.app"))
 #### Store protected item
 
 ```swift
+// Store with specified `AccessPolicy`
 try keychain.store(
     secret,
     query: .credential(for: "FBI"),
@@ -274,6 +290,42 @@ if success {
 > [!WARNING]
 > Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
 
+## 🔖 Data Types
+
+You can store, retrieve, and remove various types of values.
+
+```swift
+Foundation:
+    - Data // GenericPassword, InternetPassword
+    - String // GenericPassword, InternetPassword
+CryptoKit:
+    - SymmetricKey // GenericPassword
+    - Curve25519 -> PrivateKey // GenericPassword
+    - SecureEnclave.P256 -> PrivateKey // GenericPassword (Key Data is Persistent Identifier)
+    - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
+SwiftSecurity:
+    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
+    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
+```
+
+To add support for custom types, you can extend them by conforming to the following protocols.
+
+```swift
+// Store as Data (GenericPassword, InternetPassword)
+extension CustomType: SecDataConvertible {}
+
+// Store as Key (ANSI x9.63, Elliptic Curves)
+extension CustomType: SecKeyConvertible {}
+
+// Store as Certificate (X.509)
+extension CustomType: SecCertificateConvertible {}
+
+// Import as Identity (PKCS #12)
+extension CustomType: SecIdentityConvertible {}
+```
+
+These protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
+
 ## 🔑 Shared Web Credential
 
 > [!TIP]
@@ -304,40 +356,12 @@ SharedWebCredential.remove("https://example.com", account: "username") { result 
 // - Use `ASAuthorizationController` to make an `ASAuthorizationPasswordRequest`.
 ```
 
-## 🔖 Data Types
-
-You can store, retrieve, and remove various types of values.
+## 🔒 Secure Data Generator
 
 ```swift
-Foundation:
-    - Data // GenericPassword, InternetPassword
-    - String // GenericPassword, InternetPassword
-CryptoKit:
-    - SymmetricKey // GenericPassword
-    - Curve25519 // GenericPassword
-    - P256, P384, P521 // SecKey (ANSI x9.63, Elliptic Curves)
-SwiftSecurity:
-    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
-    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
+// Data with 20 uniformly distributed random bytes
+let randomData = SecureRandomDataGenerator(count: 20).next()
 ```
-
-To add support for custom types, you can extend them by conforming to the following protocols.
-
-```swift
-// Store as Data (GenericPassword, InternetPassword)
-extension CustomType: SecDataConvertible {}
-
-// Store as Key (ANSI x9.63, Elliptic Curves)
-extension CustomType: SecKeyConvertible {}
-
-// Store as Certificate (X.509)
-extension CustomType: SecCertificateConvertible {}
-
-// Import as Identity (PKCS #12)
-extension CustomType: SecIdentityConvertible {}
-```
-
-These protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
 
 ## Security
 
