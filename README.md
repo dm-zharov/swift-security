@@ -151,7 +151,7 @@ Possible queries:
 ```swift
 SecItemQuery<GenericPassword>   // kSecClassGenericPassword
 SecItemQuery<InternetPassword>  // kSecClassInternetPassword
-SecItemQuery<SecKey>.           // kSecClassSecKey
+SecItemQuery<SecKey>            // kSecClassSecKey
 SecItemQuery<SecCertificate>    // kSecClassSecCertificate
 SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```
@@ -301,7 +301,7 @@ Foundation:
 CryptoKit:
     - SymmetricKey // GenericPassword
     - Curve25519 -> PrivateKey // GenericPassword
-    - SecureEnclave.P256 -> PrivateKey // GenericPassword (Key Data is Persistent Identifier)
+    - SecureEnclave.P256 -> PrivateKey // GenericPassword (Key Data is Persistent Reference)
     - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
 SwiftSecurity:
     - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
