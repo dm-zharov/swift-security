@@ -16,20 +16,44 @@ public protocol SecItemStore {
     func removeAll() throws
 }
 
-// MARK: - SecData
+public extension SecItemStore {
+    func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
+        if let value = try retrieve(.info, query: query, authenticationContext: authenticationContext), case let .dictionary(info) = value {
+            return info
+        } else {
+            return nil
+        }
+    }
+}
+
+// MARK: - Data
 
 public protocol SecDataStore: SecItemStore {
-    // MARK: - Generic
+    // MARK: - Generic Password
     
-    func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: AccessPolicy) throws
+    func store<T: SecDataConvertible>(_ data: T, returning returnType: SecReturnType, query: SecItemQuery<GenericPassword>, accessPolicy: AccessPolicy) throws -> SecValue<GenericPassword>?
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool
     
-    // MARK: - Internet
+    // MARK: - Internet Password
     
     func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<InternetPassword>, accessPolicy: AccessPolicy) throws
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T?
     func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool
+}
+
+public extension SecDataStore {
+    func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: AccessPolicy) throws {
+        try self.store(data, returning: [], query: query, accessPolicy: accessPolicy)
+    }
+    
+    func retrieve(_ query: SecItemQuery<GenericPassword>) throws -> Data? {
+        try self.retrieve<Data>(query, authenticationContext: nil)
+    }
+
+    func retrieve(_ query: SecItemQuery<InternetPassword>) throws -> Data? {
+        try self.retrieve<Data>(query, authenticationContext: nil)
+    }
 }
 
 // MARK: - SecKey
@@ -55,24 +79,4 @@ public protocol SecIdentityStore: SecItemStore {
     func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessPolicy: AccessPolicy) throws
     func retrieve(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> SecIdentity?
     func remove(_ query: SecItemQuery<SecIdentity>) throws -> Bool
-}
-
-// MARK: - Convenient
-
-public extension SecDataStore {
-    func info<SecItem>(for query: SecItemQuery<SecItem>, authenticationContext: LAContext? = nil) throws -> SecItemInfo<SecItem>? {
-        if let value = try retrieve(.info, query: query, authenticationContext: authenticationContext), case let .dictionary(info) = value {
-            return info
-        } else {
-            return nil
-        }
-    }
-    
-    func retrieve(_ query: SecItemQuery<GenericPassword>) throws -> Data? {
-        try self.retrieve<Data>(query, authenticationContext: nil)
-    }
-
-    func retrieve(_ query: SecItemQuery<InternetPassword>) throws -> Data? {
-        try self.retrieve<Data>(query, authenticationContext: nil)
-    }
 }

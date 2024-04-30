@@ -184,6 +184,15 @@ extension Keychain: SecDataStore {
     public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: AccessPolicy = .default) throws {
         try store(.data(data.rawRepresentation), query: query, accessPolicy: accessPolicy)
     }
+    
+    public func store<T: SecDataConvertible>(
+        _ data: T,
+        returning returnType: SecReturnType,
+        query: SecItemQuery<GenericPassword>,
+        accessPolicy: AccessPolicy = .default
+    ) throws -> SecValue<GenericPassword>? {
+        try store(.data(data.rawRepresentation), returning: returnType, query: query, accessPolicy: accessPolicy)
+    }
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext? = nil) throws -> T? {
         if let value = try retrieve(.data, query: query, authenticationContext: authenticationContext), case let .data(data) = value {
@@ -334,11 +343,30 @@ extension Keychain: SecIdentityStore {
 // MARK: - Private
 
 private extension Keychain {
-    func store<SecItem>(_ value: SecValue<SecItem>, query: SecItemQuery<SecItem>, accessPolicy: AccessPolicy) throws {
+    @discardableResult
+    func store<SecItem>(
+        _ value: SecValue<SecItem>,
+        returning returnType: SecReturnType = [],
+        query: SecItemQuery<SecItem>,
+        accessPolicy: AccessPolicy = .default
+    ) throws -> SecValue<SecItem>? {
         var query = query
         query[.accessGroup] = accessGroup.rawValue
         query[.accessControl] = try accessPolicy.accessControl
         query[.accessible] = accessPolicy.accessibility
+        
+        if returnType.contains(.data) {
+            query[kSecReturnData as String] = true
+        }
+        if returnType.contains(.info) {
+            query[kSecReturnAttributes as String] = true
+        }
+        if returnType.contains(.reference) {
+            query[kSecReturnRef as String] = true
+        }
+        if returnType.contains(.persistentReference) {
+            query[kSecReturnPersistentRef as String] = true
+        }
         
         switch value {
         case .data(let data):
@@ -349,9 +377,35 @@ private extension Keychain {
             throw SwiftSecurityError.invalidParameter
         }
         
-        switch SecItemAdd(query.rawValue as CFDictionary, nil) {
+        var result: AnyObject?
+        switch SecItemAdd(query.rawValue as CFDictionary, &result) {
         case errSecSuccess:
-            return
+            switch returnType {
+            case .data:
+                if let data = result as? Data {
+                    return .data(data)
+                } else {
+                    return nil
+                }
+            case .reference:
+                if let result {
+                    return .reference(result)
+                } else {
+                    return nil
+                }
+            case .persistentReference:
+                if let data = result as? Data {
+                    return .persistentReference(data)
+                } else {
+                    return nil
+                }
+            default:
+                if let attributes = result as? [String: Any] {
+                    return .dictionary(SecItemInfo<SecItem>(rawValue: attributes))
+                } else {
+                    return nil
+                }
+            }
         case let status:
             throw SwiftSecurityError(rawValue: status)
         }

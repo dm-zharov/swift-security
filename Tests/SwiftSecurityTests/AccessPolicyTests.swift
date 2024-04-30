@@ -13,27 +13,27 @@ import Security
 final class AccessPolicyTests: XCTestCase {
     func testAccessibility() throws {
         do {
-            let accessPolicy = SecAccessPolicy(.whenPasscodeSetThisDeviceOnly)
+            let accessPolicy = AccessPolicy(.whenPasscodeSetThisDeviceOnly)
             XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
-            let accessPolicy = SecAccessPolicy(.whenUnlocked)
+            let accessPolicy = AccessPolicy(.whenUnlocked)
             XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenUnlocked))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
-            let accessPolicy = SecAccessPolicy(.whenUnlockedThisDeviceOnly)
+            let accessPolicy = AccessPolicy(.whenUnlockedThisDeviceOnly)
             XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenUnlockedThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
-            let accessPolicy = SecAccessPolicy(.afterFirstUnlock)
+            let accessPolicy = AccessPolicy(.afterFirstUnlock)
             XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleAfterFirstUnlock))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
-            let accessPolicy = SecAccessPolicy(.afterFirstUnlockThisDeviceOnly)
+            let accessPolicy = AccessPolicy(.afterFirstUnlockThisDeviceOnly)
             XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
@@ -41,7 +41,7 @@ final class AccessPolicyTests: XCTestCase {
     
     func testAccessControl() {
         do {
-            let accessPolicy = SecAccessPolicy(.afterFirstUnlock, options: .biometryAny)
+            let accessPolicy = AccessPolicy(.afterFirstUnlock, options: .biometryAny)
             XCTAssertNotNil(try accessPolicy.accessControl)
         }
     }
