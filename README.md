@@ -131,7 +131,7 @@ query.service = "OpenAI"
 query.label = "OpenAI Access Token"
 
 // Perform query
-try keychain.store(secret, query: query, accessPolicy: .init(.whenUnlocked, options: .biometryAny))
+try keychain.store(secret, query: query, accessPolicy: AccessPolicy(.whenUnlocked, options: .biometryAny))
 _ = try keychain.retrieve(query, authenticationContext: LAContext())
 try keychain.remove(query)
 ```
@@ -344,7 +344,7 @@ These protocols are inspired by Apple's sample code from the [Storing CryptoKit 
 The framework’s default behavior provides a reasonable trade-off between security and accessibility.
 
 - `kSecUseDataProtectionKeychain: true` helps to improve the portability of code across platforms. Can't be changed.
-- `kSecAttrAccessibleWhenUnlocked` makes keychain items accessible from `background` processes. Could be changed by using custom `accessPolicy`.
+- `kSecAttrAccessibleWhenUnlocked` makes keychain items accessible from `background` processes. Changeable by `AccessPolicy`.
 
 ## Communication
 

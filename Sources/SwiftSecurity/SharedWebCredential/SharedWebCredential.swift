@@ -31,7 +31,7 @@ public struct SharedWebCredential {
             }
         }
         #else
-        completion(.failure(SwiftSecurityError(rawValue: errSecServiceNotAvailable)))
+        completion(.failure(SwiftSecurityError.unimplemented))
         #endif
     }
     
@@ -51,7 +51,7 @@ public struct SharedWebCredential {
             }
         }
         #else
-        completion(.failure(SwiftSecurityError(rawValue: errSecServiceNotAvailable)))
+        completion(.failure(SwiftSecurityError.unimplemented))
         #endif
     }
 }

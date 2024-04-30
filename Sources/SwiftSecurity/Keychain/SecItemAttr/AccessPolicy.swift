@@ -11,10 +11,13 @@ import Security
 import LocalAuthentication
 #endif
 
+@available(*, deprecated, renamed: "AccessPolicy")
+public typealias SecAccessPolicy = AccessPolicy
+
 /**
  - SeeAlso: [Restricting keychain item accessibility](https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility)
  */
-public struct SecAccessPolicy: Equatable, Sendable {
+public struct AccessPolicy: Equatable, Sendable {
     /// The corresponding value specifies when the item can be accessed.
     public let protection: Accessibility
     /// The corresponding value specifies what type of authentication is needed.
@@ -30,13 +33,13 @@ public struct SecAccessPolicy: Equatable, Sendable {
     }
 }
 
-public extension SecAccessPolicy {
+public extension AccessPolicy {
     /// The data in the keychain item cannot be accessed after a restart until the device has been unlocked once by the user.
     /// - Note: After the first unlock, the data remains accessible until the next restart. This is recommended for items that need to be accessed by background applications. Items with this attribute migrate to a new device when using encrypted backups.
-    static let `default`: SecAccessPolicy = SecAccessPolicy(.afterFirstUnlock)
+    static let `default`: AccessPolicy = AccessPolicy(.afterFirstUnlock)
 }
 
-extension SecAccessPolicy {
+extension AccessPolicy {
     public enum Accessibility: Sendable {
         /**
          If the user hasn’t set a passcode, you can’t store an item with this setting.
@@ -74,7 +77,7 @@ extension SecAccessPolicy {
     }
 }
 
-extension SecAccessPolicy {
+extension AccessPolicy {
     public struct Options: OptionSet, Sendable {
         // MARK: - Constraints
         
@@ -157,7 +160,7 @@ extension SecAccessPolicy {
     }
 }
 
-extension SecAccessPolicy.Accessibility: RawRepresentable, CustomStringConvertible {
+extension AccessPolicy.Accessibility: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly):
@@ -207,7 +210,7 @@ extension SecAccessPolicy.Accessibility: RawRepresentable, CustomStringConvertib
 }
 
 
-internal extension SecAccessPolicy {
+extension AccessPolicy {
     /// The corresponding value containing access control conditions for the item.
     var accessControl: SecAccessControl? {
         get throws {
@@ -222,11 +225,7 @@ internal extension SecAccessPolicy {
                 SecAccessControlCreateFlags(rawValue: CFOptionFlags(options.rawValue)),
                 &error
             ) else {
-                if let error = error?.takeUnretainedValue() {
-                    throw SwiftSecurityError(error: error)
-                } else {
-                    throw SwiftSecurityError(rawValue: errSecBadReq)
-                }
+                throw SwiftSecurityError(error: error?.takeUnretainedValue())
             }
             
             return accessControl

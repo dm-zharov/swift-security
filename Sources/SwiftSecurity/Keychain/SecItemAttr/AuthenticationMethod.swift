@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum AuthenticationMethod {
+public enum AuthenticationMethod: Sendable {
     case ntlm
     case msn
     case dpa

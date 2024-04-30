@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum ProtocolType {
+public enum ProtocolType: Sendable {
     case ftp
     case ftpAccount
     case http

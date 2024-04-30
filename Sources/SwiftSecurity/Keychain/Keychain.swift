@@ -167,8 +167,6 @@ extension Keychain: SecItemStore {
         case let status:
             throw SwiftSecurityError(rawValue: status)
         }
-        
-        return []
     }
     
     public func removeAll() throws {
@@ -230,11 +228,7 @@ extension Keychain: SecKeyStore {
         guard
             let key: AnyObject = SecKeyCreateWithData(data.x963Representation as CFData, query.rawValue as CFDictionary, &error)
         else {
-            if let error = error?.takeUnretainedValue() {
-                throw SwiftSecurityError(error: error)
-            } else {
-                throw SwiftSecurityError(rawValue: errSecBadReq)
-            }
+            throw SwiftSecurityError(error: error?.takeUnretainedValue())
         }
 
         try store(.reference(key), query: query, accessPolicy: accessPolicy)
@@ -250,11 +244,7 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(reference as! SecKey, &error) as Data? else {
-            if let error = error?.takeUnretainedValue() {
-                throw SwiftSecurityError(error: error)
-            } else {
-                throw SwiftSecurityError(rawValue: errSecBadReq)
-            }
+            throw SwiftSecurityError(error: error?.takeUnretainedValue())
         }
 
         return try T(x963Representation: data)
@@ -271,7 +261,7 @@ extension Keychain: SecKeyStore {
 extension Keychain: SecCertificateStore {
     public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: SecAccessPolicy = .default) throws {
         guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
-            throw SwiftSecurityError(rawValue: errSecConversionError)
+            throw SwiftSecurityError.invalidParameter
         }
         try store(.reference(certificate), query: query, accessPolicy: accessPolicy)
     }
@@ -319,7 +309,7 @@ extension Keychain: SecIdentityStore {
 
     public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessPolicy: SecAccessPolicy = .default) throws {
         guard let identity = item.identity else {
-            throw SwiftSecurityError(rawValue: errSecMissingValue)
+            throw SwiftSecurityError.invalidParameter
         }
         try store(.reference(identity), query: query, accessPolicy: accessPolicy)
     }
@@ -332,7 +322,7 @@ extension Keychain: SecIdentityStore {
             return nil
         }
         
-        return reference as! SecIdentity
+        return (reference as! SecIdentity)
     }
     
     @discardableResult
@@ -356,7 +346,7 @@ private extension Keychain {
         case .reference(let reference):
             query[kSecValueRef as String] = reference
         case .dictionary, .persistentReference:
-            throw SwiftSecurityError(rawValue: errSecBadReq)
+            throw SwiftSecurityError.invalidParameter
         }
         
         switch SecItemAdd(query.rawValue as CFDictionary, nil) {
@@ -374,7 +364,7 @@ private extension Keychain {
         
         switch item {
         case .data, .dictionary:
-            throw SwiftSecurityError(rawValue: errSecBadReq)
+            throw SwiftSecurityError.invalidParameter
         case let .reference(reference):
             query[search: .matchItemList] = [reference] as CFArray
         case let .persistentReference(reference):
