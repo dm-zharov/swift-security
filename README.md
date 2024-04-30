@@ -360,7 +360,7 @@ SharedWebCredential.remove("https://example.com", account: "username") { result 
 
 ```swift
 // Data with 20 uniformly distributed random bytes
-let randomData = SecureRandomDataGenerator(count: 20).next()
+let randomData = try SecureRandomDataGenerator(count: 20).next()
 ```
 
 ## Security
