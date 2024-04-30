@@ -315,7 +315,7 @@ Foundation:
 CryptoKit:
     - SymmetricKey // GenericPassword
     - Curve25519 // GenericPassword
-    - P256, P384, P521 // SecKey (Elliptic Curves)
+    - P256, P384, P521 // SecKey (ANSI x9.63, Elliptic Curves)
 SwiftSecurity:
     - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
     - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
@@ -327,7 +327,7 @@ To add support for custom types, you can extend them by conforming to the follow
 // Store as Data (GenericPassword, InternetPassword)
 extension CustomType: SecDataConvertible {}
 
-// Store as x8.Key (SecKey)
+// Store as Key (ANSI x9.63, Elliptic Curves)
 extension CustomType: SecKeyConvertible {}
 
 // Store as Certificate (X.509)
