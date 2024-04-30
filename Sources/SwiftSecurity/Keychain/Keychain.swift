@@ -181,7 +181,7 @@ extension Keychain: SecItemStore {
 // MARK: - GenericPassword
 
 extension Keychain: SecDataStore {
-    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<GenericPassword>, accessPolicy: AccessPolicy = .default) throws {
         try store(.data(data.rawRepresentation), query: query, accessPolicy: accessPolicy)
     }
 
@@ -202,7 +202,7 @@ extension Keychain: SecDataStore {
 // MARK: - InternetPassword
 
 extension Keychain {
-    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<InternetPassword>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store<T: SecDataConvertible>(_ data: T, query: SecItemQuery<InternetPassword>, accessPolicy: AccessPolicy = .default) throws {
         try store(.data(data.rawRepresentation), query: query, accessPolicy: accessPolicy)
     }
 
@@ -223,7 +223,7 @@ extension Keychain {
 // MARK: - SecKey
 
 extension Keychain: SecKeyStore {
-    public func store<T: SecKeyConvertible>(_ data: T, query: SecItemQuery<SecKey>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store<T: SecKeyConvertible>(_ data: T, query: SecItemQuery<SecKey>, accessPolicy: AccessPolicy = .default) throws {
         var error: Unmanaged<CFError>?
         guard
             let key: AnyObject = SecKeyCreateWithData(data.x963Representation as CFData, query.rawValue as CFDictionary, &error)
@@ -259,7 +259,7 @@ extension Keychain: SecKeyStore {
 // MARK: - SecCertificate
 
 extension Keychain: SecCertificateStore {
-    public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: AccessPolicy = .default) throws {
         guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
             throw SwiftSecurityError.invalidParameter
         }
@@ -307,7 +307,7 @@ extension Keychain: SecIdentityStore {
         }
     }
 
-    public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessPolicy: SecAccessPolicy = .default) throws {
+    public func store(_ item: PKCS12.SecImportItem, query: SecItemQuery<SecIdentity>, accessPolicy: AccessPolicy = .default) throws {
         guard let identity = item.identity else {
             throw SwiftSecurityError.invalidParameter
         }
@@ -334,7 +334,7 @@ extension Keychain: SecIdentityStore {
 // MARK: - Private
 
 private extension Keychain {
-    func store<SecItem>(_ value: SecValue<SecItem>, query: SecItemQuery<SecItem>, accessPolicy: SecAccessPolicy) throws {
+    func store<SecItem>(_ value: SecValue<SecItem>, query: SecItemQuery<SecItem>, accessPolicy: AccessPolicy) throws {
         var query = query
         query[.accessGroup] = accessGroup.rawValue
         query[.accessControl] = try accessPolicy.accessControl
@@ -455,7 +455,7 @@ extension Keychain {
             
             switch attribute {
             case .accessible:
-                return SecAccessPolicy.Accessibility(rawValue: rawValue)
+                return AccessPolicy.Accessibility(rawValue: rawValue)
             case .protocolType:
                 return ProtocolType(rawValue: rawValue)
             case .authenticationType:

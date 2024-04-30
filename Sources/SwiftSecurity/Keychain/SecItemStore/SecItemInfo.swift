@@ -29,10 +29,10 @@ public extension SecItemInfo {
     }
     
     /// The corresponding value indicates the item’s one and only access group.
-    var accessible: SecAccessPolicy.Accessibility? {
+    var accessible: AccessPolicy.Accessibility? {
         get {
             if let rawValue = self[.accessible] as? String {
-                return SecAccessPolicy.Accessibility(rawValue: rawValue)
+                return AccessPolicy.Accessibility(rawValue: rawValue)
             } else {
                 return nil
             }
