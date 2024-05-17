@@ -161,10 +161,10 @@ SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```swift
 // Store private key
 let privateKey = P256.KeyAgreement.PrivateKey()
-try Keychain.default.store(privateKey, query: .privateKey(tag: "Alice"))
+try keychain.store(privateKey, query: .privateKey(tag: "Alice"))
 
 // Retrieve private key (+ public key)
-let privateKey: P256.KeyAgreement.PrivateKey? = try Keychain.default.retrieve(.privateKey(tag: "Alice"))
+let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(tag: "Alice"))
 let publicKey = privateKey.publicKey
 ```
 
@@ -194,7 +194,7 @@ print(keychain.debugDescription)
 
 ```swift
 do {
-    let token: String? = try Keychain.default.store("8e9c0a7f", query: .credential(for: "OpenAI"))
+    try keychain.store("8e9c0a7f", query: .credential(for: "OpenAI"))
 } catch {
     switch error as? SwiftSecurityError {
     case .duplicateItem:
