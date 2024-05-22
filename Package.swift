@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftSecurity",
+    name: "swift-security",
     platforms: [.iOS(.v14), .macOS(.v11), .macCatalyst(.v14), .watchOS(.v7), .tvOS(.v14)],
     products: [
         .library(
