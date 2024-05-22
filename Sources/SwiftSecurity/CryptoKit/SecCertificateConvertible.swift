@@ -17,14 +17,27 @@ public protocol SecCertificateConvertible {
     var derRepresentation: Data { get }
 }
 
-extension X509.DER.Data: SecCertificateConvertible {
-    public init<Bytes>(derRepresentation data: Bytes) throws where Bytes : ContiguousBytes {
-        self.init(
-            rawValue: try Data(rawRepresentation: data)
-        )
+#if canImport(X509)
+import X509
+import SwiftASN1
+
+extension Certificate: SecCertificateConvertible {
+    public init<D>(derRepresentation data: D) throws where D: ContiguousBytes {
+        try self.init(derEncoded: data.withUnsafeBytes { bytes in
+            let contiguousBytes = bytes.bindMemory(to: UInt8.self)
+            return Array(contiguousBytes)
+        })
     }
-    
+
     public var derRepresentation: Data {
-        rawValue
+        var serializer = DER.Serializer()
+        do {
+            try serialize(into: &serializer)
+            return Data(serializer.serializedBytes)
+        } catch {
+            assertionFailure(error.localizedDescription)
+            return Data()
+        }
     }
 }
+#endif

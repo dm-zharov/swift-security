@@ -303,8 +303,9 @@ CryptoKit:
     - Curve25519 -> PrivateKey // GenericPassword
     - SecureEnclave.P256 -> PrivateKey // GenericPassword (Key Data is Persistent Reference)
     - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
+X509 (from package `apple/swift-certificates`):
+    - Certificate // SecCertificate
 SwiftSecurity:
-    - X509.DER.Data // SecCertificate (DER-Encoded X.509 Data)
     - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
 ```
 
