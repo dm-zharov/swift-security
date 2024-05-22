@@ -158,7 +158,7 @@ public extension SecItemInfo where Value == InternetPassword {
 
 // MARK: - Generic and Internet Password
 
-public extension SecItemInfo where Value: Password {
+public extension SecItemInfo where Value: SecData {
     // MARK: - Attributes
     
     /// The corresponding value represents the date the item was created. Read only.

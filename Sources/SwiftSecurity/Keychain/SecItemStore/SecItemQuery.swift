@@ -229,7 +229,7 @@ public extension SecItemQuery where Value == InternetPassword {
 
 // MARK: - Generic and Internet Password
 
-public extension SecItemQuery where Value: Password {
+public extension SecItemQuery where Value: SecData {
     // MARK: - Attributes
     
     /// The corresponding value specifies a user-visible string describing this kind of item (for example, "Disk image password").

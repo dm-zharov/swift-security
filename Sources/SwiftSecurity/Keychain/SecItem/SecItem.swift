@@ -8,10 +8,10 @@
 import Security
 
 public protocol SecItem { }
-public protocol Password: SecItem { }
+public protocol SecData: SecItem { }
 
-public struct GenericPassword: Password { }
-public struct InternetPassword: Password { }
+public struct GenericPassword: SecData { }
+public struct InternetPassword: SecData { }
 
 extension SecKey: SecItem { }
 extension SecCertificate: SecItem { }

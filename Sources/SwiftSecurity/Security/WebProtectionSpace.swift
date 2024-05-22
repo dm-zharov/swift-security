@@ -56,9 +56,9 @@ public struct WebProtectionSpace: Equatable, Sendable {
 
 public extension WebProtectionSpace {
     /// Creates a protection space object for the given website.
-    /// - Parameter server: The host; for example, `apple.com`.
+    /// - Parameter host: The host; for example, `apple.com`.
     /// - Parameter port: The port number; for example: `443`.
-    static func website(_ server: String, port: Int? = nil) -> WebProtectionSpace {
-        WebProtectionSpace(host: server, port: port)
+    static func website(_ host: String, port: Int? = nil) -> WebProtectionSpace {
+        WebProtectionSpace(host: host, port: port)
     }
 }

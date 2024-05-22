@@ -33,8 +33,8 @@ extension SecValue: CustomStringConvertible {
             return "Data: \(data)"
         case .dictionary(let info):
             return "Dictionary: \(info)"
-        case .reference:
-            return "Reference"
+        case .reference(let reference):
+            return "Reference: \(reference)"
         case .persistentReference(let data):
             return "Persistent Reference: \(data)"
         }

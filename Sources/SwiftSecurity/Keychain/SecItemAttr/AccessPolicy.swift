@@ -36,7 +36,7 @@ public struct AccessPolicy: Equatable, Sendable {
 public extension AccessPolicy {
     /// The data in the keychain item cannot be accessed after a restart until the device has been unlocked once by the user.
     /// - Note: After the first unlock, the data remains accessible until the next restart. This is recommended for items that need to be accessed by background applications. Items with this attribute migrate to a new device when using encrypted backups.
-    static let `default`: AccessPolicy = AccessPolicy(.afterFirstUnlock)
+    static let `default`: AccessPolicy = AccessPolicy(.afterFirstUnlock, options: nil)
 }
 
 extension AccessPolicy {
