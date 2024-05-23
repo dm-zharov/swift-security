@@ -74,7 +74,7 @@ public struct Certificate: SecCertificateConvertible {
             return Data(bytes)
         }
         guard let certificateRef = SecCertificateCreateWithData(nil, derRepresentation as CFData) else {
-            throw SwiftSecurityError.pkcs12VerifyFailure
+            throw SwiftSecurityError.invalidParameter
         }
         self.rawRepresentation = certificateRef
     }
@@ -84,5 +84,4 @@ public struct Certificate: SecCertificateConvertible {
         self.rawRepresentation = certificateRef
     }
 }
-
 #endif
