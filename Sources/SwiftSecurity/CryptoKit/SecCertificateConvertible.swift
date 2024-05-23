@@ -17,6 +17,19 @@ public protocol SecCertificateConvertible {
     var derRepresentation: Data { get }
 }
 
+extension SecCertificateConvertible {
+    /// A raw representation of certificate.
+    public var rawRepresentation: SecCertificate {
+        get throws {
+            if let certificateRef = SecCertificateCreateWithData(nil, derRepresentation as CFData) {
+                return certificateRef
+            } else {
+                throw SwiftSecurityError.invalidParameter
+            }
+        }
+    }
+}
+
 #if canImport(X509)
 import X509
 import SwiftASN1
@@ -35,9 +48,20 @@ extension Certificate: SecCertificateConvertible {
             try serialize(into: &serializer)
             return Data(serializer.serializedBytes)
         } catch {
-            assertionFailure(error.localizedDescription)
+            preconditionFailure(error.localizedDescription)
             return Data()
         }
     }
 }
+#else
+public struct Certificate: SecCertificateConvertible {
+    public init<Bytes>(derRepresentation data: Bytes) throws where Bytes : ContiguousBytes {
+        self.derRepresentation = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            return Data(bytes)
+        }
+    }
+    
+    public let derRepresentation: Data
+}
+
 #endif
