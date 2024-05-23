@@ -180,24 +180,26 @@ let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKe
 let publicKey = privateKey.publicKey
 ```
 
-#### X.509 Certificate
+#### Certificate
+
+DER-Encoded X.509 Certificate.
 
 ```swift
-import X509 // package from `https://github.com/apple/swift-certificates`
-
 // Prepare certificate
-let certificateData: Data = ... // content of file with `cer`/`der` extension 
-try certificate = Certificate(derRepresentation: certificateData) // entity from `X509` package
+let certificateData: Data // Content of file, often with `cer`/`der` extension 
+try certificate = Certificate(derRepresentation: certificateData)
 
 // Store certificate
-try keychain.store(certificate, query: .certificate(for: "Apple"))
+try keychain.store(certificate, query: .certificate(for: "Root CA"))
 ```
 
-#### Identity (Certificate and PrivateKey Pair)
+#### Identity
+
+A digital identity is the combination of a certificate and the private key that matches the public key within that certificate. The system stores these components separately.
 
 ```
 // Import digital identity from `PKCS #12` data
-let pkcs12Data = ... // content of file, often with `p12` extension
+let pkcs12Data: PKCS12.Blob // Content of file, often with `p12` extension
 for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
     if let identity = importItem.identity {
         // Store digital identity
