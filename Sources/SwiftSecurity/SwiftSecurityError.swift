@@ -43,6 +43,9 @@ public enum SwiftSecurityError: Error {
     /// The data is not available.
     case dataNotAvailable
     
+    /// MAC verification failed during PKCS12 Import (wrong password?).
+    case pkcs12VerifyFailure
+    
     /// Function or operation not implemented.
     case unimplemented
     
@@ -64,6 +67,7 @@ extension SwiftSecurityError {
         case errSecUserCanceled: self = .userCanceled
         case errSecKeySizeNotAllowed: self = .keySizeNotAllowed
         case errSecDataNotAvailable: self = .dataNotAvailable
+        case errSecPkcs12VerifyFailure: self = .pkcs12VerifyFailure
         case errSecUnimplemented: self = .unimplemented
         default:
             self = .underlyingSecurityError(error: rawValue)
@@ -102,6 +106,8 @@ extension SwiftSecurityError: LocalizedError {
             return SecCopyErrorMessageString(errSecKeySizeNotAllowed, nil) as String?
         case .dataNotAvailable:
             return SecCopyErrorMessageString(errSecDataNotAvailable, nil) as String?
+        case .pkcs12VerifyFailure:
+            return SecCopyErrorMessageString(errSecPkcs12VerifyFailure, nil) as String?
         case .unimplemented:
             return SecCopyErrorMessageString(errSecUnimplemented, nil) as String?
         case .underlyingSecurityError(let error):
