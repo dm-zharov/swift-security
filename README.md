@@ -12,8 +12,8 @@ How does SwiftSecurity differ from other wrappers?
 
 * Supports every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
 * Prevents creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
-* Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/) and [SwiftUI](https://developer.apple.com/documentation/swiftui/).
-* Clear of deprecated and legacy calls.
+* Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/), [SwiftUI](https://developer.apple.com/documentation/swiftui/) and [swift-certificates](https://github.com/apple/swift-certificates).
+* Consistent behavior across platforms, free of deprecated and legacy calls.
 
 ## Installation
 
@@ -26,7 +26,7 @@ How does SwiftSecurity differ from other wrappers?
 
 To use the `SwiftSecurity`, add the following dependency in your `Package.swift`:
 ```swift
-.package(url: "https://github.com/dm-zharov/swift-security.git", from: "1.0.0")
+.package(url: "https://github.com/dm-zharov/swift-security.git", from: "2.0.0")
 ```
 
 Finally, add `import SwiftSecurity` to your source code.
