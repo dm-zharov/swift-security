@@ -11,7 +11,7 @@ public protocol SecIdentityConvertible {
     /// Creates an identity from a raw representation.
     init(rawRepresentation: SecIdentity)
     
-    /// Creates an identity from a raw representation.
+    /// A raw representation of the identity.
     var rawRepresentation: SecIdentity { get throws }
 }
 

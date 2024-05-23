@@ -142,7 +142,6 @@ final class KeychainTests: XCTestCase {
         query.keyType = .ecsecPrimeRandom
         query.keySizeInBits = 256
         query.applicationLabel = "applicationLabel".data(using: .utf8)!
-        query.isPermament = false
         
         // Secret
         let privateKey = P256.KeyAgreement.PrivateKey()
@@ -160,7 +159,6 @@ final class KeychainTests: XCTestCase {
                 XCTAssertEqual(info.synchronizable, true)
                 XCTAssertEqual(info.keySizeInBits, 256)
                 XCTAssertEqual(info.applicationLabel, "applicationLabel".data(using: .utf8)!)
-                XCTAssertEqual(info.isPermament, false)
                 XCTAssertEqual(info.canEncrypt, false)
                 XCTAssertEqual(info.canDecrypt, true)
                 XCTAssertEqual(info.canDerive, true)
@@ -183,6 +181,155 @@ final class KeychainTests: XCTestCase {
             let data: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(query)
             XCTAssertTrue(success)
             XCTAssertNil(data)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
+    func testSecCertificate() {
+        // Keychain
+        let keychain = Keychain.default
+        
+        // Certificate
+        let certificateFileURL = Bundle.main.url(forResource: "www.apple.com.root", withExtension: "der")!
+        let certificateData = try! Data(contentsOf: certificateFileURL)
+
+        let certificate: Certificate
+
+        do {
+            certificate = try Certificate(derRepresentation: certificateData)
+        } catch {
+            XCTFail(error.localizedDescription)
+            return
+        }
+        
+        // Store
+        do {
+            try keychain.store(certificate, query: .certificate(for: "Root CA"))
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+        // Retrieve
+        do {
+            let certificate: Certificate? = try keychain.retrieve(.certificate(for: "Root CA"))
+            XCTAssertNotNil(certificate)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+        // Remove
+        do {
+            let query: SecItemQuery<SecCertificate> = .certificate(for: "Root CA")
+            let success = try keychain.remove(query)
+            let certificate: Certificate? = try keychain.retrieve(query)
+            XCTAssertTrue(success)
+            XCTAssertNil(certificate)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    func testSecIdentity() {
+        // Keychain
+        let keychain = Keychain.default
+        
+        // PKCS #12 Blob
+        let pkcs12FileURL = Bundle.main.url(forResource: "badssl", withExtension: "p12")!
+        let pkcs12Data = try! Data(contentsOf: pkcs12FileURL)
+
+        // Import with wrong passphrase
+        XCTAssertThrowsError(try keychain.import(pkcs12Data, passphrase: "random"))
+        
+        // Import
+        let identity: Identity
+
+        do {
+            let result = try keychain.import(pkcs12Data, passphrase: "badssl.com")
+
+            XCTAssertTrue(result.count == 1)
+            let importItem = result[0]
+            
+            XCTAssertNotNil(importItem.identity)
+            identity = importItem.identity!
+        } catch {
+            XCTFail(error.localizedDescription)
+            return
+        }
+        
+        // Store
+        do {
+            try keychain.store(identity, query: .identity(for: "badssl"))
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+        // Retrieve
+        do {
+            let identity: Identity? = try keychain.retrieve(.identity(for: "badssl"))
+            XCTAssertNotNil(identity)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+        // Remove
+        do {
+            let query: SecItemQuery<SecIdentity> = .identity(for: "badssl")
+            let success = try keychain.remove(query)
+            let identity: Identity? = try keychain.retrieve(query)
+            XCTAssertTrue(success)
+            XCTAssertNil(identity)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    func retrieveKeyReferenceMathingPersistentReference() {
+        // Keychain
+        let keychain = Keychain.default
+        
+        // Secret
+        let privateKey = P256.KeyAgreement.PrivateKey()
+
+        // Store
+        do {
+            if case let .persistentReference(data) = try keychain.store(
+                privateKey, returning: .persistentReference, query: .privateKey(for: "Alice")
+            ) {
+                // Retrieve
+                let reference: SecKey? = try keychain.retrieveKeyReference(matching: data)
+                XCTAssertNotNil(reference)
+            }
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
+    func retrieveCertificateReferenceMatchingPersistentReference() {
+        // Keychain
+        let keychain = Keychain.default
+        
+        // Certificate
+        let certificateURL = Bundle.main.url(forResource: "www.apple.com.root", withExtension: "der")!
+        let certificateData = try! Data(contentsOf: certificateURL)
+
+        let certificate: Certificate
+        do {
+            certificate = try Certificate(derRepresentation: certificateData)
+        } catch {
+            XCTFail(error.localizedDescription)
+            return
+        }
+
+        // Store
+        do {
+            if case let .persistentReference(data) = try keychain.store(
+                certificate, returning: .persistentReference, query: .certificate(for: "Root CA")
+            ) {
+                // Retrieve
+                let reference: SecCertificate? = try keychain.retrieveCertificateReference(matching: data)
+                XCTAssertNotNil(reference)
+            }
         } catch {
             XCTFail(error.localizedDescription)
         }

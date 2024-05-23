@@ -40,3 +40,18 @@ extension SecValue: CustomStringConvertible {
         }
     }
 }
+
+extension SecValue: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch self {
+        case .data(let data):
+            return "Data: \(data.debugDescription)"
+        case .dictionary(let info):
+            return "Dictionary: \(info.debugDescription)"
+        case .reference(let reference):
+            return "Reference: \(reference)"
+        case .persistentReference(let data):
+            return "Persistent Reference: \(data.debugDescription)"
+        }
+    }
+}

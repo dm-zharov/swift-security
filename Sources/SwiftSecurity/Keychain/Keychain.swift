@@ -53,6 +53,26 @@ extension Keychain: SecItemStore {
         query: SecItemQuery<SecItem>,
         authenticationContext: LAContext? = nil
     ) throws -> SecValue<SecItem>? {
+        #if os(macOS)
+        // Retrieve `SecIdentity` from `SecCertificate` on macOS.
+        // See: https://developer.apple.com/documentation/network/creating_an_identity_for_local_network_tls
+        if query.class == .identity {
+            var query = query
+            query.class = .certificate
+            switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
+            case .reference(let reference):
+                let certificate = try Certificate(rawRepresentation: reference as! SecCertificate)
+                if let identity = try Identity(certificate: certificate) {
+                    return .reference(identity.rawRepresentation)
+                } else {
+                    return nil
+                }
+            default:
+                break
+            }
+        }
+        #endif
+        
         var query = query
         query[.accessGroup] = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitOne as String
@@ -398,12 +418,26 @@ extension Keychain: SecIdentityStore {
         }
     }
 
-    public func storeIdentityReference(
-        _ identityReference: SecIdentity,
+    public func store<T: SecIdentityConvertible>(
+        _ identity: T,
         query: SecItemQuery<SecIdentity>,
         accessPolicy: AccessPolicy = .default
     ) throws {
-        try store(.reference(identityReference), query: query, accessPolicy: accessPolicy)
+        try store(.reference(identity.rawRepresentation), query: query, accessPolicy: accessPolicy)
+    }
+    
+    public func retrieve<T: SecIdentityConvertible>(
+        _ query: SecItemQuery<SecIdentity>,
+        authenticationContext: LAContext? = nil
+    ) throws -> T? {
+        guard
+            let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
+            case let .reference(reference) = value
+        else {
+            return nil
+        }
+        
+        return try T(rawRepresentation: reference as! SecIdentity)
     }
     
     public func retrieveIdentityReference(matching persistentReference: Data, authenticationContext: LAContext? = nil) throws -> SecIdentity? {

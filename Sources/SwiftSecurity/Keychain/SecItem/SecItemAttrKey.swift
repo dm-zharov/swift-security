@@ -36,7 +36,7 @@ extension SecItemAttrKey {
     
     #if os(macOS)
     /// A key with a value that indicates access control list settings for the item.
-    @available(macOS, unavailable, message: "This attribute couldn't be applied because `useDataProtectionKeychain` is consistently set to `true`")
+    @available(macOS, unavailable, message: "Cannot be used when `useDataProtectionKeychain' is set to `true`")
     static let access = SecItemAttrKey(rawValue: kSecAttrAccess as String)
     #endif
 

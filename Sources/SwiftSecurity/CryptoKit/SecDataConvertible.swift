@@ -9,10 +9,10 @@ import Foundation
 import CryptoKit
 
 public protocol SecDataConvertible {
-    /// Creates a key from a raw representation.
+    /// Creates a secure data from a raw representation.
     init<D>(rawRepresentation data: D) throws where D: ContiguousBytes
     
-    /// A raw representation of the key.
+    /// A raw representation of the secure data.
     var rawRepresentation: Data { get }
 }
 

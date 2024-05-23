@@ -11,6 +11,19 @@ import Security
 public struct SecItemQuery<Value> where Value: SecItem {
     private(set) var rawValue: [String: Any]
     
+    var `class`: SecItemClass? {
+        get {
+            if let value = self[.class] as? String {
+                return SecItemClass(rawValue: value)
+            } else {
+                return nil
+            }
+        }
+        set {
+            self[.class] = newValue?.rawValue
+        }
+    }
+    
     private init(class: SecItemClass) {
         self.rawValue = [
             kSecClass: `class`.rawValue,

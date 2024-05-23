@@ -272,7 +272,17 @@ public protocol SecIdentityStore: SecItemStore {
     ///   - identityReference: The reference to ``SecIdentity``. Could be retrieved after PKCS #12 blob import from ``SecImportItemInfo``.
     ///   - query: An object that describes the search. See ``SecItemQuery<SecIdentity>``. You store an identity as you would a certificate.
     ///   - accessPolicy: The protection policy to use when creating the associated access control object.
-    func storeIdentityReference(_ identityReference: SecIdentity, query: SecItemQuery<SecIdentity>, accessPolicy: AccessPolicy) throws
+    func store<T: SecIdentityConvertible>(_ identity: T, query: SecItemQuery<SecIdentity>, accessPolicy: AccessPolicy) throws
+    
+    /// Returns the first digital identity that match a search query.
+    ///
+    /// A digital identity is the combination of a certificate and the private key that matches the public key within that certificate.
+    /// The system stores these components separately.
+    /// - Parameters:
+    ///   - query: An object that describes the query. See ``SecItemQuery<SecIdentity>``.
+    ///   - authenticationContext: A local authentication context.
+    /// - Returns: On return, the first found digital identity.
+    func retrieve<T: SecIdentityConvertible>(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> T?
     
     func retrieveIdentityReference(matching persistentReference: Data, authenticationContext: LAContext?) throws -> SecIdentity?
 

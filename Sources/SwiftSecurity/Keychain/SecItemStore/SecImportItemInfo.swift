@@ -38,13 +38,27 @@ public extension SecImportItemInfo {
      This list might differ from that in the trust management object if there is more than one identity in the blob or if the blob contains extra certificates
      (for example, an intermediate certificate that is not yet valid but might be needed to establish validity in the near future).
      */
-    var certChain: [SecCertificate]? {
-        get { self[.certChain] as! [SecCertificate]? }
+    var certChain: [Certificate]? {
+        get {
+            if let certChain = self[.certChain] as? [SecCertificate] {
+                return certChain.map { certificateRef in
+                    Certificate(rawRepresentation: certificateRef)
+                }
+            } else {
+                return nil
+            }
+        }
     }
 
     /// The corresponding value represents one identity contained in the PKCS #12 blob and contains the certificate and private key wrapped together.
-    var identity: SecIdentity? {
-        get { self[.identity] as! SecIdentity?  }
+    var identity: Identity? {
+        get {
+            if let identityRef = self[.identity] {
+                return Identity(rawRepresentation: identityRef as! SecIdentity)
+            } else {
+                return nil
+            }
+        }
     }
 }
 
