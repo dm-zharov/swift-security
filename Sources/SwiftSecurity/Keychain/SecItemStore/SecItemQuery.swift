@@ -22,29 +22,31 @@ public struct SecItemQuery<Value> where Value: SecItem {
 // MARK: - Convenient
 
 public extension SecItemQuery {
-    /// A data-based credential for the specified service.
-    /// - Note: The most popular type of query. Suitable for tokens, symmetric CryptoKit keys and other sensitive data types.
-    /// - SeeAlso: `GenericPassword`.
-    static func credential(for service: String) -> SecItemQuery<Value> where Value == GenericPassword {
+    /// A query for a credential with specified service.
+    /// - Note: The most popular type of query. Suitable for tokens, non-ANSI CryptoKit keys and other sensitive data types.
+    /// - Parameters:
+    ///   - service: A service associated with the item.
+    ///   - synchronizable: A value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<GenericPassword>``.
+    static func credential(for service: String, synchronizable: Bool? = nil) -> SecItemQuery<GenericPassword> {
         var query = SecItemQuery<GenericPassword>()
         query.service = service
+        if let synchronizable {
+            query.synchronizable = synchronizable
+        }
         return query
     }
     
-    /// A data-based credential for the specified account and service.
-    /// - Note: Suitable for tokens, symmetric CryptoKit keys and other sensitive data types. Provides the ability to specify an account.
-    /// - SeeAlso: `GenericPassword`.
-    static func credential(for account: String, service: String?) -> SecItemQuery<Value> where Value == GenericPassword {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        query.account = account
-        return query
-    }
-    
-    /// A web credential for the specified account and server or an area on server, that requires authentication.
+    /// A query for a web credential with specified account and server, or an area on the server that requires authentication.
     /// - Note: Suitable for websites with user logins.
-    /// - SeeAlso: `InternetPassword`.
-    static func credential(for user: String, space: WebProtectionSpace) -> SecItemQuery<Value> where Value == InternetPassword {
+    /// - Parameters:
+    ///   - account: An account name.
+    ///   - space: A server or an area on a server, that requires authentication.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<InternetPassword>``.
+    static func credential(for user: String, space: WebProtectionSpace, synchronizable: Bool? = nil) -> SecItemQuery<InternetPassword> {
         var query = SecItemQuery<InternetPassword>()
         query.account = user
         query.server = space.host
@@ -53,18 +55,56 @@ public extension SecItemQuery {
         query.protocol = space.protocol
         query.securityDomain = space.securityDomain
         query.authenticationMethod = space.authenticationMethod
+        if let synchronizable {
+            query.synchronizable = synchronizable
+        }
         return query
     }
     
-    /// An ANSI x9.63 representable private key. 
-    /// - Note: Suitable for asymmetric CryptoKit Keys.
-    /// - SeeAlso: `SecKey`.
-    static func privateKey(tag: String? = nil) -> SecItemQuery<Value> where Value == SecKey {
+    /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
+    /// - Note: Suitable for P256, P384, P521 CryptoKit Keys.
+    /// - Parameters:
+    ///   - applicationTag: An application tag that you can use to identify the key within store.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<SecKey>``.
+    static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
         var query = SecItemQuery<SecKey>()
         query.keyClass = .private
         query.keyType = .ecsecPrimeRandom
-        if let tag {
-            query.applicationTag = tag.data(using: .utf8)!
+        if let applicationTag {
+            query.applicationTag = applicationTag.data(using: .utf8)!
+        }
+        if let synchronizable {
+            query.synchronizable = synchronizable
+        }
+        return query
+    }
+    
+    /// A query for a X.509 certificate.
+    /// - Parameters:
+    ///   - label: An label that you can use to make it easier to search for the certificate later.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<SecCertificate>``.
+    static func certificate(for label: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecCertificate> {
+        var query = SecItemQuery<SecCertificate>()
+        if let label {
+            query.label = label
+        }
+        return query
+    }
+    
+    /// A query for an identity, the pair of X.509 certificate and corresponding private key.
+    /// - Parameters:
+    ///   - label: An label that you can use to make it easier to search for the identity later.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<SecIdentity>``.
+    static func identity(for label: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecIdentity> {
+        var query = SecItemQuery<SecIdentity>()
+        if let label {
+            query.label = label
         }
         return query
     }
@@ -73,22 +113,27 @@ public extension SecItemQuery {
 // MARK: - Instantiation
 
 extension SecItemQuery {
+    /// A query for credential with specified service.
     public init() where Value == GenericPassword {
         self.init(class: .genericPassword)
     }
     
+    /// A query for a web credential.
     public init() where Value == InternetPassword {
         self.init(class: .internetPassword)
     }
     
+    /// A query for a key.
     public init() where Value == SecKey {
         self.init(class: .key)
     }
     
+    /// A query for a X.509 certificate.
     public init() where Value == SecCertificate {
         self.init(class: .certificate)
     }
     
+    /// A query for an identity.
     public init() where Value == SecIdentity {
         self.init(class: .identity)
     }
@@ -103,7 +148,7 @@ public extension SecItemQuery {
      The following caveats apply when you specify this key:
      - You can set the key on tvOS, but tvOS doesn’t synchronize your app’s keychain items through iCloud.
      - Updating or deleting items using the key affects all copies of the item, not just the one on your local device. Be sure that it makes sense to use the same password on all devices before making a password synchronizable.
-     - Items stored or obtained using the key may not also specify a ``accessPolicy`` value that is incompatible with syncing (namely, those whose names end with ThisDeviceOnly).
+     - Items stored or obtained using the key may not also specify an ``AccessPolicy`` value that is incompatible with syncing (namely, those whose names end with `...ThisDeviceOnly`).
      */
     var synchronizable: Bool? {
         get { self[.synchronizable] as? Bool }
@@ -121,6 +166,7 @@ public extension SecItemQuery {
 
 #if os(tvOS)
 public extension SecItemQuery {
+    /// The corresponding value indicates whether to store the data in a keychain available to anyone who uses the device.
     @available(tvOS 16.0, *)
     var useUserIndependentKeychain: Bool? {
         get { self[.useUserIndependentKeychain] as? Bool }
@@ -351,15 +397,6 @@ public extension SecItemQuery where Value == SecKey {
     // MARK: - Usage
     
     /**
-     The corresponding value indicates whether or not this cryptographic key or key pair should be stored in the default keychain at creation time.
-     - Note: On key creation, if not explicitly specified, this attribute defaults to `false`.
-     */
-    var isPermament: Bool? {
-        get { self[.isPermament] as? Bool }
-        set { self[.isPermament] = newValue }
-    }
-    
-    /**
      The corresponding value indicates whether this cryptographic key can be used to encrypt data.
      - Note: On key creation, if not explicitly specified, this attribute defaults to `false`for private keys and `true` for public keys.
      */
@@ -485,5 +522,34 @@ extension SecItemQuery {
     subscript(search key: SecItemSearchKey) -> Any? {
         get { self[key.rawValue] }
         set { self[key.rawValue] = newValue }
+    }
+}
+
+// MARK: - Deprecetad
+
+public extension SecItemQuery {
+    /// A query for a credential with specified service.
+    ///  - Parameters:
+    ///   - account: An acount
+    ///   - service: A service associated with the item.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    /// - Returns: ``SecItemQuery<GenericPassword>``.
+    @available(*, deprecated, message: "Use `SecItemQuery<GenericPassword>()` with specified `account` and `service` values")
+    static func credential(for account: String, service: String?) -> SecItemQuery<GenericPassword> {
+        var query = SecItemQuery<GenericPassword>()
+        query.service = service
+        query.account = account
+        return query
+    }
+    
+    /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
+    /// - Parameters:
+    ///   - applicationTag: An application tag that you can use to identify the key within store.
+    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
+    /// - Returns: ``SecItemQuery<SecKey>``.
+    @available(*, deprecated, renamed: "privateKey(for:)")
+    static func privateKey(tag: String) -> SecItemQuery<SecKey> {
+        return privateKey(for: tag, synchronizable: nil)
     }
 }
