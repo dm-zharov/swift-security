@@ -36,10 +36,11 @@ import Security
     
     /// Creates a property that can read and write to a secure storage.
     /// - Parameters:
-    ///   - account: A string indicating the item's account name.
-    ///   - synchronizable: A string indicating whether the item synchronizes through iCloud.
+    ///   - service: A service associated with the item.
+    ///   - synchronizable: A value indicating whether the item synchronizes through iCloud.
+    ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     ///   - store: The secure store to read and write to. A value of nil will use the default.
-    public init(_ service: String, store: Keychain = .default) {
+    public init(_ service: String, synchronizable: Bool? = nil, store: Keychain = .default) {
         self.init(query: .credential(for: service), store: store)
     }
     
