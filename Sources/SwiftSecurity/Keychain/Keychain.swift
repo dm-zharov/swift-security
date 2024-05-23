@@ -248,7 +248,7 @@ extension Keychain {
         query: SecItemQuery<InternetPassword>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<InternetPassword>? {
-        try store(.data(data.rawRepresentation), query: query, accessPolicy: accessPolicy)
+        try store(.data(data.rawRepresentation), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
@@ -284,7 +284,7 @@ extension Keychain: SecKeyStore {
         else {
             throw SwiftSecurityError(error: error?.takeUnretainedValue())
         }
-        return try store(.reference(key), query: query, accessPolicy: accessPolicy)
+        return try store(.reference(key), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
@@ -326,11 +326,24 @@ extension Keychain: SecKeyStore {
 // MARK: - SecCertificate
 
 extension Keychain: SecCertificateStore {
-    public func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: AccessPolicy = .default) throws {
-        guard let certificate = SecCertificateCreateWithData(nil, data.derRepresentation as CFData) else {
+    public func store<T: SecCertificateConvertible>(
+        _ certificate: T,
+        query: SecItemQuery<SecCertificate>,
+        accessPolicy: AccessPolicy = .default
+    ) throws {
+        _ = try store(certificate, returning: [], query: query, accessPolicy: accessPolicy)
+    }
+    
+    public func store<T: SecCertificateConvertible>(
+        _ certificate: T,
+        returning returnType: SecReturnType,
+        query: SecItemQuery<SecCertificate>,
+        accessPolicy: AccessPolicy = .default
+    ) throws -> SecValue<SecCertificate>? {
+        guard let reference = SecCertificateCreateWithData(nil, certificate.derRepresentation as CFData) else {
             throw SwiftSecurityError.invalidParameter
         }
-        try store(.reference(certificate), query: query, accessPolicy: accessPolicy)
+        return try store(.reference(reference), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext? = nil) throws -> T? {

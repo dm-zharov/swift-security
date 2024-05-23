@@ -212,7 +212,22 @@ public protocol SecCertificateStore: SecItemStore {
     ///   - data: The X.509 certificate.
     ///   - query: An object that describes the search. See ``SecItemQuery<SecCertificate>``.
     ///   - accessPolicy: The protection policy to use when creating the associated access control object.
-    func store<T: SecCertificateConvertible>(_ data: T, query: SecItemQuery<SecCertificate>, accessPolicy: AccessPolicy) throws
+    func store<T: SecCertificateConvertible>(_ certificate: T, query: SecItemQuery<SecCertificate>, accessPolicy: AccessPolicy) throws
+    
+    /// Stores the X.509 certificate with specified query.
+    /// - Parameters:
+    ///   - data: The X.509 certificate.
+    ///   - returnType: One or more return types. Use the values of ``SecReturnType`` to indicate whether you seek the item’s attributes,
+    ///   the item’s data, a reference to the data, a persistent reference to the data, or a combination of these.
+    ///   - query: An object that describes the query. See ``SecItemQuery<SecCertificate>``.
+    ///   - accessPolicy: The protection policy to use when creating the associated access control object.
+    /// - Returns: On return, the result. The exact value of the result depends on the return type values supplied as `returnType`.
+    func store<T: SecCertificateConvertible>(
+        _ certificate: T,
+        returning returnType: SecReturnType,
+        query: SecItemQuery<SecCertificate>,
+        accessPolicy: AccessPolicy
+    ) throws -> SecValue<SecCertificate>?
     
     /// Returns the first X.509 certificate that match a search query.
     /// - Parameters:
