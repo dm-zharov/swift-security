@@ -156,27 +156,64 @@ SecItemQuery<SecCertificate>    // kSecClassSecCertificate
 SecItemQuery<SecIdentity>       // kSecClassSecIdentity
 ```
 
+#### Get Data & Persistent Reference
+
+```swift
+// Retrieve multiple values at once
+if case let .dictionary(info) = try keychain.retrieve([.data, .persistentReference], query: .credential(for: "OpenAI")) {
+    // Data
+    info.data
+    // Persistent Reference
+    info.persistentReference
+}
+```
+
+### Get Reference using Persistent Reference
+
+```swift
+let reference: SecKey? = try keychain.retrieveKeyReference(matching: persistentReference)
+```
+
 #### CryptoKit
 
 ```swift
 // Store private key
 let privateKey = P256.KeyAgreement.PrivateKey()
-try keychain.store(privateKey, query: .privateKey(tag: "Alice"))
+try keychain.store(privateKey, query: .privateKey(for: "Alice"))
 
 // Retrieve private key (+ public key)
-let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(tag: "Alice"))
+let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(for: "Alice"))
 let publicKey = privateKey.publicKey
 ```
 
-#### Get Data & Persistent Reference
+#### X.509 Certificate
 
 ```swift
-let value = try keychain.retrieve([.data, .persistentReference], query: .credential(for: "OpenAI"))
-if case let .dictionary(info) = value {
-    // Data
-    info.data
-    // Persistent Reference
-    info.persistentReference
+import X509 // package from `https://github.com/apple/swift-certificates`
+
+// Prepare certificate
+let certificateData: Data = ... // content of file with `cer`/`der` extension 
+try! certificate = Certificate(derRepresentation: certificateData) // entity from `X509` package
+
+// Store certificate
+try keychain.store(certificate, query: .certificate(for: "Apple"))
+```
+
+#### SecIdentity (from `PKCS #12 Blob`)
+
+```
+// Import digital identity
+let pkcs12Data = ... // content of file, often with `p12` extension
+for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
+    if let identity = importItem.identity {
+        // Store identity
+        try keychain.store(identity, query: .identity(for: "Apple Development"))
+    }
+}
+
+// Retrieve digital identity
+if case let .reference(let identity) = try keychain.retrieve(.reference, query: .identity(for: "Apple Development")) {
+    // Handle
 }
 ```
 
@@ -290,7 +327,7 @@ if success {
 > [!WARNING]
 > Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
 
-## 🔖 Data Types
+## Data Types
 
 You can store, retrieve, and remove various types of values.
 
@@ -301,12 +338,12 @@ Foundation:
 CryptoKit:
     - SymmetricKey // GenericPassword
     - Curve25519 -> PrivateKey // GenericPassword
-    - SecureEnclave.P256 -> PrivateKey // GenericPassword (Key Data is Persistent Reference)
+    - SecureEnclave.P256 -> PrivateKey // GenericPassword (SE's Key Data is Persistent Reference)
     - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
 X509 (from package `apple/swift-certificates`):
     - Certificate // SecCertificate
 SwiftSecurity:
-    - PKCS12.Data // SecIdentity  (PKCS #12 Blob)
+    - PKCS12.Blob // Import as SecIdentity (SecCertificate + SecKey)
 ```
 
 To add support for custom types, you can extend them by conforming to the following protocols.
@@ -320,9 +357,6 @@ extension CustomType: SecKeyConvertible {}
 
 // Store as Certificate (X.509)
 extension CustomType: SecCertificateConvertible {}
-
-// Import as Identity (PKCS #12)
-extension CustomType: SecIdentityConvertible {}
 ```
 
 These protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
@@ -382,6 +416,8 @@ The framework’s default behavior provides a reasonable trade-off between secur
 * [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/)
 * [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain)
 * [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+* [SecItem: Fundamentals](https://developer.apple.com/forums/thread/724023)
+* [SecItem: Pitfalls and Best Practices](https://developer.apple.com/forums/thread/724013)
 
 ## Author
 
