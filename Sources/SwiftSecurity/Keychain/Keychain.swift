@@ -169,12 +169,26 @@ extension Keychain: SecItemStore {
         }
     }
     
-    public func removeAll() throws {
-        try remove(SecItemQuery<GenericPassword>())
-        try remove(SecItemQuery<InternetPassword>())
-        try remove(SecItemQuery<SecKey>())
-        try remove(SecItemQuery<SecCertificate>())
-        try remove(SecItemQuery<SecIdentity>())
+    public func removeAll(includingSynchronizableCredentials: Bool = false) throws {
+        var gps = SecItemQuery<GenericPassword>()
+        var ips = SecItemQuery<InternetPassword>()
+        var sks = SecItemQuery<SecKey>()
+        var scs = SecItemQuery<SecCertificate>()
+        var sis = SecItemQuery<SecIdentity>()
+        
+        if includingSynchronizableCredentials {
+            gps[.synchronizable] = kSecAttrSynchronizableAny
+            ips[.synchronizable] = kSecAttrSynchronizableAny
+            sks[.synchronizable] = kSecAttrSynchronizableAny
+            scs[.synchronizable] = kSecAttrSynchronizableAny
+            sis[.synchronizable] = kSecAttrSynchronizableAny
+        }
+        
+        try remove(gps)
+        try remove(ips)
+        try remove(sks)
+        try remove(scs)
+        try remove(sis)
     }
 }
 
