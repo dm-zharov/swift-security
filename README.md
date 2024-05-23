@@ -187,13 +187,13 @@ import X509 // package from `https://github.com/apple/swift-certificates`
 
 // Prepare certificate
 let certificateData: Data = ... // content of file with `cer`/`der` extension 
-try! certificate = Certificate(derRepresentation: certificateData) // entity from `X509` package
+try certificate = Certificate(derRepresentation: certificateData) // entity from `X509` package
 
 // Store certificate
 try keychain.store(certificate, query: .certificate(for: "Apple"))
 ```
 
-#### Identity (Certificate + PrivateKey)
+#### Identity (Certificate and PrivateKey Pair)
 
 ```
 // Import digital identity from `PKCS #12` data
@@ -334,10 +334,11 @@ CryptoKit:
     - Curve25519 -> PrivateKey // GenericPassword
     - SecureEnclave.P256 -> PrivateKey // GenericPassword (SE's Key Data is Persistent Reference)
     - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
-X509 (from package `apple/swift-certificates`):
+X509 (external package `apple/swift-certificates`):
     - Certificate // SecCertificate
 SwiftSecurity:
-    - PKCS12.Blob // Import as SecIdentity (SecCertificate + SecKey)
+    - Certificate // SecCertificate (Drop-in replacement for X509.Certificate)
+    - PKCS12.Blob // Import as SecIdentity (SecCertificate and SecKey)
 ```
 
 To add support for custom types, you can extend them by conforming to the following protocols.
@@ -351,6 +352,9 @@ extension CustomType: SecKeyConvertible {}
 
 // Store as Certificate (X.509)
 extension CustomType: SecCertificateConvertible {}
+
+// Store as Identity
+extension CustomType: SecIdentityConvertible {}
 ```
 
 These protocols are inspired by Apple's sample code from the [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain) article.
