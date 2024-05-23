@@ -284,57 +284,6 @@ final class KeychainTests: XCTestCase {
         }
     }
     
-    func retrieveKeyReferenceMathingPersistentReference() {
-        // Keychain
-        let keychain = Keychain.default
-        
-        // Secret
-        let privateKey = P256.KeyAgreement.PrivateKey()
-
-        // Store
-        do {
-            if case let .persistentReference(data) = try keychain.store(
-                privateKey, returning: .persistentReference, query: .privateKey(for: "Alice")
-            ) {
-                // Retrieve
-                let reference: SecKey? = try keychain.retrieveKeyReference(matching: data)
-                XCTAssertNotNil(reference)
-            }
-        } catch {
-            XCTFail(error.localizedDescription)
-        }
-    }
-
-    func retrieveCertificateReferenceMatchingPersistentReference() {
-        // Keychain
-        let keychain = Keychain.default
-        
-        // Certificate
-        let certificateURL = Bundle.main.url(forResource: "www.apple.com.root", withExtension: "der")!
-        let certificateData = try! Data(contentsOf: certificateURL)
-
-        let certificate: Certificate
-        do {
-            certificate = try Certificate(derRepresentation: certificateData)
-        } catch {
-            XCTFail(error.localizedDescription)
-            return
-        }
-
-        // Store
-        do {
-            if case let .persistentReference(data) = try keychain.store(
-                certificate, returning: .persistentReference, query: .certificate(for: "Root CA")
-            ) {
-                // Retrieve
-                let reference: SecCertificate? = try keychain.retrieveCertificateReference(matching: data)
-                XCTAssertNotNil(reference)
-            }
-        } catch {
-            XCTFail(error.localizedDescription)
-        }
-    }
-    
     func testConvenientSyntax() throws {
         // Keychain
         let keychain = Keychain.default

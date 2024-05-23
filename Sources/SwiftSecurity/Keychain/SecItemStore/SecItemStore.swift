@@ -189,13 +189,6 @@ public protocol SecKeyStore: SecItemStore {
     /// - Returns: On return, the first found key.
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
     
-    /// Returns the reference to the key using persistent reference.
-    /// - Parameters:
-    ///   - persistentReference: Persistent reference to ``SecKey``.
-    ///   - authenticationContext: A local authentication context.
-    /// - Returns: On return, the reference to key.
-    func retrieveKeyReference(matching persistentReference: Data, authenticationContext: LAContext?) throws -> SecKey?
-    
     /// Removes the first key that match a search query.
     /// - Parameters:
     ///   - query: An object that describes the query. See ``SecItemQuery<SecKey>``.
@@ -235,13 +228,6 @@ public protocol SecCertificateStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found X.509 certificate.
     func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext?) throws -> T?
-    
-    /// Returns the reference to the X.509 certificate using persistent reference.
-    /// - Parameters:
-    ///   - persistentReference: Persistent reference to ``SecKey``.
-    ///   - authenticationContext: A local authentication context.
-    /// - Returns: On return, the reference to X.509 certificate.
-    func retrieveCertificateReference(matching persistentReference: Data, authenticationContext: LAContext?) throws -> SecCertificate?
     
     /// Removes the first X.509 certificate that match a search query.
     /// - Parameters:
@@ -283,8 +269,6 @@ public protocol SecIdentityStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found digital identity.
     func retrieve<T: SecIdentityConvertible>(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> T?
-    
-    func retrieveIdentityReference(matching persistentReference: Data, authenticationContext: LAContext?) throws -> SecIdentity?
 
     /// Removes the first digital identity that match a search query.
     ///

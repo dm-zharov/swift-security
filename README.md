@@ -168,12 +168,6 @@ if case let .dictionary(info) = try keychain.retrieve([.data, .persistentReferen
 }
 ```
 
-### Get Reference using Persistent Reference
-
-```swift
-let reference: SecKey? = try keychain.retrieveKeyReference(matching: persistentReference)
-```
-
 #### CryptoKit
 
 ```swift
@@ -199,21 +193,21 @@ try! certificate = Certificate(derRepresentation: certificateData) // entity fro
 try keychain.store(certificate, query: .certificate(for: "Apple"))
 ```
 
-#### SecIdentity (from `PKCS #12 Blob`)
+#### Identity (Certificate + PrivateKey)
 
 ```
-// Import digital identity
+// Import digital identity from `PKCS #12` data
 let pkcs12Data = ... // content of file, often with `p12` extension
 for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
     if let identity = importItem.identity {
-        // Store identity
+        // Store digital identity
         try keychain.store(identity, query: .identity(for: "Apple Development"))
     }
 }
 
 // Retrieve digital identity
-if case let .reference(let identity) = try keychain.retrieve(.reference, query: .identity(for: "Apple Development")) {
-    // Handle
+if let identity = try keychain.retrieve(.identity(for: "Apple Development")) {
+    identity.rawRepresentation // SecIdentity
 }
 ```
 

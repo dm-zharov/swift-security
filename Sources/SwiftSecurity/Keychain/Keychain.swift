@@ -323,20 +323,6 @@ extension Keychain: SecKeyStore {
         return try T(x963Representation: data)
     }
     
-    public func retrieveKeyReference(matching persistentReference: Data, authenticationContext: LAContext? = nil) throws -> SecKey? {
-        var query = SecItemQuery<SecKey>()
-        query[search: .matchItemList] = [persistentReference]
-        
-        guard
-            let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
-        else {
-            return nil
-        }
-
-        return .some(reference as! SecKey)
-    }
-    
     @discardableResult
     public func remove(_ query: SecItemQuery<SecKey>) throws -> Bool {
         return try remove(nil, query: query)
@@ -377,20 +363,6 @@ extension Keychain: SecCertificateStore {
         let data = SecCertificateCopyData(reference as! SecCertificate) as Data
     
         return try T(derRepresentation: data)
-    }
-    
-    public func retrieveCertificateReference(matching persistentReference: Data, authenticationContext: LAContext? = nil) throws -> SecCertificate? {
-        var query = SecItemQuery<SecCertificate>()
-        query[search: .matchItemList] = [persistentReference]
-        
-        guard
-            let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
-        else {
-            return nil
-        }
-        
-        return .some(reference as! SecCertificate)
     }
     
     @discardableResult
@@ -438,10 +410,6 @@ extension Keychain: SecIdentityStore {
         }
         
         return try T(rawRepresentation: reference as! SecIdentity)
-    }
-    
-    public func retrieveIdentityReference(matching persistentReference: Data, authenticationContext: LAContext? = nil) throws -> SecIdentity? {
-        fatalError()
     }
     
     @discardableResult
