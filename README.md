@@ -12,8 +12,9 @@ How does SwiftSecurity differ from other wrappers?
 
 * Supports every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
 * Prevents creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
-* Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/), [SwiftUI](https://developer.apple.com/documentation/swiftui/) and [swift-certificates](https://github.com/apple/swift-certificates).
-* Consistent behavior across platforms, free of deprecated and legacy calls.
+* Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/), [SwiftUI](https://developer.apple.com/documentation/swiftui/) and [apple/swift-certificates](https://github.com/apple/swift-certificates).
+* Provides consistent behavior across platforms.
+* Clear of deprecated and legacy calls.
 
 ## Installation
 
@@ -31,7 +32,7 @@ To use the `SwiftSecurity`, add the following dependency in your `Package.swift`
 
 Finally, add `import SwiftSecurity` to your source code.
 
-##  Quick Start
+## Quick Start
 
 ####  Basic
 
@@ -77,6 +78,8 @@ struct AuthView: View {
 
 #### Web Credential
 
+A password for a website or an area on a server, that requires authentication.
+
 ```swift
 // Store password for a website
 try keychain.store(
@@ -111,15 +114,120 @@ if let info = try keychain.info(for: .credential(for: "OpenAI")) {
 }
 ```
 
+#### Error Handling
+
+`SwiftSecurityError` offers values for the most common issues.  If case of the rare issue, you'll receive `.underlyingSecurityError(error:)` with an `OSStatus` code that can be matched with underlying [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes).
+
+```swift
+do {
+    try keychain.store("8e9c0a7f", query: .credential(for: "OpenAI"))
+} catch {
+    switch error as? SwiftSecurityError {
+    case .duplicateItem:
+        // handle duplicate
+    default:
+        // unhandled
+    }
+}
+```
+
 #### Remove All
 
 ```swift
+// Removes everything from a keychain
 try keychain.removeAll()
+
+// Removes everything from a keychain, including distributed to other devices credentials through iCloud
+try keychain.removeAll(includingSynchronizableCredentials: true)
 ```
 
-## Advanced Usage
+## 🛠️ Usage
 
-#### Query
+#### Get Data & Persistent Reference
+
+If you're working with `NEVPNProtocol`, you likely need to access persistent reference to `password` or `identity`.
+
+```swift
+// Retrieve multiple values at once
+if case let .dictionary(info) = try keychain.retrieve([.data, .persistentReference], query: .credential(for: "OpenAI")) {
+    // Data
+    info.data
+    // Persistent Reference
+    info.persistentReference
+}
+
+// Retrieve persistent reference right after storing the secret
+if case let .persistentReference(data) = try keychain.store(
+    "8e9c0a7f",
+    returning: .persistentReference, /* OptionSet */
+    query: .credential(for: "OpenAI")
+) {
+    // Persistent Reference
+    data
+}
+
+```
+
+#### CryptoKit
+
+`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain), like `P256`/`P384`/`P521.PrivateKey`, conform to `SecKeyConvertible` protocol.
+
+```swift
+// Store private key
+let privateKey = P256.KeyAgreement.PrivateKey()
+try keychain.store(privateKey, query: .privateKey(for: "Alice"))
+
+// Retrieve private key (+ public key)
+let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(for: "Alice"))
+let publicKey = privateKey.publicKey
+```
+
+Other key types, like `Curve25519.PrivateKey`, `SymmetricKey`, `SecureEnclave.P256.PrivateKey`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a persistent reference to the key inside `Secure Enclave`, not the key itself. These keys conform to `SecDataConvertible`, so store them as follows:
+
+```swift
+// Store symmetric key
+let symmetricKey = SymmetricKey(size: .bits256)
+try keychain.store(privateKey, query: .credential(for: "Chat"))
+```
+
+#### Certificate
+
+DER-Encoded X.509 Certificate.
+
+```swift
+// Prepare certificate
+let certificateData: Data // Content of file, often with `cer`/`der` extension 
+try certificate = Certificate(derRepresentation: certificateData)
+
+// Store certificate
+try keychain.store(certificate, query: .certificate(for: "Root CA"))
+```
+
+If your project uses [apple/swift-certificates](https://github.com/apple/swift-certificates) package, the `Certificate` will offer more functionality. In case of `Swift Package Manager` dependency resolve issues, copy `SecCertificateConvertible` conformance directly to your project.
+
+#### Identity
+
+A digital identity (`SecIdentity`) is the combination of a certificate and the private key that matches the public key within certificate.
+
+```swift
+// Import digital identity from `PKCS #12` data
+let pkcs12Data: PKCS12.Blob // Content of file, often with `p12` extension
+for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
+    if let identity = importItem.identity {
+        // Store digital identity
+        try keychain.store(identity, query: .identity(for: "Apple Development"))
+    }
+}
+
+// Retrieve digital identity
+if let identity = try keychain.retrieve(.identity(for: "Apple Development")) {
+    identity.rawRepresentation // SecIdentity
+}
+```
+
+The system stores certificate and private key separately.
+
+#### Custom Query
 
 ```swift
 // Create query
@@ -149,96 +257,26 @@ query.keySizeInBits = 2048   // ❌ Only for `SecKey`, so not accessible
 Possible queries:
 
 ```swift
-SecItemQuery<GenericPassword>   // kSecClassGenericPassword
-SecItemQuery<InternetPassword>  // kSecClassInternetPassword
-SecItemQuery<SecKey>            // kSecClassSecKey
-SecItemQuery<SecCertificate>    // kSecClassSecCertificate
-SecItemQuery<SecIdentity>       // kSecClassSecIdentity
-```
-
-#### Get Data & Persistent Reference
-
-```swift
-// Retrieve multiple values at once
-if case let .dictionary(info) = try keychain.retrieve([.data, .persistentReference], query: .credential(for: "OpenAI")) {
-    // Data
-    info.data
-    // Persistent Reference
-    info.persistentReference
-}
-```
-
-#### CryptoKit
-
-```swift
-// Store private key
-let privateKey = P256.KeyAgreement.PrivateKey()
-try keychain.store(privateKey, query: .privateKey(for: "Alice"))
-
-// Retrieve private key (+ public key)
-let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(for: "Alice"))
-let publicKey = privateKey.publicKey
-```
-
-#### Certificate
-
-DER-Encoded X.509 Certificate.
-
-```swift
-// Prepare certificate
-let certificateData: Data // Content of file, often with `cer`/`der` extension 
-try certificate = Certificate(derRepresentation: certificateData)
-
-// Store certificate
-try keychain.store(certificate, query: .certificate(for: "Root CA"))
-```
-
-#### Identity
-
-A digital identity is the combination of a certificate and the private key that matches the public key within that certificate. The system stores these components separately.
-
-```
-// Import digital identity from `PKCS #12` data
-let pkcs12Data: PKCS12.Blob // Content of file, often with `p12` extension
-for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
-    if let identity = importItem.identity {
-        // Store digital identity
-        try keychain.store(identity, query: .identity(for: "Apple Development"))
-    }
-}
-
-// Retrieve digital identity
-if let identity = try keychain.retrieve(.identity(for: "Apple Development")) {
-    identity.rawRepresentation // SecIdentity
-}
+SecItemQuery<GenericPassword>  // kSecClassGenericPassword
+SecItemQuery<InternetPassword> // kSecClassInternetPassword
+SecItemQuery<SecKey>           // kSecClassSecKey
+SecItemQuery<SecCertificate>   // kSecClassSecCertificate
+SecItemQuery<SecIdentity>      // kSecClassSecIdentity
 ```
 
 #### Debug
 
 ```swift
-// Print Query (or use LLDB po command)
-print(query.debugDescription) // ["Class: GenericPassword", ..., "Service: OpenAI"]
-
-// Print Keychain 
+// Print Keychain (or use LLDB `po` command)
 print(keychain.debugDescription)
+
+// Print Query
+print(query.debugDescription)
+
+// Output -> ["Class: GenericPassword", ..., "Service: OpenAI"]
 ```
 
-#### Error Handling
-
-```swift
-do {
-    try keychain.store("8e9c0a7f", query: .credential(for: "OpenAI"))
-} catch {
-    switch error as? SwiftSecurityError {
-    case .duplicateItem:
-        // handle duplicate
-    default:
-        // unhandled
-    }
-}
-```
-
-## How to Choose Keychain
+## 🔑 How to Choose Keychain
 
 #### Default
 
@@ -323,7 +361,7 @@ if success {
 > [!WARNING]
 > Include the [NSFaceIDUsageDescription](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW75) key in your app’s Info.plist file. Otherwise, authentication request may fail.
 
-## Data Types
+## ℹ️ Data Types
 
 You can store, retrieve, and remove various types of values.
 
@@ -355,7 +393,7 @@ extension CustomType: SecKeyConvertible {}
 // Store as Certificate (X.509)
 extension CustomType: SecCertificateConvertible {}
 
-// Store as Identity
+// Store as Identity (The Pair of Certificate and Private Key)
 extension CustomType: SecIdentityConvertible {}
 ```
 
@@ -400,10 +438,10 @@ let randomData = try SecureRandomDataGenerator(count: 20).next()
 
 ## Security
 
-The framework’s default behavior provides a reasonable trade-off between security and accessibility.
+The framework’s default behavior provides a reasonable balance between convenience and accessibility.
 
-- `kSecUseDataProtectionKeychain: true` helps to improve the portability of code across platforms. Can't be changed.
-- `kSecAttrAccessibleWhenUnlocked` makes keychain items accessible from `background` processes. Changeable by `AccessPolicy`.
+- `kSecUseDataProtectionKeychain: true` helps to achieve [consistent behavior across platforms](https://developer.apple.com/documentation/security/ksecusedataprotectionkeychain), so it shouldn't and cannot be changed
+- `kSecAttrAccessibleAfterFirstUnlock` makes keychain items [accessible from background state](https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlock) and changeable by using `AccessPolicy`.
 
 ## Communication
 
