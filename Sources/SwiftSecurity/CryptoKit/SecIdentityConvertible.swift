@@ -29,9 +29,9 @@ public struct Identity: SecIdentityConvertible {
 import Security
 
 extension Identity {
-    public init?<T: SecCertificateConvertible>(certificate: T) throws {
+    public init?<T: SecCertificateConvertible>(certificate: T) {
         var identityRef: SecIdentity?
-        try SecIdentityCreateWithCertificate(nil, certificate.rawRepresentation, &identityRef)
+        SecIdentityCreateWithCertificate(nil, certificate.rawRepresentation, &identityRef)
         if let identityRef {
             self.rawRepresentation = identityRef
         } else {

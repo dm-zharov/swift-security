@@ -61,8 +61,8 @@ extension Keychain: SecItemStore {
             query.class = .certificate
             switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
             case .reference(let reference):
-                let certificate = try Certificate(rawRepresentation: reference as! SecCertificate)
-                if let identity = try Identity(certificate: certificate) {
+                let certificate = Certificate(rawRepresentation: reference as! SecCertificate)
+                if let identity = Identity(certificate: certificate) {
                     return .reference(identity.rawRepresentation)
                 } else {
                     return nil
@@ -409,7 +409,7 @@ extension Keychain: SecIdentityStore {
             return nil
         }
         
-        return try T(rawRepresentation: reference as! SecIdentity)
+        return T(rawRepresentation: reference as! SecIdentity)
     }
     
     @discardableResult
