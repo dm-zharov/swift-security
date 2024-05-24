@@ -116,7 +116,7 @@ if let info = try keychain.info(for: .credential(for: "OpenAI")) {
 
 #### Error Handling
 
-`SwiftSecurityError` offers values for the most common issues.  If case of the rare issue, you'll receive `.underlyingSecurityError(error:)` with an `OSStatus` code that can be matched with underlying [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes).
+`SwiftSecurityError` offers values for the most common issues. 
 
 ```swift
 do {
@@ -130,6 +130,8 @@ do {
     }
 }
 ```
+
+If case of the rare issue, you'll receive `.underlyingSecurityError(error:)` with an `OSStatus` code that can be matched with underlying [Security Framework Result Codes](https://developer.apple.com/documentation/security/1542001-security_framework_result_codes).
 
 #### Remove All
 
@@ -440,8 +442,8 @@ let randomData = try SecureRandomDataGenerator(count: 20).next()
 
 The framework’s default behavior provides a reasonable balance between convenience and accessibility.
 
-- `kSecUseDataProtectionKeychain: true` helps to achieve [consistent behavior across platforms](https://developer.apple.com/documentation/security/ksecusedataprotectionkeychain), so it shouldn't and cannot be changed
-- `kSecAttrAccessibleAfterFirstUnlock` makes keychain items [accessible from background state](https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlock) and changeable by using `AccessPolicy`.
+- `kSecUseDataProtectionKeychain: true` helps to achieve [consistent behavior across platforms](https://developer.apple.com/documentation/security/ksecusedataprotectionkeychain), so it shouldn't and cannot be changed.
+- `kSecAttrAccessibleAfterFirstUnlock` makes keychain items [accessible from background state](https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlock), yet changeable by using `AccessPolicy`.
 
 ## Communication
 
