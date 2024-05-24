@@ -163,7 +163,7 @@ public extension SecItemQuery {
      - Updating or deleting items using the key affects all copies of the item, not just the one on your local device. Be sure that it makes sense to use the same password on all devices before making a password synchronizable.
      - Items stored or obtained using the key may not also specify an ``AccessPolicy`` value that is incompatible with syncing (namely, those whose names end with `...ThisDeviceOnly`).
      */
-    var synchronizable: Bool? {
+    var synchronizable: PrimaryKey<Bool>? {
         get { self[.synchronizable] as? Bool }
         set { self[.synchronizable] = newValue }
     }
@@ -174,6 +174,32 @@ public extension SecItemQuery {
     var label: String? {
         get { self[.label] as? String }
         set { self[.label] = newValue }
+    }
+}
+
+internal extension SecItemQuery {
+    /// The corresponding value indicates the item’s one and only access group.
+    var accessGroup: PrimaryKey<String>? {
+        get { self[.accessGroup] as? String }
+        set { self[.accessGroup] = newValue }
+    }
+    
+    /// The corresponding value contains access control conditions for the item.
+    var accessControl: SecAccessControl? {
+        get { self[.accessControl] as! SecAccessControl? }
+        set { self[.accessControl] = newValue }
+    }
+    
+    /// The corresponding value indicates the item’s one and only access group.
+    var accessible: AccessPolicy.Accessibility? {
+        get {
+            if let rawValue = self[.accessible] as? String {
+                return AccessPolicy.Accessibility(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set { self[.accessible] = newValue?.rawValue }
     }
 }
 
@@ -194,13 +220,13 @@ public extension SecItemQuery where Value == GenericPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
-        set { self[.account] = newValue }
+        set { self[.account] = newValue}
     }
     
     /// The corresponding value represents the service associated with this item.
-    var service: String? {
+    var service: PrimaryKey<String>? {
         get { self[.service] as? String }
         set { self[.service] = newValue }
     }
@@ -220,13 +246,13 @@ public extension SecItemQuery where Value == InternetPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
         set { self[.account] = newValue }
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationMethod: AuthenticationMethod? {
+    var authenticationMethod: PrimaryKey<AuthenticationMethod>? {
         get {
             if let value = self[.authenticationType] as? String {
                 return AuthenticationMethod(rawValue: value)
@@ -238,13 +264,13 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value represents a path, typically the path component of the URL.
-    var path: String? {
+    var path: PrimaryKey<String>? {
         get { self[.path] as? String }
         set { self[.path] = newValue }
     }
     
     /// The corresponding represents an Internet port number.
-    var port: Int? {
+    var port: PrimaryKey<Int>? {
         get {
             if let number = self[.port] as? NSNumber {
                 return number.intValue
@@ -262,7 +288,7 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the protocol for this item.
-    var `protocol`: ProtocolType? {
+    var `protocol`: PrimaryKey<ProtocolType>? {
         get {
             if let value = self[.protocolType] as? String {
                 return ProtocolType(rawValue: value)
@@ -274,13 +300,13 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value represents the Internet security domain.
-    var securityDomain: String? {
+    var securityDomain: PrimaryKey<String>? {
         get { self[.securityDomain] as? String }
         set { self[.securityDomain] = newValue }
     }
     
     /// The corresponding value contains the server's domain name or IP address.
-    var server: String? {
+    var server: PrimaryKey<String>? {
         get { self[.server] as? String }
         set { self[.server] = newValue }
     }
@@ -343,7 +369,7 @@ public extension SecItemQuery where Value == SecKey {
      
      - Note: To form a digital identity, this value must match the ``publicKeyHash`` ('pkhh') attribute of the `SecCertificate`.
      */
-    var applicationLabel: Data? {
+    var applicationLabel: PrimaryKey<Data>? {
         get { self[.applicationLabel] as? Data }
         set { self[.applicationLabel] = newValue }
     }
@@ -351,13 +377,13 @@ public extension SecItemQuery where Value == SecKey {
     /// The corresponding value contains private tag data.
     ///
     /// - Note: On macOS, this shows up in the `Comments` field in the info window in `Keychain Access` (accessed via File > Get Info)
-    var applicationTag: Data? {
+    var applicationTag: PrimaryKey<Data>? {
         get { self[.applicationTag] as? Data }
         set { self[.applicationTag] = newValue }
     }
     
     /// The corresponding value specifies a type of cryptographic key.
-    var keyClass: KeyType? {
+    var keyClass: PrimaryKey<KeyType>? {
         get {
             if let rawValue = self[.keyClass] as? String {
                 return KeyType(rawValue: rawValue)
@@ -369,7 +395,7 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: KeyCipher? {
+    var keyType: PrimaryKey<KeyCipher>? {
         get {
             if let rawValue = self[.keyType] as? String {
                 return KeyCipher(rawValue: rawValue)
@@ -381,16 +407,18 @@ public extension SecItemQuery where Value == SecKey {
     }
 
     /// The corresponding value indicates the total number of bits in this cryptographic key.
-    var keySizeInBits: Int? {
+    var keySizeInBits: PrimaryKey<Int>? {
         get { self[.keySizeInBits] as? Int }
         set { self[.keySizeInBits] = newValue }
     }
     
     /// The corresponding value indicates the effective number of bits in this cryptographic key. For example, a DES key has a `keySizeInBits` of 64, but a `effectiveKeySize` of 56 bits.
-    var effectiveKeySize: Int? {
+    var effectiveKeySize: PrimaryKey<Int>? {
         get { self[.effectiveKeySize] as? Int }
         set { self[.effectiveKeySize] = newValue }
     }
+    
+    // MARK: - Usage
     
     /**
      Presence of this key indicates that the item is backed by an external store, as uniquely identified by the value. An item without this attribute is stored as normal in the keychain database.
@@ -406,8 +434,6 @@ public extension SecItemQuery where Value == SecKey {
         }
         set { self[.tokenID] = newValue?.rawValue }
     }
-    
-    // MARK: - Usage
     
     /**
      The corresponding value indicates whether this cryptographic key can be used to encrypt data.

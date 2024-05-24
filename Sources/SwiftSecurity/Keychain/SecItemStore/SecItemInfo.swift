@@ -19,7 +19,7 @@ public struct SecItemInfo<Value>: RawRepresentable where Value: SecItem {
 
 public extension SecItemInfo {
     /// The corresponding value indicates the item’s one and only access group.
-    var accessGroup: String? {
+    var accessGroup: PrimaryKey<String>? {
         get { self[.accessGroup] as? String }
     }
     
@@ -40,7 +40,7 @@ public extension SecItemInfo {
     }
     
     /// The corresponding value indicates whether the item in question is synchronized to other devices through iCloud.
-    var synchronizable: Bool? {
+    var synchronizable: PrimaryKey<Bool>? {
         get { self[.synchronizable] as? Bool }
     }
     
@@ -80,12 +80,12 @@ public extension SecItemInfo where Value == GenericPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
     }
     
     /// The corresponding value represents the service associated with this item.
-    var service: String? {
+    var service: PrimaryKey<String>? {
         get { self[.service] as? String }
     }
     
@@ -103,12 +103,12 @@ public extension SecItemInfo where Value == InternetPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationMethod: AuthenticationMethod? {
+    var authenticationMethod: PrimaryKey<AuthenticationMethod>? {
         get {
             if let value = self[.authenticationType] as? String {
                 return AuthenticationMethod(rawValue: value)
@@ -119,12 +119,12 @@ public extension SecItemInfo where Value == InternetPassword {
     }
     
     /// The corresponding value represents a path, typically the path component of the URL.
-    var path: String? {
+    var path: PrimaryKey<String>? {
         get { self[.path] as? String }
     }
     
     /// The corresponding represents an Internet port number.
-    var port: Int? {
+    var port: PrimaryKey<Int>? {
         get {
             if let number = self[.port] as? NSNumber {
                 return number.intValue
@@ -135,7 +135,7 @@ public extension SecItemInfo where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the protocol for this item.
-    var `protocol`: ProtocolType? {
+    var `protocol`: PrimaryKey<ProtocolType>? {
         get {
             if let value = self[.protocolType] as? String {
                 return ProtocolType(rawValue: value)
@@ -146,12 +146,12 @@ public extension SecItemInfo where Value == InternetPassword {
     }
     
     /// The corresponding value represents the Internet security domain.
-    var securityDomain: String? {
+    var securityDomain: PrimaryKey<String>? {
         get { self[.securityDomain] as? String }
     }
     
     /// The corresponding value contains the server's domain name or IP address.
-    var server: String? {
+    var server: PrimaryKey<String>? {
         get { self[.server] as? String }
     }
 }
@@ -217,17 +217,17 @@ public extension SecItemInfo where Value == SecKey {
      
      - Note: To form a digital identity, this value must match the ``publicKeyHash`` ('pkhh') attribute of the `SecCertificate`.
      */
-    var applicationLabel: Data? {
+    var applicationLabel: PrimaryKey<Data>? {
         get { self[.applicationLabel] as? Data }
     }
     
     /// The corresponding value contains private tag data.
-    var applicationTag: Data? {
+    var applicationTag: PrimaryKey<Data>? {
         get { self[.applicationTag] as? Data }
     }
     
     /// The corresponding value specifies a type of cryptographic key.
-    var keyClass: KeyType? {
+    var keyClass: PrimaryKey<KeyType>? {
         get {
             if let rawValue = self[.keyClass] as? String {
                 return KeyType(rawValue: rawValue)
@@ -238,7 +238,7 @@ public extension SecItemInfo where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: KeyCipher? {
+    var keyType: PrimaryKey<KeyCipher>? {
         get {
             if let rawValue = self[.keyType] as? String {
                 return KeyCipher(rawValue: rawValue)
@@ -249,11 +249,11 @@ public extension SecItemInfo where Value == SecKey {
     }
 
     /// The corresponding value indicates the total number of bits in this cryptographic key.
-    var keySizeInBits: Int? {
+    var keySizeInBits: PrimaryKey<Int>? {
         get { self[.keySizeInBits] as? Int }
     }
 
-    var effectiveKeySize: Int? {
+    var effectiveKeySize: PrimaryKey<Int>? {
         get { self[.effectiveKeySize] as? Int }
     }
     
@@ -364,7 +364,7 @@ public extension SecItemInfo where Value == SecCertificate {
      The corresponding value denotes the certificate type (see the CSSM_CERT_TYPE enumeration in cssmtype.h).
      - Note: Read only.
      */
-    var certificateType: NSNumber? {
+    var certificateType: PrimaryKey<NSNumber>? {
         get { self[.certificateType] as? NSNumber }
     }
     
@@ -372,7 +372,7 @@ public extension SecItemInfo where Value == SecCertificate {
      The corresponding value contains the X.500 issuer name of a certificate.
      - Note: Read only.
      */
-    var issuer: Data? {
+    var issuer: PrimaryKey<Data>? {
         get { self[.issuer] as? Data }
     }
     
@@ -380,7 +380,7 @@ public extension SecItemInfo where Value == SecCertificate {
      The corresponding value contains the serial number data of a certificate.
      - Note: Read only.
      */
-    var serialNumber: Data? {
+    var serialNumber: PrimaryKey<Data>? {
         get { self[.serialNumber] as? Data }
     }
 

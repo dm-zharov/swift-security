@@ -74,7 +74,7 @@ extension Keychain: SecItemStore {
         #endif
         
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitOne as String
         
         if let authenticationContext {
@@ -137,7 +137,7 @@ extension Keychain: SecItemStore {
         authenticationContext: LAContext? = nil
     ) throws -> [SecValue<SecItem>] {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitAll
         
         if let authenticationContext {
@@ -429,9 +429,9 @@ private extension Keychain {
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecItem>? {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
-        query[.accessControl] = try accessPolicy.accessControl
-        query[.accessible] = accessPolicy.accessibility
+        query.accessGroup = accessGroup.rawValue
+        query.accessControl = try accessPolicy.accessControl
+        query.accessible = accessPolicy.accessible
         
         if returnType.contains(.data) {
             query[kSecReturnData as String] = true
@@ -492,7 +492,7 @@ private extension Keychain {
     @discardableResult
     func remove<SecItem>(_ item: SecValue<SecItem>?, query: SecItemQuery<SecItem>) throws -> Bool {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         
         switch item {
         case .data, .dictionary:

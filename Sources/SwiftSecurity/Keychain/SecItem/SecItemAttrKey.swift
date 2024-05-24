@@ -7,6 +7,10 @@
 
 import Foundation
 
+/// A multiple primary keys form the composite primary key of the item.
+/// - SeeAlso: [Developer Documentation](https://developer.apple.com/documentation/security/errsecduplicateitem)
+public typealias PrimaryKey<Value> = Value
+
 /**
  Item Attribute Key.
  - SeeAlso: https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values

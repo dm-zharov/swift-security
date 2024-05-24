@@ -233,10 +233,10 @@ extension AccessPolicy {
     }
     
     /// The corresponding value indicates when your app needs access to the data in a keychain item.
-    var accessibility: String? {
-        guard options == nil else {
+    var accessible: Accessibility? {
+        if options == nil {
             return nil
         }
-        return protection.rawValue
+        return protection
     }
 }
