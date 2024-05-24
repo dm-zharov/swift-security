@@ -189,7 +189,7 @@ Other key types, like `Curve25519.PrivateKey`, `SymmetricKey`, `SecureEnclave.P2
 ```swift
 // Store symmetric key
 let symmetricKey = SymmetricKey(size: .bits256)
-try keychain.store(privateKey, query: .credential(for: "Chat"))
+try keychain.store(symmetricKey, query: .credential(for: "Chat"))
 ```
 
 #### Certificate
