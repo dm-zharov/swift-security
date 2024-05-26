@@ -108,10 +108,10 @@ public extension SecItemInfo where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationMethod: PrimaryKey<AuthenticationMethod>? {
+    var authenticationType: PrimaryKey<AuthenticationType>? {
         get {
             if let value = self[.authenticationType] as? String {
-                return AuthenticationMethod(rawValue: value)
+                return AuthenticationType(rawValue: value)
             } else {
                 return nil
             }

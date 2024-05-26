@@ -67,7 +67,7 @@ public extension SecItemQuery {
         query.path = space.path
         query.protocol = space.protocol
         query.securityDomain = space.securityDomain
-        query.authenticationMethod = space.authenticationMethod
+        query.authenticationType = space.authenticationType
         if let synchronizable {
             query.synchronizable = synchronizable
         }
@@ -252,10 +252,10 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationMethod: PrimaryKey<AuthenticationMethod>? {
+    var authenticationType: PrimaryKey<AuthenticationType>? {
         get {
             if let value = self[.authenticationType] as? String {
-                return AuthenticationMethod(rawValue: value)
+                return AuthenticationType(rawValue: value)
             } else {
                 return nil
             }

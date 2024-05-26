@@ -1,5 +1,5 @@
 //
-//  AuthenticationMethod.swift
+//  AuthenticationType.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -7,18 +7,26 @@
 
 import Foundation
 
-public enum AuthenticationMethod: Sendable {
+public enum AuthenticationType: Sendable {
+    /// Windows NT LAN Manager authentication.
     case ntlm
+    /// Microsoft Network default authentication.
     case msn
+    /// Distributed Password authentication.
     case dpa
+    /// Remote Password authentication.
     case rpa
+    /// HTTP Basic authentication.
     case httpBasic
+    /// HTTP Digest Access authentication.
     case httpDigest
+    /// HTML form based authentication.
     case htmlForm
+    /// The default authentication type.
     case `default`
 }
 
-extension AuthenticationMethod: RawRepresentable, CustomStringConvertible {
+extension AuthenticationType: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrAuthenticationTypeNTLM):

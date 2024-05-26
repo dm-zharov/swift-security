@@ -597,7 +597,7 @@ extension Keychain {
             case .protocolType:
                 return ProtocolType(rawValue: rawValue)
             case .authenticationType:
-                return AuthenticationMethod(rawValue: rawValue)
+                return AuthenticationType(rawValue: rawValue)
             case .keyClass:
                 return KeyType(rawValue: rawValue)
             case .keyType:
