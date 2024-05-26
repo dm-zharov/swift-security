@@ -54,7 +54,7 @@ public extension SecImportItemInfo {
     var identity: DigitalIdentity? {
         get {
             if let secIdentity = self[.identity] {
-                return DigitalIdentity(rawRepresentation: secIdentity as! SecIdentity)
+                return DigitalIdentity(identity: secIdentity as! SecIdentity)
             } else {
                 return nil
             }

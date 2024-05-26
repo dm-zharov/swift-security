@@ -9,21 +9,23 @@ import Foundation
 
 public struct Certificate {
     public let derRepresentation: Data
-    public let rawRepresentation: SecCertificate
+    /// The certificate reference.
+    public let secCertificate: SecCertificate
     
     public init<Bytes>(derRepresentation data: Bytes) throws where Bytes : ContiguousBytes {
-        self.derRepresentation = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+        let derRepresentation = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
             return Data(bytes)
         }
         guard let secCertificate = SecCertificateCreateWithData(nil, derRepresentation as CFData) else {
             throw SwiftSecurityError.invalidParameter
         }
-        self.rawRepresentation = secCertificate
+        self.derRepresentation = derRepresentation
+        self.secCertificate = secCertificate
     }
     
     public init(rawRepresentation secCertificate: SecCertificate) {
         self.derRepresentation = SecCertificateCopyData(secCertificate) as Data
-        self.rawRepresentation = secCertificate
+        self.secCertificate = secCertificate
     }
 }
 
@@ -32,7 +34,7 @@ extension Certificate {
     ///
     /// - Returns: If found, a string representing the Summary.
     public var subjectSummary: String? {
-        return SecCertificateCopySubjectSummary(self.rawRepresentation) as String?
+        return SecCertificateCopySubjectSummary(secCertificate) as String?
     }
     
     /// Returns the common name of the subject of a given certificate.
@@ -42,7 +44,7 @@ extension Certificate {
     public var commonName: String? {
         get throws {
             var commonName: CFString?
-            switch SecCertificateCopyCommonName(self.rawRepresentation, &commonName) {
+            switch SecCertificateCopyCommonName(secCertificate, &commonName) {
             case errSecSuccess:
                 return commonName as String?
             case let status:
@@ -58,7 +60,7 @@ extension Certificate {
     public var emailAddresses: [String] {
         get throws {
             var emailAddresses: CFArray?
-            switch SecCertificateCopyEmailAddresses(self.rawRepresentation, &emailAddresses) {
+            switch SecCertificateCopyEmailAddresses(secCertificate, &emailAddresses) {
             case errSecSuccess:
                 return emailAddresses as! [String]
             case let status:
@@ -73,7 +75,7 @@ extension Certificate {
     /// - Throws: If is not found, throws an error.
     public var normalizedIssuerSequence: Data? {
         get throws {
-            guard let nis = SecCertificateCopyNormalizedIssuerSequence(self.rawRepresentation) as Data? else {
+            guard let nis = SecCertificateCopyNormalizedIssuerSequence(secCertificate) as Data? else {
                 throw SwiftSecurityError.invalidCertificate
             }
             return nis
@@ -86,7 +88,7 @@ extension Certificate {
     /// - Throws: If is not found, throws an error.
     public var normalizedSubjectSequence: Data? {
         get throws {
-            guard let nss = SecCertificateCopyNormalizedSubjectSequence(self.rawRepresentation) as Data? else {
+            guard let nss = SecCertificateCopyNormalizedSubjectSequence(secCertificate) as Data? else {
                 throw SwiftSecurityError.invalidCertificate
             }
             return nss
@@ -99,7 +101,7 @@ extension Certificate {
     public var serialNumberData: Data? {
         get throws {
             var error: Unmanaged<CFError>?
-            guard let serial = SecCertificateCopySerialNumberData(self.rawRepresentation, &error) as Data?, error == nil else {
+            guard let serial = SecCertificateCopySerialNumberData(secCertificate, &error) as Data?, error == nil else {
                 if let error = error?.takeRetainedValue() {
                     throw SwiftSecurityError(error: error)
                 }
@@ -115,7 +117,7 @@ extension Certificate {
     /// - Throws: If is not found, throws an error.
     public var publicKey: Data {
         get throws {
-            guard let secKey = SecCertificateCopyKey(self.rawRepresentation) else {
+            guard let secKey = SecCertificateCopyKey(secCertificate) else {
                 throw SwiftSecurityError.invalidCertificate
             }
             

@@ -10,36 +10,12 @@ import Security
 
 // MARK: - DER-Encoded X.509 Certificate
 
-public protocol SecCertificateConvertible {
+public protocol SecCertificateConvertible: SecCertificateRepresentable {
     /// Creates a certificate from an DER-encoded X.509 data representation.
     init<Bytes>(derRepresentation: Bytes) throws where Bytes: ContiguousBytes
     
-    /// Creates a certificate from a raw representation.
-    init(rawRepresentation secCertificate: SecCertificate)
-    
     /// A DER-Encoded X.509 data representation.
     var derRepresentation: Data { get }
-    
-    /// A raw representation of the X.509 Certificate.
-    var rawRepresentation: SecCertificate { get }
-}
-
-extension SecCertificateConvertible {
-    public init(rawRepresentation secCertificate: SecCertificate) {
-        do {
-            try self.init(derRepresentation: SecCertificateCopyData(secCertificate) as Data)
-        } catch{
-            fatalError(error.localizedDescription)
-        }
-    }
-
-    public var rawRepresentation: SecCertificate {
-        if let secCertificate = SecCertificateCreateWithData(nil, derRepresentation as CFData) {
-            return secCertificate
-        } else {
-            fatalError("derRepresentation is not a valid DER-encoded data")
-        }
-    }
 }
 
 extension SwiftSecurity.Certificate: SecCertificateConvertible { }
@@ -68,3 +44,31 @@ extension X509.Certificate: SecCertificateConvertible {
     }
 }
 #endif
+
+// MARK: - SecCertificate
+
+public protocol SecCertificateRepresentable {
+    /// Creates a certificate from a raw representation.
+    init(certificate secCertificate: SecCertificate)
+    
+    /// A certificate reference.
+    var secCertificate: SecCertificate { get }
+}
+
+extension SecCertificateConvertible {
+    public init(certificate secCertificate: SecCertificate) {
+        do {
+            try self.init(derRepresentation: SecCertificateCopyData(secCertificate) as Data)
+        } catch{
+            fatalError(error.localizedDescription)
+        }
+    }
+
+    public var secCertificate: SecCertificate {
+        if let secCertificate = SecCertificateCreateWithData(nil, derRepresentation as CFData) {
+            return secCertificate
+        } else {
+            fatalError("derRepresentation is not a valid DER-encoded data")
+        }
+    }
+}

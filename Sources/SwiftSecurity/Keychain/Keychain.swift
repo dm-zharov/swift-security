@@ -61,9 +61,9 @@ extension Keychain: SecItemStore {
             query.class = .certificate
             switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
             case .reference(let reference):
-                let certificate = Certificate(rawRepresentation: reference as! SecCertificate)
-                if let identity = try DigitalIdentity(certificate: certificate) {
-                    return .reference(identity.rawRepresentation)
+                let secCertificate = Certificate(rawRepresentation: reference as! SecCertificate)
+                if let identity = try DigitalIdentity(certificate: secCertificate) {
+                    return .reference(identity.secIdentity)
                 } else {
                     return nil
                 }
@@ -352,23 +352,17 @@ extension Keychain: SecCertificateStore {
         query: SecItemQuery<SecCertificate>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecCertificate>? {
-        guard let reference = SecCertificateCreateWithData(nil, certificate.derRepresentation as CFData) else {
-            throw SwiftSecurityError.invalidParameter
-        }
-        return try store(.reference(reference), returning: returnType, query: query, accessPolicy: accessPolicy)
+        return try store(.reference(certificate.secCertificate), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext? = nil) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secCertificate) = value
         else {
             return nil
         }
-
-        let data = SecCertificateCopyData(reference as! SecCertificate) as Data
-    
-        return try T(derRepresentation: data)
+        return try T(certificate: secCertificate as! SecCertificate)
     }
     
     @discardableResult
@@ -401,7 +395,7 @@ extension Keychain: SecIdentityStore {
         query: SecItemQuery<SecIdentity>,
         accessPolicy: AccessPolicy = .default
     ) throws {
-        try store(.reference(identity.rawRepresentation), query: query, accessPolicy: accessPolicy)
+        try store(.reference(identity.secIdentity), query: query, accessPolicy: accessPolicy)
     }
     
     public func retrieve<T: SecIdentityConvertible>(
@@ -410,12 +404,11 @@ extension Keychain: SecIdentityStore {
     ) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secIdentity) = value
         else {
             return nil
         }
-        
-        return T(rawRepresentation: reference as! SecIdentity)
+        return T(identity: secIdentity as! SecIdentity)
     }
     
     @discardableResult

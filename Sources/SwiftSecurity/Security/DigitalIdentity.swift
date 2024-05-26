@@ -13,12 +13,12 @@ public typealias Identity = DigitalIdentity
 
 public struct DigitalIdentity {
     /// Creates an identity from a raw representation.
-    public init(rawRepresentation secIdentity: SecIdentity) {
-        self.rawRepresentation = secIdentity
+    public init(identity secIdentity: SecIdentity) {
+        self.secIdentity = secIdentity
     }
     
     /// Creates an identity from a raw representation.
-    public let rawRepresentation: SecIdentity
+    public let secIdentity: SecIdentity
 }
 
 extension DigitalIdentity {
@@ -26,13 +26,13 @@ extension DigitalIdentity {
     public var certificate: Certificate {
         get throws {
             var secCertificate: SecCertificate?
-            switch SecIdentityCopyCertificate(rawRepresentation, &secCertificate) {
+            switch SecIdentityCopyCertificate(secIdentity, &secCertificate) {
             case errSecSuccess:
                 guard let secCertificate else {
                     throw SwiftSecurityError.invalidParameter
                 }
 
-                return Certificate(rawRepresentation: secCertificate)
+                return Certificate(certificate: secCertificate)
             case let status:
                 throw SwiftSecurityError.underlyingSecurityError(error: status)
             }
@@ -45,7 +45,7 @@ extension DigitalIdentity {
     public var privateKey: Data {
         get throws {
             var secKey: SecKey?
-            switch SecIdentityCopyPrivateKey(rawRepresentation, &secKey) {
+            switch SecIdentityCopyPrivateKey(secIdentity, &secKey) {
             case errSecSuccess:
                 guard let secKey else {
                     throw SwiftSecurityError.invalidParameter
@@ -69,12 +69,12 @@ extension DigitalIdentity {
 
 #if os(macOS)
 extension DigitalIdentity {
-    init?<T: SecCertificateConvertible>(certificate: T) throws {
+    init?(certificate: Certificate) throws {
         var secIdentity: SecIdentity?
-        switch SecIdentityCreateWithCertificate(nil, certificate.rawRepresentation, &secIdentity) {
+        switch SecIdentityCreateWithCertificate(nil, certificate.secCertificate, &secIdentity) {
         case errSecSuccess:
             if let secIdentity {
-                self.init(rawRepresentation: secIdentity)
+                self.init(identity: secIdentity)
             } else {
                 return nil
             }
