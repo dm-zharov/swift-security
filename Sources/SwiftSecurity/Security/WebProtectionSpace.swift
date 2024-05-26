@@ -27,7 +27,7 @@ public struct WebProtectionSpace: Equatable, Sendable {
     /// The security domain.
     public private(set) var securityDomain: String?
     /// The type of authentication.
-    public private(set) var authenticationMethod: AuthenticationMethod?
+    public private(set) var authenticationType: AuthenticationType?
     
     /// Creates a protection space object from the given host, port, protocol, realm, and authentication method.
     /// - Parameters:
@@ -41,7 +41,7 @@ public struct WebProtectionSpace: Equatable, Sendable {
         host: String,
         port: Int? = nil,
         protocol: ProtocolType? = nil,
-        authenticationMethod: AuthenticationMethod? = nil,
+        authenticationType: AuthenticationType? = nil,
         path: String? = nil,
         securityDomain: String? = nil
     ) {
@@ -50,7 +50,7 @@ public struct WebProtectionSpace: Equatable, Sendable {
         self.path = path
         self.protocol = `protocol`
         self.securityDomain = securityDomain
-        self.authenticationMethod = authenticationMethod
+        self.authenticationType = authenticationType
     }
 }
 

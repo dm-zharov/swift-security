@@ -225,7 +225,10 @@ extension AccessPolicy {
                 SecAccessControlCreateFlags(rawValue: CFOptionFlags(options.rawValue)),
                 &error
             ) else {
-                throw SwiftSecurityError(error: error?.takeUnretainedValue())
+                if let error = error?.takeRetainedValue() {
+                    throw SwiftSecurityError(error: error)
+                }
+                throw SwiftSecurityError.invalidParameter
             }
             
             return accessControl
@@ -233,10 +236,10 @@ extension AccessPolicy {
     }
     
     /// The corresponding value indicates when your app needs access to the data in a keychain item.
-    var accessibility: String? {
+    var accessible: Accessibility? {
         guard options == nil else {
             return nil
         }
-        return protection.rawValue
+        return protection
     }
 }

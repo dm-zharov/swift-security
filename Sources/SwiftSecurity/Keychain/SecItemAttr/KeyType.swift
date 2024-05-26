@@ -1,5 +1,5 @@
 //
-//  KeyType.swift
+//  KeyAlgorithmType.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -8,21 +8,29 @@
 import Foundation
 import Security
 
+@available(*, renamed: "KeyType")
+public typealias KeyCipher = KeyType
+
 public enum KeyType {
-    case `public`
-    case `private`
-    case symmetric
+    /// RSA.
+    case rsa
+    /// Elliptic curve. Suitable for `P256`, `P384`, `P521` from `CryptoKit`.
+    case ecsecPrimeRandom
 }
 
 extension KeyType: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
-        case String(kSecAttrKeyClassPublic):
-            self = .public
-        case String(kSecAttrKeyClassPrivate):
-            self = .private
-        case String(kSecAttrKeyClassSymmetric):
-            self = .symmetric
+        case String(kSecAttrKeyTypeRSA):
+            self = .rsa
+        case String(kSecAttrKeyTypeECSECPrimeRandom):
+            self = .ecsecPrimeRandom
+        #if os(macOS)
+        case String(kSecAttrKeyTypeDSA), String(kSecAttrKeyTypeAES), String(kSecAttrKeyType3DES),
+             String(kSecAttrKeyTypeRC4), String(kSecAttrKeyTypeRC2), String(kSecAttrKeyTypeCAST):
+            assertionFailure("No longer supported by keychain")
+            fallthrough
+        #endif
         default:
             return nil
         }
@@ -30,23 +38,19 @@ extension KeyType: RawRepresentable, CustomStringConvertible {
     
     public var rawValue: String {
         switch self {
-        case .public:
-            return String(kSecAttrKeyClassPublic)
-        case .private:
-            return String(kSecAttrKeyClassPrivate)
-        case .symmetric:
-            return String(kSecAttrKeyClassSymmetric)
+        case .rsa:
+            return String(kSecAttrKeyTypeRSA)
+        case .ecsecPrimeRandom:
+            return String(kSecAttrKeyTypeECSECPrimeRandom)
         }
     }
-        
+    
     public var description: String {
         switch self {
-        case .public:
-            return "Public"
-        case .private:
-            return "Private"
-        case .symmetric:
-            return "Symmetric"
+        case .rsa:
+            return "RSA"
+        case .ecsecPrimeRandom:
+            return "ECSECPrimeRandom"
         }
     }
 }

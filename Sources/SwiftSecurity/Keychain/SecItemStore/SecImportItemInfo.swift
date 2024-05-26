@@ -41,8 +41,8 @@ public extension SecImportItemInfo {
     var certChain: [Certificate]? {
         get {
             if let certChain = self[.certChain] as? [SecCertificate] {
-                return certChain.map { certificateRef in
-                    Certificate(rawRepresentation: certificateRef)
+                return certChain.map { secCertificate in
+                    Certificate(rawRepresentation: secCertificate)
                 }
             } else {
                 return nil
@@ -51,10 +51,10 @@ public extension SecImportItemInfo {
     }
 
     /// The corresponding value represents one identity contained in the PKCS #12 blob and contains the certificate and private key wrapped together.
-    var identity: Identity? {
+    var identity: DigitalIdentity? {
         get {
-            if let identityRef = self[.identity] {
-                return Identity(rawRepresentation: identityRef as! SecIdentity)
+            if let secIdentity = self[.identity] {
+                return DigitalIdentity(identity: secIdentity as! SecIdentity)
             } else {
                 return nil
             }

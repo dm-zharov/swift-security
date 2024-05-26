@@ -61,9 +61,9 @@ extension Keychain: SecItemStore {
             query.class = .certificate
             switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
             case .reference(let reference):
-                let certificate = Certificate(rawRepresentation: reference as! SecCertificate)
-                if let identity = Identity(certificate: certificate) {
-                    return .reference(identity.rawRepresentation)
+                let secCertificate = Certificate(rawRepresentation: reference as! SecCertificate)
+                if let identity = try DigitalIdentity(certificate: secCertificate) {
+                    return .reference(identity.secIdentity)
                 } else {
                     return nil
                 }
@@ -74,7 +74,7 @@ extension Keychain: SecItemStore {
         #endif
         
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitOne as String
         
         if let authenticationContext {
@@ -137,7 +137,7 @@ extension Keychain: SecItemStore {
         authenticationContext: LAContext? = nil
     ) throws -> [SecValue<SecItem>] {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitAll
         
         if let authenticationContext {
@@ -298,13 +298,13 @@ extension Keychain: SecKeyStore {
         query: SecItemQuery<SecKey>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecKey>? {
-        var error: Unmanaged<CFError>?
-        guard
-            let key: AnyObject = SecKeyCreateWithData(key.x963Representation as CFData, query.rawValue as CFDictionary, &error)
-        else {
-            throw SwiftSecurityError(error: error?.takeUnretainedValue())
+        if let specifiedKeyType = query.keyType {
+            precondition(specifiedKeyType == key.descriptor.keyType)
         }
-        return try store(.reference(key), returning: returnType, query: query, accessPolicy: accessPolicy)
+        if let specifiedKeyClass = query.keyClass {
+            precondition(specifiedKeyClass == key.descriptor.keyClass)
+        }
+        return try store(.reference(key.secKey), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
@@ -317,7 +317,10 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(reference as! SecKey, &error) as Data? else {
-            throw SwiftSecurityError(error: error?.takeUnretainedValue())
+            if let error = error?.takeRetainedValue() {
+                throw SwiftSecurityError(error: error)
+            }
+            throw SwiftSecurityError.invalidParameter
         }
 
         return try T(x963Representation: data)
@@ -346,23 +349,17 @@ extension Keychain: SecCertificateStore {
         query: SecItemQuery<SecCertificate>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecCertificate>? {
-        guard let reference = SecCertificateCreateWithData(nil, certificate.derRepresentation as CFData) else {
-            throw SwiftSecurityError.invalidParameter
-        }
-        return try store(.reference(reference), returning: returnType, query: query, accessPolicy: accessPolicy)
+        return try store(.reference(certificate.secCertificate), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext? = nil) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secCertificate) = value
         else {
             return nil
         }
-
-        let data = SecCertificateCopyData(reference as! SecCertificate) as Data
-    
-        return try T(derRepresentation: data)
+        return try T(certificate: secCertificate as! SecCertificate)
     }
     
     @discardableResult
@@ -395,7 +392,7 @@ extension Keychain: SecIdentityStore {
         query: SecItemQuery<SecIdentity>,
         accessPolicy: AccessPolicy = .default
     ) throws {
-        try store(.reference(identity.rawRepresentation), query: query, accessPolicy: accessPolicy)
+        try store(.reference(identity.secIdentity), query: query, accessPolicy: accessPolicy)
     }
     
     public func retrieve<T: SecIdentityConvertible>(
@@ -404,12 +401,11 @@ extension Keychain: SecIdentityStore {
     ) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secIdentity) = value
         else {
             return nil
         }
-        
-        return T(rawRepresentation: reference as! SecIdentity)
+        return T(identity: secIdentity as! SecIdentity)
     }
     
     @discardableResult
@@ -429,9 +425,9 @@ private extension Keychain {
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecItem>? {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
-        query[.accessControl] = try accessPolicy.accessControl
-        query[.accessible] = accessPolicy.accessibility
+        query.accessGroup = accessGroup.rawValue
+        query.accessControl = try accessPolicy.accessControl
+        query.accessible = accessPolicy.accessible
         
         if returnType.contains(.data) {
             query[kSecReturnData as String] = true
@@ -492,7 +488,7 @@ private extension Keychain {
     @discardableResult
     func remove<SecItem>(_ item: SecValue<SecItem>?, query: SecItemQuery<SecItem>) throws -> Bool {
         var query = query
-        query[.accessGroup] = accessGroup.rawValue
+        query.accessGroup = accessGroup.rawValue
         
         switch item {
         case .data, .dictionary:
@@ -591,17 +587,13 @@ extension Keychain {
             case .protocolType:
                 return ProtocolType(rawValue: rawValue)
             case .authenticationType:
-                return AuthenticationMethod(rawValue: rawValue)
+                return AuthenticationType(rawValue: rawValue)
             case .keyClass:
-                return KeyType(rawValue: rawValue)
+                return KeyClass(rawValue: rawValue)
             case .keyType:
-                return KeyCipher(rawValue: rawValue)
+                return KeyType(rawValue: rawValue)
             case .tokenID:
                 return TokenID(rawValue: rawValue)
-            #if os(macOS)
-            case .prf:
-                return PRFHmacAlg(rawValue: rawValue)
-            #endif
             case .class:
                 return SecItemClass(rawValue: rawValue)
             default:

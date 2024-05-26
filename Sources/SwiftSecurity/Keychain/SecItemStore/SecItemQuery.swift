@@ -67,7 +67,7 @@ public extension SecItemQuery {
         query.path = space.path
         query.protocol = space.protocol
         query.securityDomain = space.securityDomain
-        query.authenticationMethod = space.authenticationMethod
+        query.authenticationType = space.authenticationType
         if let synchronizable {
             query.synchronizable = synchronizable
         }
@@ -75,16 +75,17 @@ public extension SecItemQuery {
     }
     
     /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
-    /// - Note: Suitable for P256, P384, P521 CryptoKit Keys.
+    /// - Note: Suitable for `P256`/`P384`/`P521` keys from `CryptoKit` or custom `RSA` keys.
     /// - Parameters:
     ///   - applicationTag: An application tag that you can use to identify the key within store.
+    ///   - descriptor: A key descriptor.  Default value is `.ecsecPrimeRandom(.private)`.
     ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
     ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     /// - Returns: ``SecItemQuery<SecKey>``.
-    static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
+    static func key(for applicationTag: String? = nil, descriptor: SecKeyDescriptor = .ecsecPrimeRandom(.private), synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
         var query = SecItemQuery<SecKey>()
-        query.keyClass = .private
-        query.keyType = .ecsecPrimeRandom
+        query.keyClass = descriptor.keyClass
+        query.keyType = descriptor.keyType
         if let applicationTag {
             query.applicationTag = applicationTag.data(using: .utf8)!
         }
@@ -163,7 +164,7 @@ public extension SecItemQuery {
      - Updating or deleting items using the key affects all copies of the item, not just the one on your local device. Be sure that it makes sense to use the same password on all devices before making a password synchronizable.
      - Items stored or obtained using the key may not also specify an ``AccessPolicy`` value that is incompatible with syncing (namely, those whose names end with `...ThisDeviceOnly`).
      */
-    var synchronizable: Bool? {
+    var synchronizable: PrimaryKey<Bool>? {
         get { self[.synchronizable] as? Bool }
         set { self[.synchronizable] = newValue }
     }
@@ -174,6 +175,32 @@ public extension SecItemQuery {
     var label: String? {
         get { self[.label] as? String }
         set { self[.label] = newValue }
+    }
+}
+
+internal extension SecItemQuery {
+    /// The corresponding value indicates the item’s one and only access group.
+    var accessGroup: PrimaryKey<String>? {
+        get { self[.accessGroup] as? String }
+        set { self[.accessGroup] = newValue }
+    }
+    
+    /// The corresponding value contains access control conditions for the item.
+    var accessControl: SecAccessControl? {
+        get { self[.accessControl] as! SecAccessControl? }
+        set { self[.accessControl] = newValue }
+    }
+    
+    /// The corresponding value indicates the item’s one and only access group.
+    var accessible: AccessPolicy.Accessibility? {
+        get {
+            if let rawValue = self[.accessible] as? String {
+                return AccessPolicy.Accessibility(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set { self[.accessible] = newValue?.rawValue }
     }
 }
 
@@ -194,13 +221,13 @@ public extension SecItemQuery where Value == GenericPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
-        set { self[.account] = newValue }
+        set { self[.account] = newValue}
     }
     
     /// The corresponding value represents the service associated with this item.
-    var service: String? {
+    var service: PrimaryKey<String>? {
         get { self[.service] as? String }
         set { self[.service] = newValue }
     }
@@ -220,16 +247,16 @@ public extension SecItemQuery where Value == InternetPassword {
     // MARK: - Primary
     
     /// The corresponding value contains an account name.
-    var account: String? {
+    var account: PrimaryKey<String>? {
         get { self[.account] as? String }
         set { self[.account] = newValue }
     }
     
     /// The corresponding value denotes the authentication scheme for this item.
-    var authenticationMethod: AuthenticationMethod? {
+    var authenticationType: PrimaryKey<AuthenticationType>? {
         get {
             if let value = self[.authenticationType] as? String {
-                return AuthenticationMethod(rawValue: value)
+                return AuthenticationType(rawValue: value)
             } else {
                 return nil
             }
@@ -238,13 +265,13 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value represents a path, typically the path component of the URL.
-    var path: String? {
+    var path: PrimaryKey<String>? {
         get { self[.path] as? String }
         set { self[.path] = newValue }
     }
     
     /// The corresponding represents an Internet port number.
-    var port: Int? {
+    var port: PrimaryKey<Int>? {
         get {
             if let number = self[.port] as? NSNumber {
                 return number.intValue
@@ -262,7 +289,7 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value denotes the protocol for this item.
-    var `protocol`: ProtocolType? {
+    var `protocol`: PrimaryKey<ProtocolType>? {
         get {
             if let value = self[.protocolType] as? String {
                 return ProtocolType(rawValue: value)
@@ -274,13 +301,13 @@ public extension SecItemQuery where Value == InternetPassword {
     }
     
     /// The corresponding value represents the Internet security domain.
-    var securityDomain: String? {
+    var securityDomain: PrimaryKey<String>? {
         get { self[.securityDomain] as? String }
         set { self[.securityDomain] = newValue }
     }
     
     /// The corresponding value contains the server's domain name or IP address.
-    var server: String? {
+    var server: PrimaryKey<String>? {
         get { self[.server] as? String }
         set { self[.server] = newValue }
     }
@@ -343,7 +370,7 @@ public extension SecItemQuery where Value == SecKey {
      
      - Note: To form a digital identity, this value must match the ``publicKeyHash`` ('pkhh') attribute of the `SecCertificate`.
      */
-    var applicationLabel: Data? {
+    var applicationLabel: PrimaryKey<Data>? {
         get { self[.applicationLabel] as? Data }
         set { self[.applicationLabel] = newValue }
     }
@@ -351,16 +378,16 @@ public extension SecItemQuery where Value == SecKey {
     /// The corresponding value contains private tag data.
     ///
     /// - Note: On macOS, this shows up in the `Comments` field in the info window in `Keychain Access` (accessed via File > Get Info)
-    var applicationTag: Data? {
+    var applicationTag: PrimaryKey<Data>? {
         get { self[.applicationTag] as? Data }
         set { self[.applicationTag] = newValue }
     }
     
     /// The corresponding value specifies a type of cryptographic key.
-    var keyClass: KeyType? {
+    var keyClass: PrimaryKey<KeyClass>? {
         get {
             if let rawValue = self[.keyClass] as? String {
-                return KeyType(rawValue: rawValue)
+                return KeyClass(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -369,10 +396,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: KeyCipher? {
+    var keyType: PrimaryKey<KeyType>? {
         get {
             if let rawValue = self[.keyType] as? String {
-                return KeyCipher(rawValue: rawValue)
+                return KeyType(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -381,16 +408,18 @@ public extension SecItemQuery where Value == SecKey {
     }
 
     /// The corresponding value indicates the total number of bits in this cryptographic key.
-    var keySizeInBits: Int? {
+    var keySizeInBits: PrimaryKey<Int>? {
         get { self[.keySizeInBits] as? Int }
         set { self[.keySizeInBits] = newValue }
     }
     
     /// The corresponding value indicates the effective number of bits in this cryptographic key. For example, a DES key has a `keySizeInBits` of 64, but a `effectiveKeySize` of 56 bits.
-    var effectiveKeySize: Int? {
+    var effectiveKeySize: PrimaryKey<Int>? {
         get { self[.effectiveKeySize] as? Int }
         set { self[.effectiveKeySize] = newValue }
     }
+    
+    // MARK: - Usage
     
     /**
      Presence of this key indicates that the item is backed by an external store, as uniquely identified by the value. An item without this attribute is stored as normal in the keychain database.
@@ -406,8 +435,6 @@ public extension SecItemQuery where Value == SecKey {
         }
         set { self[.tokenID] = newValue?.rawValue }
     }
-    
-    // MARK: - Usage
     
     /**
      The corresponding value indicates whether this cryptographic key can be used to encrypt data.
@@ -473,46 +500,6 @@ public extension SecItemQuery where Value == SecKey {
     }
 }
 
-#if os(macOS)
-public extension SecItemQuery where Value == SecKey {
-    /// The corresponding value indicates the pseudorandom function associated with this cryptographic key.
-    var prf: PRFHmacAlg? {
-        get {
-            if let rawValue = self[.prf] as? String {
-                return PRFHmacAlg(rawValue: rawValue)
-            } else {
-                return nil
-            }
-        }
-        set { self[.prf] = newValue?.rawValue }
-    }
-    
-    /// The corresponding value indicates the salt to use with this cryptographic key.
-    var salt: Data? {
-        get { self[.salt] as? Data }
-        set { self[.salt] = newValue }
-    }
-
-    /// The corresponding value indicates the number of rounds to run the pseudorandom function specified by ``prf`` for a cryptographic key.
-    var rounds: Int? {
-        get {
-            if let number = self[.rounds] as? NSNumber {
-                return number.intValue
-            } else {
-                return nil
-            }
-        }
-        set {
-            if let newValue {
-                self[.rounds] = NSNumber(integerLiteral: newValue)
-            } else {
-                self[.rounds] = nil
-            }
-        }
-    }
-}
-#endif
-
 extension SecItemQuery: CustomDebugStringConvertible {
     public var debugDescription: String {
         return Keychain.DebugFormatStyle().format(rawValue)
@@ -541,28 +528,15 @@ extension SecItemQuery {
 // MARK: - Deprecetad
 
 public extension SecItemQuery {
-    /// A query for a credential with specified service.
-    ///  - Parameters:
-    ///   - account: An acount
-    ///   - service: A service associated with the item.
-    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
-    /// - Returns: ``SecItemQuery<GenericPassword>``.
-    @available(*, deprecated, message: "Use `SecItemQuery<GenericPassword>()` with specified `account` and `service` values")
-    static func credential(for account: String, service: String?) -> SecItemQuery<GenericPassword> {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        query.account = account
-        return query
-    }
-    
     /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
+    /// - Note: Suitable for P256, P384, P521 CryptoKit Keys.
     /// - Parameters:
     ///   - applicationTag: An application tag that you can use to identify the key within store.
     ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
     ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     /// - Returns: ``SecItemQuery<SecKey>``.
-    @available(*, deprecated, renamed: "privateKey(for:)")
-    static func privateKey(tag: String) -> SecItemQuery<SecKey> {
-        return privateKey(for: tag, synchronizable: nil)
+    @available(*, deprecated, renamed: "key(for:synchronizable:)")
+    static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
+        return key(for: applicationTag, descriptor: .ecsecPrimeRandom(.private), synchronizable: synchronizable)
     }
 }
