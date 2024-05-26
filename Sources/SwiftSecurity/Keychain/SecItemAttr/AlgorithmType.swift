@@ -1,5 +1,5 @@
 //
-//  KeyCipher.swift
+//  AlgorithmType.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -8,7 +8,10 @@
 import Foundation
 import Security
 
-public enum KeyCipher {
+@available(*, renamed: "AlgorithmType")
+public typealias KeyCipher = AlgorithmType
+
+public enum AlgorithmType {
     case rsa
     case ecsecPrimeRandom
     #if os(macOS)
@@ -22,7 +25,7 @@ public enum KeyCipher {
     #endif
 }
 
-extension KeyCipher: RawRepresentable, CustomStringConvertible {
+extension AlgorithmType: RawRepresentable, CustomStringConvertible {
     public init?(rawValue: String) {
         switch rawValue {
         case String(kSecAttrKeyTypeRSA):

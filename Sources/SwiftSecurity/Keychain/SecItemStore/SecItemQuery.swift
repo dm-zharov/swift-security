@@ -395,10 +395,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: PrimaryKey<KeyCipher>? {
+    var keyType: PrimaryKey<AlgorithmType>? {
         get {
             if let rawValue = self[.keyType] as? String {
-                return KeyCipher(rawValue: rawValue)
+                return AlgorithmType(rawValue: rawValue)
             } else {
                 return nil
             }

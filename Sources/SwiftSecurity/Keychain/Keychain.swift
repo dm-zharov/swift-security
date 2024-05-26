@@ -595,7 +595,7 @@ extension Keychain {
             case .keyClass:
                 return KeyType(rawValue: rawValue)
             case .keyType:
-                return KeyCipher(rawValue: rawValue)
+                return AlgorithmType(rawValue: rawValue)
             case .tokenID:
                 return TokenID(rawValue: rawValue)
             case .class:
