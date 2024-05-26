@@ -23,6 +23,19 @@ public protocol SecItemStore {
         query: SecItemQuery<SecItem>,
         authenticationContext: LAContext?
     ) throws -> SecValue<SecItem>?
+    
+    /// Returns the item that uniquely identified by persistent reference, or copies attributes of that item.
+    /// - Parameters:
+    ///   - returnType: One or more return types. Use the values of ``SecReturnType`` to indicate whether you seek the item’s attributes,
+    ///   the item’s data, a reference to the data, a persistent reference to the data, or a combination of these.
+    ///   - query: An object that describes the query. See ``SecItemQuery``.
+    ///   - authenticationContext: A local authentication context.
+    /// - Returns: On return, the first found item. The exact value of the result depends on the return type values supplied as `returnType`.
+//    func retrieve<SecItem>(
+//        _ returnType: SecReturnType,
+//        for persistentReference: Data,
+//        authenticationContext: LAContext?
+//    ) throws -> SecValue<SecItem>?
 
     /// Returns items that match a search query, or copies attributes of specific items.
     /// - Parameters:
@@ -255,7 +268,7 @@ public protocol SecIdentityStore: SecItemStore {
     /// A digital identity is the combination of a certificate and the private key that matches the public key within that certificate.
     /// The system stores these components separately.
     /// - Parameters:
-    ///   - identityReference: The reference to ``SecIdentity``. Could be retrieved after PKCS #12 blob import from ``SecImportItemInfo``.
+    ///   - identity: The digital identity.
     ///   - query: An object that describes the search. See ``SecItemQuery<SecIdentity>``. You store an identity as you would a certificate.
     ///   - accessPolicy: The protection policy to use when creating the associated access control object.
     func store<T: SecIdentityConvertible>(_ identity: T, query: SecItemQuery<SecIdentity>, accessPolicy: AccessPolicy) throws

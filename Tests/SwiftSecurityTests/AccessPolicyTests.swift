@@ -14,27 +14,27 @@ final class AccessPolicyTests: XCTestCase {
     func testAccessibility() throws {
         do {
             let accessPolicy = AccessPolicy(.whenPasscodeSetThisDeviceOnly)
-            XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly))
+            XCTAssertEqual(accessPolicy.accessible?.rawValue, String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
             let accessPolicy = AccessPolicy(.whenUnlocked)
-            XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenUnlocked))
+            XCTAssertEqual(accessPolicy.accessible?.rawValue, String(kSecAttrAccessibleWhenUnlocked))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
             let accessPolicy = AccessPolicy(.whenUnlockedThisDeviceOnly)
-            XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleWhenUnlockedThisDeviceOnly))
+            XCTAssertEqual(accessPolicy.accessible?.rawValue, String(kSecAttrAccessibleWhenUnlockedThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
             let accessPolicy = AccessPolicy(.afterFirstUnlock)
-            XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleAfterFirstUnlock))
+            XCTAssertEqual(accessPolicy.accessible?.rawValue, String(kSecAttrAccessibleAfterFirstUnlock))
             XCTAssertNil(try accessPolicy.accessControl)
         }
         do {
             let accessPolicy = AccessPolicy(.afterFirstUnlockThisDeviceOnly)
-            XCTAssertEqual(accessPolicy.accessibility, String(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly))
+            XCTAssertEqual(accessPolicy.accessible?.rawValue, String(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly))
             XCTAssertNil(try accessPolicy.accessControl)
         }
     }

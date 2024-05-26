@@ -15,7 +15,7 @@ public protocol SecCertificateConvertible {
     init<Bytes>(derRepresentation: Bytes) throws where Bytes: ContiguousBytes
     
     /// Creates a certificate from a raw representation.
-    init(rawRepresentation certificateRef: SecCertificate)
+    init(rawRepresentation secCertificate: SecCertificate)
     
     /// A DER-Encoded X.509 data representation.
     var derRepresentation: Data { get }
@@ -25,27 +25,30 @@ public protocol SecCertificateConvertible {
 }
 
 extension SecCertificateConvertible {
-    public init(rawRepresentation certificateRef: SecCertificate) {
+    public init(rawRepresentation secCertificate: SecCertificate) {
         do {
-            try self.init(derRepresentation: SecCertificateCopyData(certificateRef) as Data)
+            try self.init(derRepresentation: SecCertificateCopyData(secCertificate) as Data)
         } catch{
             fatalError(error.localizedDescription)
         }
     }
 
     public var rawRepresentation: SecCertificate {
-        guard let certificateRef = SecCertificateCreateWithData(nil, derRepresentation as CFData) else {
+        if let secCertificate = SecCertificateCreateWithData(nil, derRepresentation as CFData) {
+            return secCertificate
+        } else {
             fatalError("derRepresentation is not a valid DER-encoded data")
         }
-        return certificateRef
     }
 }
+
+extension SwiftSecurity.Certificate: SecCertificateConvertible { }
 
 #if canImport(X509)
 import X509
 import SwiftASN1
 
-extension Certificate: SecCertificateConvertible {
+extension X509.Certificate: SecCertificateConvertible {
     public init<D>(derRepresentation data: D) throws where D: ContiguousBytes {
         try self.init(derEncoded: data.withUnsafeBytes { bytes in
             let contiguousBytes = bytes.bindMemory(to: UInt8.self)
@@ -62,26 +65,6 @@ extension Certificate: SecCertificateConvertible {
             preconditionFailure(error.localizedDescription)
             return Data()
         }
-    }
-}
-#else
-public struct Certificate: SecCertificateConvertible {
-    public let derRepresentation: Data
-    public let rawRepresentation: SecCertificate
-    
-    public init<Bytes>(derRepresentation data: Bytes) throws where Bytes : ContiguousBytes {
-        self.derRepresentation = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
-            return Data(bytes)
-        }
-        guard let certificateRef = SecCertificateCreateWithData(nil, derRepresentation as CFData) else {
-            throw SwiftSecurityError.invalidParameter
-        }
-        self.rawRepresentation = certificateRef
-    }
-    
-    public init(rawRepresentation certificateRef: SecCertificate) {
-        self.derRepresentation = SecCertificateCopyData(certificateRef) as Data
-        self.rawRepresentation = certificateRef
     }
 }
 #endif

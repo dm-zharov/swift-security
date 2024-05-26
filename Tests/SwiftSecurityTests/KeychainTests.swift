@@ -242,7 +242,7 @@ final class KeychainTests: XCTestCase {
         XCTAssertThrowsError(try keychain.import(pkcs12Data, passphrase: "random"))
         
         // Import
-        let identity: Identity
+        let identity: DigitalIdentity
 
         do {
             let result = try keychain.import(pkcs12Data, passphrase: "badssl.com")
@@ -266,8 +266,16 @@ final class KeychainTests: XCTestCase {
         
         // Retrieve
         do {
-            let identity: Identity? = try keychain.retrieve(.identity(for: "badssl"))
+            let identity: DigitalIdentity? = try keychain.retrieve(.identity(for: "badssl"))
             XCTAssertNotNil(identity)
+            
+            // Retrieve certificate
+            try XCTAssertNotNil(identity?.certificate)
+            
+            // Retrieve private key
+            #if !os(macOS)
+            try XCTAssertNotNil(identity?.privateKey)
+            #endif
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -276,7 +284,7 @@ final class KeychainTests: XCTestCase {
         do {
             let query: SecItemQuery<SecIdentity> = .identity(for: "badssl")
             let success = try keychain.remove(query)
-            let identity: Identity? = try keychain.retrieve(query)
+            let identity: DigitalIdentity? = try keychain.retrieve(query)
             XCTAssertTrue(success)
             XCTAssertNil(identity)
         } catch {

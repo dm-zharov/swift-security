@@ -62,7 +62,7 @@ extension Keychain: SecItemStore {
             switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
             case .reference(let reference):
                 let certificate = Certificate(rawRepresentation: reference as! SecCertificate)
-                if let identity = Identity(certificate: certificate) {
+                if let identity = try DigitalIdentity(certificate: certificate) {
                     return .reference(identity.rawRepresentation)
                 } else {
                     return nil
@@ -302,7 +302,10 @@ extension Keychain: SecKeyStore {
         guard
             let key: AnyObject = SecKeyCreateWithData(key.x963Representation as CFData, query.rawValue as CFDictionary, &error)
         else {
-            throw SwiftSecurityError(error: error?.takeUnretainedValue())
+            if let error = error?.takeRetainedValue() {
+                throw SwiftSecurityError(error: error)
+            }
+            throw SwiftSecurityError.invalidParameter
         }
         return try store(.reference(key), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
@@ -317,7 +320,10 @@ extension Keychain: SecKeyStore {
 
         var error: Unmanaged<CFError>?
         guard let data = SecKeyCopyExternalRepresentation(reference as! SecKey, &error) as Data? else {
-            throw SwiftSecurityError(error: error?.takeUnretainedValue())
+            if let error = error?.takeRetainedValue() {
+                throw SwiftSecurityError(error: error)
+            }
+            throw SwiftSecurityError.invalidParameter
         }
 
         return try T(x963Representation: data)

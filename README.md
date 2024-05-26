@@ -207,9 +207,9 @@ try keychain.store(certificate, query: .certificate(for: "Root CA"))
 
 If your project uses [apple/swift-certificates](https://github.com/apple/swift-certificates) package, the `Certificate` will offer more functionality. In case of `Swift Package Manager` dependency resolve issues, copy `SecCertificateConvertible` conformance directly to your project.
 
-#### Identity
+#### Digital Identity
 
-A digital identity (`SecIdentity`) is the combination of a certificate and the private key that matches the public key within certificate.
+A digital identity is the combination of a certificate and the private key that matches the public key within certificate.
 
 ```swift
 // Import digital identity from `PKCS #12` data
@@ -369,18 +369,19 @@ You can store, retrieve, and remove various types of values.
 
 ```swift
 Foundation:
-    - Data // GenericPassword, InternetPassword
-    - String // GenericPassword, InternetPassword
+    - Data /* GenericPassword, InternetPassword */
+    - String /* GenericPassword, InternetPassword */
 CryptoKit:
-    - SymmetricKey // GenericPassword
-    - Curve25519 -> PrivateKey // GenericPassword
-    - SecureEnclave.P256 -> PrivateKey // GenericPassword (SE's Key Data is Persistent Reference)
-    - P256, P384, P521 -> PrivateKey // SecKey (ANSI x9.63 Elliptic Curves)
+    - SymmetricKey /* GenericPassword */
+    - Curve25519 -> PrivateKey /* GenericPassword */
+    - SecureEnclave.P256 -> PrivateKey /* GenericPassword (SE's Key Data is Persistent Reference) */
+    - P256, P384, P521 -> PrivateKey /* SecKey (ANSI x9.63 Elliptic Curves) */
 X509 (external package `apple/swift-certificates`):
-    - Certificate // SecCertificate
+    - Certificate /* SecCertificate */
 SwiftSecurity:
-    - Certificate // SecCertificate (Drop-in replacement for X509.Certificate)
-    - PKCS12.Blob // Import as SecIdentity (SecCertificate and SecKey)
+    - Certificate /* SecCertificate */
+    - PKCS12.Blob: /* Import as SecIdentity */
+        - DigitalIdentity /* SecIdentity (The Pair of SecCertificate and SecKey) */
 ```
 
 To add support for custom types, you can extend them by conforming to the following protocols.

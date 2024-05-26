@@ -43,6 +43,9 @@ public enum SwiftSecurityError: Error {
     /// The data is not available.
     case dataNotAvailable
     
+    /// The certificate is invalid.
+    case invalidCertificate
+    
     /// MAC verification failed during PKCS12 Import (wrong password?).
     case pkcs12VerifyFailure
     
@@ -67,6 +70,7 @@ extension SwiftSecurityError {
         case errSecUserCanceled: self = .userCanceled
         case errSecKeySizeNotAllowed: self = .keySizeNotAllowed
         case errSecDataNotAvailable: self = .dataNotAvailable
+        case errSecInvalidCertificateRef: self = .invalidCertificate
         case errSecPkcs12VerifyFailure: self = .pkcs12VerifyFailure
         case errSecUnimplemented: self = .unimplemented
         default:
@@ -74,12 +78,8 @@ extension SwiftSecurityError {
         }
     }
     
-    init(error: CFError?) {
-        if let error {
-            self.init(rawValue: Int32(CFErrorGetCode(error)))
-        } else {
-            self = .invalidParameter
-        }
+    init(error: CFError) {
+        self.init(rawValue: Int32(CFErrorGetCode(error)))
     }
 }
 
@@ -106,6 +106,8 @@ extension SwiftSecurityError: LocalizedError {
             return SecCopyErrorMessageString(errSecKeySizeNotAllowed, nil) as String?
         case .dataNotAvailable:
             return SecCopyErrorMessageString(errSecDataNotAvailable, nil) as String?
+        case .invalidCertificate:
+            return SecCopyErrorMessageString(errSecInvalidCertificateRef, nil) as String?
         case .pkcs12VerifyFailure:
             return SecCopyErrorMessageString(errSecPkcs12VerifyFailure, nil) as String?
         case .unimplemented:
