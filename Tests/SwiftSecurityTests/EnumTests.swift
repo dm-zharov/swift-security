@@ -34,38 +34,38 @@ final class EnumTests: XCTestCase {
         }
     }
     
-    func testAuthenticationMethod() {
+    func testAuthenticationType() {
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeNTLM as String)
-            XCTAssertEqual(authenticationMethod, .ntlm)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeNTLM as String)
+            XCTAssertEqual(authenticationType, .ntlm)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeMSN as String)
-            XCTAssertEqual(authenticationMethod, .msn)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeMSN as String)
+            XCTAssertEqual(authenticationType, .msn)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeDPA as String)
-            XCTAssertEqual(authenticationMethod, .dpa)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeDPA as String)
+            XCTAssertEqual(authenticationType, .dpa)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeRPA as String)
-            XCTAssertEqual(authenticationMethod, .rpa)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeRPA as String)
+            XCTAssertEqual(authenticationType, .rpa)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeHTTPBasic as String)
-            XCTAssertEqual(authenticationMethod, .httpBasic)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeHTTPBasic as String)
+            XCTAssertEqual(authenticationType, .httpBasic)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeHTTPDigest as String)
-            XCTAssertEqual(authenticationMethod, .httpDigest)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeHTTPDigest as String)
+            XCTAssertEqual(authenticationType, .httpDigest)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeHTMLForm as String)
-            XCTAssertEqual(authenticationMethod, .htmlForm)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeHTMLForm as String)
+            XCTAssertEqual(authenticationType, .htmlForm)
         }
         do {
-            let authenticationMethod = AuthenticationMethod(rawValue: kSecAttrAuthenticationTypeDefault as String)
-            XCTAssertEqual(authenticationMethod, .default)
+            let authenticationType = AuthenticationType(rawValue: kSecAttrAuthenticationTypeDefault as String)
+            XCTAssertEqual(authenticationType, .default)
         }
     }
     

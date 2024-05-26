@@ -599,9 +599,9 @@ extension Keychain {
             case .authenticationType:
                 return AuthenticationType(rawValue: rawValue)
             case .keyClass:
-                return KeyType(rawValue: rawValue)
+                return KeyClass(rawValue: rawValue)
             case .keyType:
-                return AlgorithmType(rawValue: rawValue)
+                return KeyType(rawValue: rawValue)
             case .tokenID:
                 return TokenID(rawValue: rawValue)
             case .class:

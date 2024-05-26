@@ -383,10 +383,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value specifies a type of cryptographic key.
-    var keyClass: PrimaryKey<KeyType>? {
+    var keyClass: PrimaryKey<KeyClass>? {
         get {
             if let rawValue = self[.keyClass] as? String {
-                return KeyType(rawValue: rawValue)
+                return KeyClass(rawValue: rawValue)
             } else {
                 return nil
             }
@@ -395,10 +395,10 @@ public extension SecItemQuery where Value == SecKey {
     }
     
     /// The corresponding value indicates the algorithm associated with this cryptographic key.
-    var keyType: PrimaryKey<AlgorithmType>? {
+    var keyType: PrimaryKey<KeyType>? {
         get {
             if let rawValue = self[.keyType] as? String {
-                return AlgorithmType(rawValue: rawValue)
+                return KeyType(rawValue: rawValue)
             } else {
                 return nil
             }

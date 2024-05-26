@@ -80,7 +80,7 @@ final class KeychainTests: XCTestCase {
         query.synchronizable = false
         query.label = "Credential"
         query.account = "username"
-        query.authenticationMethod = .httpBasic
+        query.authenticationType = .httpBasic
         query.path = "/admin"
         query.port = 443
         query.protocol = .https
@@ -102,7 +102,7 @@ final class KeychainTests: XCTestCase {
                 XCTAssertEqual(info.synchronizable, false)
                 XCTAssertEqual(info.label, "Credential")
                 XCTAssertEqual(info.account, "username")
-                XCTAssertEqual(info.authenticationMethod, .httpBasic)
+                XCTAssertEqual(info.authenticationType, .httpBasic)
                 XCTAssertEqual(info.path, "/admin")
                 XCTAssertEqual(info.protocol, .https)
                 XCTAssertEqual(info.server, "example.com")
