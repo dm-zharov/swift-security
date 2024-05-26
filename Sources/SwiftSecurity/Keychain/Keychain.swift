@@ -598,10 +598,6 @@ extension Keychain {
                 return KeyCipher(rawValue: rawValue)
             case .tokenID:
                 return TokenID(rawValue: rawValue)
-            #if os(macOS)
-            case .prf:
-                return PRFHmacAlg(rawValue: rawValue)
-            #endif
             case .class:
                 return SecItemClass(rawValue: rawValue)
             default:

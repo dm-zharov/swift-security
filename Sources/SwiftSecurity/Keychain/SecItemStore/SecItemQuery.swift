@@ -499,46 +499,6 @@ public extension SecItemQuery where Value == SecKey {
     }
 }
 
-#if os(macOS)
-public extension SecItemQuery where Value == SecKey {
-    /// The corresponding value indicates the pseudorandom function associated with this cryptographic key.
-    var prf: PRFHmacAlg? {
-        get {
-            if let rawValue = self[.prf] as? String {
-                return PRFHmacAlg(rawValue: rawValue)
-            } else {
-                return nil
-            }
-        }
-        set { self[.prf] = newValue?.rawValue }
-    }
-    
-    /// The corresponding value indicates the salt to use with this cryptographic key.
-    var salt: Data? {
-        get { self[.salt] as? Data }
-        set { self[.salt] = newValue }
-    }
-
-    /// The corresponding value indicates the number of rounds to run the pseudorandom function specified by ``prf`` for a cryptographic key.
-    var rounds: Int? {
-        get {
-            if let number = self[.rounds] as? NSNumber {
-                return number.intValue
-            } else {
-                return nil
-            }
-        }
-        set {
-            if let newValue {
-                self[.rounds] = NSNumber(integerLiteral: newValue)
-            } else {
-                self[.rounds] = nil
-            }
-        }
-    }
-}
-#endif
-
 extension SecItemQuery: CustomDebugStringConvertible {
     public var debugDescription: String {
         return Keychain.DebugFormatStyle().format(rawValue)
