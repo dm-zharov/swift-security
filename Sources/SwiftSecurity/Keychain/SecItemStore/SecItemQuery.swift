@@ -75,16 +75,17 @@ public extension SecItemQuery {
     }
     
     /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
-    /// - Note: Suitable for P256, P384, P521 CryptoKit Keys.
+    /// - Note: Suitable for `P256`/`P384`/`P521` keys from `CryptoKit` or custom `RSA` keys.
     /// - Parameters:
     ///   - applicationTag: An application tag that you can use to identify the key within store.
+    ///   - descriptor: A key descriptor.  Default value is `.ecsecPrimeRandom(.private)`.
     ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
     ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     /// - Returns: ``SecItemQuery<SecKey>``.
-    static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
+    static func key(for applicationTag: String? = nil, descriptor: SecKeyDescriptor = .ecsecPrimeRandom(.private), synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
         var query = SecItemQuery<SecKey>()
-        query.keyClass = .private
-        query.keyType = .ecsecPrimeRandom
+        query.keyClass = descriptor.keyClass
+        query.keyType = descriptor.keyType
         if let applicationTag {
             query.applicationTag = applicationTag.data(using: .utf8)!
         }
@@ -527,28 +528,15 @@ extension SecItemQuery {
 // MARK: - Deprecetad
 
 public extension SecItemQuery {
-    /// A query for a credential with specified service.
-    ///  - Parameters:
-    ///   - account: An acount
-    ///   - service: A service associated with the item.
-    ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
-    /// - Returns: ``SecItemQuery<GenericPassword>``.
-    @available(*, deprecated, message: "Use `SecItemQuery<GenericPassword>()` with specified `account` and `service` values")
-    static func credential(for account: String, service: String?) -> SecItemQuery<GenericPassword> {
-        var query = SecItemQuery<GenericPassword>()
-        query.service = service
-        query.account = account
-        return query
-    }
-    
     /// A query for a private-key for elliptic curve cryptography (ANSI x9.63).
+    /// - Note: Suitable for P256, P384, P521 CryptoKit Keys.
     /// - Parameters:
     ///   - applicationTag: An application tag that you can use to identify the key within store.
     ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
     ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     /// - Returns: ``SecItemQuery<SecKey>``.
-    @available(*, deprecated, renamed: "privateKey(for:)")
-    static func privateKey(tag: String) -> SecItemQuery<SecKey> {
-        return privateKey(for: tag, synchronizable: nil)
+    @available(*, deprecated, renamed: "key(for:synchronizable:)")
+    static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
+        return key(for: applicationTag, descriptor: .ecsecPrimeRandom(.private), synchronizable: synchronizable)
     }
 }

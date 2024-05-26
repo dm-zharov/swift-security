@@ -19,7 +19,9 @@ public protocol SecDataConvertible {
 // MARK: - CryptoKit
 
 extension Curve25519.KeyAgreement.PrivateKey: SecDataConvertible {}
+extension Curve25519.KeyAgreement.PublicKey: SecDataConvertible {}
 extension Curve25519.Signing.PrivateKey: SecDataConvertible {}
+extension Curve25519.Signing.PublicKey: SecDataConvertible {}
 
 extension SymmetricKey: SecDataConvertible {
     public init<D>(rawRepresentation data: D) throws where D: ContiguousBytes {
@@ -60,7 +62,7 @@ extension SecureEnclave.P256.Signing.PrivateKey: SecDataConvertible {
     }
 }
 
-// MARK: - Other Data Types
+// MARK: - Foundation
 
 extension Data: SecDataConvertible {
     public init<D>(rawRepresentation data: D) throws where D : ContiguousBytes {

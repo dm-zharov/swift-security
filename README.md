@@ -172,25 +172,34 @@ if case let .persistentReference(data) = try keychain.store(
 
 #### CryptoKit
 
-`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain), like `P256`/`P384`/`P521.PrivateKey`, conform to `SecKeyConvertible` protocol.
+`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain), like `P256`/`P384`/`P521`, conform to `SecKeyConvertible` protocol.
 
 ```swift
 // Store private key
 let privateKey = P256.KeyAgreement.PrivateKey()
-try keychain.store(privateKey, query: .privateKey(for: "Alice"))
+try keychain.store(privateKey, query: .key(for: "Alice"))
 
 // Retrieve private key (+ public key)
 let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(for: "Alice"))
-let publicKey = privateKey.publicKey
+let publicKey = privateKey.publicKey /* Recommended */
+
+// Store public key. Not recommended, as you can generate it
+try keychain.store(
+    publicKey,
+    query: .key(for: "Alice", descriptor: .ecsecPrimeRandom(.public))
+)
 ```
 
-Other key types, like `Curve25519.PrivateKey`, `SymmetricKey`, `SecureEnclave.P256.PrivateKey`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a persistent reference to the key inside `Secure Enclave`, not the key itself. These keys conform to `SecDataConvertible`, so store them as follows:
+Other key types from `CryptoKit`, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a persistent reference to the key inside `Secure Enclave`, not the key itself. These keys conform to `SecDataConvertible`, so store them as follows:
 
 ```swift
 // Store symmetric key
 let symmetricKey = SymmetricKey(size: .bits256)
 try keychain.store(privateKey, query: .credential(for: "Chat"))
 ```
+
+> [!NOTE]
+> `SecKey` is intended for asymmetric key storage. Only `ECPrimeRandom` (`CryptoKit -> P256/384/512`) and `RSA` algorithms are supported. See [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554) for more info.
 
 #### Certificate
 
@@ -457,6 +466,7 @@ The framework’s default behavior provides a reasonable balance between conveni
 * [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/keychain_services/keychain_items/sharing_access_to_keychain_items_among_a_collection_of_apps/)
 * [Storing CryptoKit Keys in the Keychain](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain)
 * [TN3137: On Mac keychain APIs and implementations](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+* [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554)
 * [SecItem: Fundamentals](https://developer.apple.com/forums/thread/724023)
 * [SecItem: Pitfalls and Best Practices](https://developer.apple.com/forums/thread/724013)
 

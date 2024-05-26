@@ -298,16 +298,13 @@ extension Keychain: SecKeyStore {
         query: SecItemQuery<SecKey>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecKey>? {
-        var error: Unmanaged<CFError>?
-        guard
-            let key: AnyObject = SecKeyCreateWithData(key.x963Representation as CFData, query.rawValue as CFDictionary, &error)
-        else {
-            if let error = error?.takeRetainedValue() {
-                throw SwiftSecurityError(error: error)
-            }
-            throw SwiftSecurityError.invalidParameter
+        if let specifiedKeyType = query.keyType {
+            precondition(specifiedKeyType == key.descriptor.keyType)
         }
-        return try store(.reference(key), returning: returnType, query: query, accessPolicy: accessPolicy)
+        if let specifiedKeyClass = query.keyClass {
+            precondition(specifiedKeyClass == key.descriptor.keyClass)
+        }
+        return try store(.reference(key.secKey), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
