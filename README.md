@@ -172,7 +172,7 @@ if case let .persistentReference(data) = try keychain.store(
 
 #### CryptoKit
 
-`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain), like `P256`/`P384`/`P521`, conform to `SecKeyConvertible` protocol.
+`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain#3369556), like `P256`/`P384`/`P521`, conform to `SecKeyConvertible` protocol.
 
 ```swift
 // Store private key
@@ -190,7 +190,7 @@ try keychain.store(
 )
 ```
 
-Other key types from `CryptoKit`, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a persistent reference to the key inside `Secure Enclave`, not the key itself. These keys conform to `SecDataConvertible`, so store them as follows:
+Other key types, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a reference to the key inside `Secure Enclave`, not the key itself. These types conform to `SecDataConvertible`, so store them as follows:
 
 ```swift
 // Store symmetric key
@@ -199,7 +199,7 @@ try keychain.store(symmetricKey, query: .credential(for: "Chat"))
 ```
 
 > [!NOTE]
-> `SecKey` is intended for asymmetric key storage. Only `ECPrimeRandom` (`CryptoKit -> P256/384/512`) and `RSA` algorithms are supported. See [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554) for more info.
+> `SecKey` is intended for asymmetric key storage, supporting only `ECSECPrimeRandom` (`CryptoKit -> P256/384/512`) and `RSA` algorithms. For details, see [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554).
 
 #### Certificate
 
@@ -214,7 +214,7 @@ try certificate = Certificate(derRepresentation: certificateData)
 try keychain.store(certificate, query: .certificate(for: "Root CA"))
 ```
 
-If your project uses [apple/swift-certificates](https://github.com/apple/swift-certificates) package, the `Certificate` will offer more functionality. In case of `Swift Package Manager` dependency resolve issues, copy `SecCertificateConvertible` conformance directly to your project.
+You could use `SwiftSecurity` simultaneously with `X509` package from [apple/swift-certificates](https://github.com/apple/swift-certificates). In case of `Swift Package Manager` dependency resolve issues, copy `SecCertificateConvertible` conformance directly to your project.
 
 #### Digital Identity
 
@@ -399,7 +399,7 @@ To add support for custom types, you can extend them by conforming to the follow
 // Store as Data (GenericPassword, InternetPassword)
 extension CustomType: SecDataConvertible {}
 
-// Store as Key (ANSI x9.63, Elliptic Curves)
+// Store as Key (ANSI x9.63 Elliptic Curves or RSA Keys)
 extension CustomType: SecKeyConvertible {}
 
 // Store as Certificate (X.509)
