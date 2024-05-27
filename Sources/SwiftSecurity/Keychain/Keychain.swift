@@ -273,7 +273,7 @@ extension Keychain {
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
         if let value = try retrieve(.data, query: query, authenticationContext: authenticationContext), case let .data(data) = value {
-            return try T(rawRepresentation: data)  // Convert back to a key.
+            return try T(rawRepresentation: data)
         } else {
             return nil
         }
@@ -310,13 +310,13 @@ extension Keychain: SecKeyStore {
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secKey) = value
         else {
             return nil
         }
 
         var error: Unmanaged<CFError>?
-        guard let data = SecKeyCopyExternalRepresentation(reference as! SecKey, &error) as Data? else {
+        guard let data = SecKeyCopyExternalRepresentation(secKey as! SecKey, &error) as Data? else {
             if let error = error?.takeRetainedValue() {
                 throw SwiftSecurityError(error: error)
             }
