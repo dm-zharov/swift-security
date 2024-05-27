@@ -20,59 +20,61 @@ public protocol SecKeyConvertible: SecKeyRepresentable {
 
 // MARK: - CryptoKit
 
-extension P256.Signing.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
-}
+/// NIST P-256 (also known as `secp256r1` /  `prime256r1` / `prime256v1`).
 
+extension P256.Signing.PrivateKey: SecKeyConvertible {
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+}
 extension P256.Signing.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P256.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+}
+extension P256.KeyAgreement.PublicKey: SecKeyConvertible {
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
-extension P256.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
-}
+/// NIST P-384 (also known as `secp384r1` ).
 
 extension P384.Signing.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 
 extension P384.Signing.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P384.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 
 extension P384.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
+
+/// NIST P-521 (also known as `secp521r1` ).
 
 extension P521.Signing.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
-
 extension P521.Signing.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P521.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.private) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
-
 extension P521.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var descriptor: SecKeyDescriptor { .ecsecPrimeRandom(.public) }
+    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 // MARK: - SecKey
 
 public protocol SecKeyRepresentable {
     /// A key descriptor for storage.
-    var descriptor: SecKeyDescriptor { get }
+    var secKeyDescriptor: SecKeyDescriptor { get }
     
     /// A key reference.
     var secKey: SecKey { get throws }
@@ -81,14 +83,19 @@ public protocol SecKeyRepresentable {
 extension SecKeyConvertible {
     public var secKey: SecKey {
         get throws {
-            guard descriptor.keyType == .ecsecPrimeRandom else {
-                // RSA use is discouraged. If necessary, override and use ASN.1 format as external representation
+            let keyData: Data
+            switch secKeyDescriptor.keyType {
+            case .ecsecPrimeRandom:
+                keyData = x963Representation
+            case .rsa:
+                // override and use data in PKCS #1 format
                 throw SwiftSecurityError.unimplemented
             }
+
             var error: Unmanaged<CFError>?
-            guard let secKey: SecKey = SecKeyCreateWithData(x963Representation as CFData, [
-                kSecAttrKeyType: descriptor.keyType.rawValue,
-                kSecAttrKeyClass: descriptor.keyClass.rawValue
+            guard let secKey: SecKey = SecKeyCreateWithData(keyData as CFData, [
+                kSecAttrKeyType: secKeyDescriptor.keyType.rawValue,
+                kSecAttrKeyClass: secKeyDescriptor.keyClass.rawValue
             ] as CFDictionary, &error) else {
                 if let error = error?.takeRetainedValue() {
                     throw SwiftSecurityError(error: error)
@@ -104,21 +111,19 @@ public struct SecKeyDescriptor {
     public var keyType: KeyType
     public var keyClass: KeyClass
     
-    public static func rsa(_ keyClass: KeyClass) -> SecKeyDescriptor {
-        switch keyClass {
-        case .public:
-            SecKeyDescriptor(keyType: .rsa, keyClass: .public)
-        case .private:
-            SecKeyDescriptor(keyType: .rsa, keyClass: .private)
-        }
-    }
+    /// A private key for elliptic curve cryptography. Suitable for `P256`/`P384`/`P521` keys from `CryptoKit`.
+    public static let ecPrivateKey = SecKeyDescriptor(keyType: .ecsecPrimeRandom, keyClass: .private)
+    /// A public key for elliptic curve cryptography. Suitable for `P256`/`P384`/`P521` keys from `CryptoKit`.
+    public static let ecPublicKey = SecKeyDescriptor(keyType: .ecsecPrimeRandom, keyClass: .public)
     
-    public static func ecsecPrimeRandom(_ keyClass: KeyClass) -> SecKeyDescriptor {
-        switch keyClass {
-        case .public:
-            SecKeyDescriptor(keyType: .ecsecPrimeRandom, keyClass: .public)
-        case .private:
-            SecKeyDescriptor(keyType: .ecsecPrimeRandom, keyClass: .private)
-        }
+    /// A private key for `RSA` cryptography.
+    public static let rsaPrivateKey = SecKeyDescriptor(keyType: .rsa, keyClass: .private)
+    /// A public key for `RSA` cryptography.
+    public static let rsaPublicKey = SecKeyDescriptor(keyType: .rsa, keyClass: .public)
+    
+    /// A descriptor that defines the properties of the key.
+    public init(keyType: KeyType, keyClass: KeyClass) {
+        self.keyType = keyType
+        self.keyClass = keyClass
     }
 }

@@ -298,11 +298,14 @@ extension Keychain: SecKeyStore {
         query: SecItemQuery<SecKey>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecKey>? {
-        if let specifiedKeyType = query.keyType {
-            precondition(specifiedKeyType == key.descriptor.keyType)
-        }
-        if let specifiedKeyClass = query.keyClass {
-            precondition(specifiedKeyClass == key.descriptor.keyClass)
+        guard
+            /// If key type specified in query, it should match with type from key's descriptor.  Refer to `.key(for:descriptor:)`
+            query.keyType == nil || query.keyType == key.secKeyDescriptor.keyType,
+            /// If key class specified in query, it should match with class from key's descriptor.
+            query.keyClass == nil || query.keyClass == key.secKeyDescriptor.keyClass
+        else {
+            /// You most likely tried to store a public key as a private key. While it might be accepted by the keychain, it could lead to confusion.
+            throw SwiftSecurityError.invalidParameter
         }
         return try store(.reference(key.secKey), returning: returnType, query: query, accessPolicy: accessPolicy)
     }

@@ -78,11 +78,11 @@ public extension SecItemQuery {
     /// - Note: Suitable for `P256`/`P384`/`P521` keys from `CryptoKit` or custom `RSA` keys.
     /// - Parameters:
     ///   - applicationTag: An application tag that you can use to identify the key within store.
-    ///   - descriptor: A key descriptor.  Default value is `.ecsecPrimeRandom(.private)`.
+    ///   - descriptor: A key descriptor.  Defaults to  `.ecPrivateKey`.
     ///   - synchronizable: A boolean value indicating whether the item synchronizes through iCloud.
     ///   See [Developer Documentation](https://developer.apple.com/documentation/security/ksecattrsynchronizable).
     /// - Returns: ``SecItemQuery<SecKey>``.
-    static func key(for applicationTag: String? = nil, descriptor: SecKeyDescriptor = .ecsecPrimeRandom(.private), synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
+    static func key(for applicationTag: String? = nil, descriptor: SecKeyDescriptor = .ecPrivateKey, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
         var query = SecItemQuery<SecKey>()
         query.keyClass = descriptor.keyClass
         query.keyType = descriptor.keyType
@@ -537,6 +537,6 @@ public extension SecItemQuery {
     /// - Returns: ``SecItemQuery<SecKey>``.
     @available(*, deprecated, renamed: "key(for:synchronizable:)")
     static func privateKey(for applicationTag: String? = nil, synchronizable: Bool? = nil) -> SecItemQuery<SecKey> {
-        return key(for: applicationTag, descriptor: .ecsecPrimeRandom(.private), synchronizable: synchronizable)
+        return key(for: applicationTag, descriptor: .ecPrivateKey, synchronizable: synchronizable)
     }
 }

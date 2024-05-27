@@ -1,5 +1,5 @@
 //
-//  KeyType.swift
+//  KeyClass.swift
 //
 //
 //  Created by Dmitriy Zharov on 17.01.2024.
@@ -9,7 +9,9 @@ import Foundation
 import Security
 
 public enum KeyClass {
+    /// A public key of a public-private pair.
     case `public`
+    /// A private key of a public-private pair.
     case `private`
 }
 
