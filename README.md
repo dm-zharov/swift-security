@@ -199,7 +199,7 @@ try keychain.store(symmetricKey, query: .credential(for: "Chat"))
 ```
 
 > [!NOTE]
-> `SecKey` is intended for asymmetric key storage, supporting only `ECSECPrimeRandom` (`CryptoKit -> P256/384/512`) and `RSA` algorithms. For details, see [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554).
+> `SecKey` supports only `Elliptic Curve` (`CryptoKit -> P256/384/512`) and `RSA` algorithms. For more details, see [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554).
 
 #### Certificate
 
