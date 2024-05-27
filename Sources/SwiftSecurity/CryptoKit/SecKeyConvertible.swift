@@ -81,7 +81,10 @@ public protocol SecKeyRepresentable {
 extension SecKeyConvertible {
     public var secKey: SecKey {
         get throws {
-            precondition(descriptor.keyType == .ecsecPrimeRandom, "RSA is currently unsupported")
+            guard descriptor.keyType == .ecsecPrimeRandom else {
+                // RSA use is discouraged. If necessary, override and use ASN.1 format as external representation
+                throw SwiftSecurityError.unimplemented
+            }
             var error: Unmanaged<CFError>?
             guard let secKey: SecKey = SecKeyCreateWithData(x963Representation as CFData, [
                 kSecAttrKeyType: descriptor.keyType.rawValue,
