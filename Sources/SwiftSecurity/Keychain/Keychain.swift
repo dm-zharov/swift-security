@@ -359,7 +359,7 @@ extension Keychain: SecCertificateStore {
         else {
             return nil
         }
-        return try T(certificate: secCertificate as! SecCertificate)
+        return T(certificate: secCertificate as! SecCertificate)
     }
     
     @discardableResult
