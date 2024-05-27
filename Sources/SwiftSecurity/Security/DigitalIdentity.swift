@@ -12,12 +12,12 @@ import Security
 public typealias Identity = DigitalIdentity
 
 public struct DigitalIdentity {
-    /// Creates an identity from a raw representation.
+    /// Creates an identity from a reference.
     public init(identity secIdentity: SecIdentity) {
         self.secIdentity = secIdentity
     }
     
-    /// Creates an identity from a raw representation.
+    /// An identity reference.
     public let secIdentity: SecIdentity
 }
 

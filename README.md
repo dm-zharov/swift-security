@@ -186,7 +186,7 @@ let publicKey = privateKey.publicKey /* Recommended */
 // Store public key. Not recommended, as you can generate it
 try keychain.store(
     publicKey,
-    query: .key(for: "Alice", descriptor: .ecsecPrimeRandom(.public))
+    query: .key(for: "Alice", descriptor: .ecPublicKey)
 )
 ```
 

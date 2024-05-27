@@ -14,7 +14,7 @@ public typealias KeyCipher = KeyType
 public enum KeyType {
     /// RSA.
     case rsa
-    /// Elliptic curve. Suitable for `P256`, `P384`, `P521` from `CryptoKit`.
+    /// Elliptic curve. Suitable for `P256`, `P384`, `P521` keys from `CryptoKit`.
     case ecsecPrimeRandom
 }
 

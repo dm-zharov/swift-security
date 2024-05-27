@@ -48,7 +48,7 @@ extension X509.Certificate: SecCertificateConvertible {
 // MARK: - SecCertificate
 
 public protocol SecCertificateRepresentable {
-    /// Creates a certificate from a raw representation.
+    /// Creates a certificate from a reference.
     init(certificate secCertificate: SecCertificate)
     
     /// A certificate reference.

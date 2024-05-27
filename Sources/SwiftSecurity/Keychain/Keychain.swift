@@ -273,7 +273,7 @@ extension Keychain {
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
         if let value = try retrieve(.data, query: query, authenticationContext: authenticationContext), case let .data(data) = value {
-            return try T(rawRepresentation: data)  // Convert back to a key.
+            return try T(rawRepresentation: data)
         } else {
             return nil
         }
@@ -298,11 +298,14 @@ extension Keychain: SecKeyStore {
         query: SecItemQuery<SecKey>,
         accessPolicy: AccessPolicy = .default
     ) throws -> SecValue<SecKey>? {
-        if let specifiedKeyType = query.keyType {
-            precondition(specifiedKeyType == key.descriptor.keyType)
-        }
-        if let specifiedKeyClass = query.keyClass {
-            precondition(specifiedKeyClass == key.descriptor.keyClass)
+        guard
+            /// If key type specified in query, it should match with type from key's descriptor.  Refer to `.key(for:descriptor:)`
+            query.keyType == nil || query.keyType == key.secKeyDescriptor.keyType,
+            /// If key class specified in query, it should match with class from key's descriptor.
+            query.keyClass == nil || query.keyClass == key.secKeyDescriptor.keyClass
+        else {
+            /// You most likely tried to store a public key as a private key. While it might be accepted by the keychain, it could lead to confusion.
+            throw SwiftSecurityError.invalidParameter
         }
         return try store(.reference(key.secKey), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
@@ -310,13 +313,13 @@ extension Keychain: SecKeyStore {
     public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
-            case let .reference(reference) = value
+            case let .reference(secKey) = value
         else {
             return nil
         }
 
         var error: Unmanaged<CFError>?
-        guard let data = SecKeyCopyExternalRepresentation(reference as! SecKey, &error) as Data? else {
+        guard let data = SecKeyCopyExternalRepresentation(secKey as! SecKey, &error) as Data? else {
             if let error = error?.takeRetainedValue() {
                 throw SwiftSecurityError(error: error)
             }
@@ -359,7 +362,7 @@ extension Keychain: SecCertificateStore {
         else {
             return nil
         }
-        return try T(certificate: secCertificate as! SecCertificate)
+        return T(certificate: secCertificate as! SecCertificate)
     }
     
     @discardableResult
