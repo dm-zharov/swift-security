@@ -172,7 +172,7 @@ if case let .persistentReference(data) = try keychain.store(
 
 #### CryptoKit
 
-`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Keys supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain#3369556), like `P256`/`P384`/`P521`, conform to `SecKeyConvertible` protocol.
+`SwiftSecurity` lets you natively store `CryptoKit` keys as native `SecKey` instances. [Key types supporting such conversion](https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain#3369556), like `P256`/`P384`/`P521`, conform to `SecKeyConvertible` protocol.
 
 ```swift
 // Store private key
@@ -199,7 +199,7 @@ try keychain.store(symmetricKey, query: .credential(for: "Chat"))
 ```
 
 > [!NOTE]
-> `SecKey` supports only `Elliptic Curve` (`CryptoKit -> P256/384/512`) and `RSA` algorithms. For more details, see [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554).
+> `SecKey` supports only `P-256, P-384, P-521 Elliptic Curve` and `RSA` keys. For more details, see [On Cryptographic Key Formats](https://developer.apple.com/forums/thread/680554).
 
 #### Certificate
 
