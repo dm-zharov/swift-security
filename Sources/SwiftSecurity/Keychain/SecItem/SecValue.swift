@@ -17,7 +17,7 @@ public enum SecValue<Value> where Value: SecItem {
     /// Reference to the item.
     ///
     /// The corresponding value, depending on the item class requested, is of type `SecKey`, `SecCertificate`, `SecIdentity`,  or`Data`.
-    case reference(AnyObject)
+    case reference(Value)
 
     /// Persistent reference to the item.
     ///

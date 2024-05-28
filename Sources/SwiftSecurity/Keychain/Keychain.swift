@@ -87,7 +87,7 @@ extension Keychain: SecItemStore {
                 }
             case .reference:
                 if let result {
-                    return .reference(result)
+                    return .reference(result as! SecItem)
                 } else {
                     return nil
                 }
@@ -153,7 +153,7 @@ extension Keychain: SecItemStore {
             case .reference:
                 if let objectList = result as? [AnyObject] {
                     return objectList.map { reference in
-                        return .reference(reference)
+                        return .reference(reference as! SecItem)
                     }
                 } else {
                     return []
@@ -446,7 +446,7 @@ private extension Keychain {
                 }
             case .reference:
                 if let result {
-                    return .reference(result)
+                    return .reference(result as! SecItem)
                 } else {
                     return nil
                 }
