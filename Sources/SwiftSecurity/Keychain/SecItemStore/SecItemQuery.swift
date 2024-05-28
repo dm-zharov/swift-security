@@ -11,23 +11,30 @@ import Security
 public struct SecItemQuery<Value> where Value: SecItem {
     private(set) var rawValue: [String: Any]
     
-    var `class`: SecItemClass? {
-        get {
-            if let value = self[.class] as? String {
-                return SecItemClass(rawValue: value)
-            } else {
-                return nil
-            }
-        }
-        set {
-            self[.class] = newValue?.rawValue
-        }
-    }
-    
+    /// Creates the query with item class.
     private init(class: SecItemClass) {
         self.rawValue = [
+            // The data protection key makes macOS use modern keychain implementation.
+            kSecUseDataProtectionKeychain: true,
             kSecClass: `class`.rawValue,
-            kSecUseDataProtectionKeychain: true, // The data protection key affects operations only in macOS.
+        ] as [String: Any]
+    }
+    
+    /// Creates the query with item reference. Suitable for `SecKey`, `SecCertificate`, `SecIdentity`.
+    internal init(value: Value) {
+        self.rawValue = [
+            // The data protection key makes macOS use modern keychain implementation.
+            kSecUseDataProtectionKeychain: true,
+            kSecValueRef: value,
+        ] as [String: Any]
+    }
+    
+    /// Creates the query with persistence reference to the value.
+    internal init(persistentValue: Data) {
+        self.rawValue = [
+            // The data protection key makes macOS use modern keychain implementation.
+            kSecUseDataProtectionKeychain: true,
+            kSecValuePersistentRef: persistentValue,
         ] as [String: Any]
     }
 }
