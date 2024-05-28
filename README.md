@@ -4,7 +4,7 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift API for Apple [Security](https://developer.apple.com/documentation/security) framework (Keychain API, SharedWebCredentials API, Cryptography, etc). Secure the data your app manages in a much easier way with compile-time checks. 
+SwiftSecurity is a modern Swift API for Apple's [Security](https://developer.apple.com/documentation/security) framework (Keychain API, SharedWebCredentials API, Cryptography, etc). Secure the data your app manages in a much easier way with compile-time checks. 
 
 ## Features
 
