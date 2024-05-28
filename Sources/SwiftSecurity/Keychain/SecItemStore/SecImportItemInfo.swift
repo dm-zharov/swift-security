@@ -38,14 +38,14 @@ public extension SecImportItemInfo {
      This list might differ from that in the trust management object if there is more than one identity in the blob or if the blob contains extra certificates
      (for example, an intermediate certificate that is not yet valid but might be needed to establish validity in the near future).
      */
-    var certChain: [Certificate]? {
+    var certChain: [Certificate] {
         get {
             if let certChain = self[.certChain] as? [SecCertificate] {
                 return certChain.map { secCertificate in
-                    Certificate(rawRepresentation: secCertificate)
+                    Certificate(certificate: secCertificate)
                 }
             } else {
-                return nil
+                return []
             }
         }
     }

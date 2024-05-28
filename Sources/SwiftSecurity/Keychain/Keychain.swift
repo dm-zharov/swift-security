@@ -53,26 +53,6 @@ extension Keychain: SecItemStore {
         query: SecItemQuery<SecItem>,
         authenticationContext: LAContext? = nil
     ) throws -> SecValue<SecItem>? {
-        #if os(macOS)
-        // Retrieve `SecIdentity` from `SecCertificate` on macOS.
-        // See: https://developer.apple.com/documentation/network/creating_an_identity_for_local_network_tls
-        if query.class == .identity {
-            var query = query
-            query.class = .certificate
-            switch try retrieve(returnType, query: query, authenticationContext: authenticationContext) {
-            case .reference(let reference):
-                let secCertificate = Certificate(rawRepresentation: reference as! SecCertificate)
-                if let identity = try DigitalIdentity(certificate: secCertificate) {
-                    return .reference(identity.secIdentity)
-                } else {
-                    return nil
-                }
-            default:
-                break
-            }
-        }
-        #endif
-        
         var query = query
         query.accessGroup = accessGroup.rawValue
         query[search: .matchLimit] = kSecMatchLimitOne as String

@@ -22,8 +22,8 @@ public struct Certificate {
         self.derRepresentation = derRepresentation
         self.secCertificate = secCertificate
     }
-    
-    public init(rawRepresentation secCertificate: SecCertificate) {
+
+    public init(certificate secCertificate: SecCertificate) {
         self.derRepresentation = SecCertificateCopyData(secCertificate) as Data
         self.secCertificate = secCertificate
     }
