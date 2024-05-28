@@ -207,7 +207,7 @@ DER-Encoded X.509 Certificate.
 ```swift
 // Prepare certificate
 let certificateData: Data // Content of file, often with `cer`/`der` extension 
-try certificate = Certificate(derRepresentation: certificateData)
+certificate = try Certificate(derRepresentation: certificateData)
 
 // Store certificate
 try keychain.store(certificate, query: .certificate(for: "Root CA"))
@@ -221,7 +221,7 @@ A digital identity is the combination of a certificate and the private key that 
 
 ```swift
 // Import digital identity from `PKCS #12` data
-let pkcs12Data: Data // Content of file, often with `p12` extension
+let pkcs12Data: Data / * Contents of PKCS #12 file (also known as PKCS12, PFX, .p12, and .pfx) */
 for importItem in try PKCS12.import(pkcs12Data, passphrase: "8e9c0a7f") {
     if let identity = importItem.identity {
         // Store digital identity
@@ -388,8 +388,7 @@ X509 (external package `apple/swift-certificates`):
     - Certificate /* SecCertificate */
 SwiftSecurity:
     - Certificate /* SecCertificate */
-    - PKCS12.Blob: /* Import as SecIdentity */
-        - DigitalIdentity /* SecIdentity (The Pair of SecCertificate and SecKey) */
+    - DigitalIdentity /* SecIdentity (The Pair of SecCertificate and SecKey) */
 ```
 
 To add support for custom types, you can extend them by conforming to the following protocols.
