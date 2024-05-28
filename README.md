@@ -189,7 +189,7 @@ try keychain.store(
 )
 ```
 
-Other key types, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256.PrivateKey` is an encrypted block that only the same `Secure Enclave` can later use to restore the key, not the key itself. These types conform to `SecDataConvertible`, so store them as follows:
+Other key types, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256.PrivateKey` is an encrypted block that only the same `Secure Enclave` can later use to restore the key. These types conform to `SecDataConvertible`, so store them as follows:
 
 ```swift
 // Store symmetric key
