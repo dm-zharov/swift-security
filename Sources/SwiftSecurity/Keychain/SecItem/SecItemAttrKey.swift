@@ -87,12 +87,6 @@ extension SecItemAttrKey {
     static let effectiveKeySize    = SecItemAttrKey(rawValue: kSecAttrEffectiveKeySize as String)
     static let tokenID             = SecItemAttrKey(rawValue: kSecAttrTokenID as String)
     
-    #if os(macOS)
-    static let prf                 = SecItemAttrKey(rawValue: kSecAttrPRF as String)
-    static let salt                = SecItemAttrKey(rawValue: kSecAttrSalt as String)
-    static let rounds              = SecItemAttrKey(rawValue: kSecAttrRounds as String)
-    #endif
-    
     // MARK: Usage
     
     static let isPermament         = SecItemAttrKey(rawValue: kSecAttrIsPermanent as String)
@@ -197,14 +191,6 @@ extension SecItemAttrKey: CustomStringConvertible {
             return "Effective Key Size"
         case .tokenID:
             return "Token ID"
-        #if os(macOS)
-        case .prf:
-            return "PRF"
-        case .salt:
-            return "Salt"
-        case .rounds:
-            return "Rounds"
-        #endif
         case .isPermament:
             return "Is Permament"
         case .isSensitive:
