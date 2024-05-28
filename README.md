@@ -11,9 +11,9 @@ SwiftSecurity is a modern Swift API for Apple [Security](https://developer.apple
 How does SwiftSecurity differ from other popular frameworks?
 
 * Supports every [Keychain item](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
+* Prevents usage of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for Keychain items.
 * Provides consistent behavior across platforms. Verified through [apple-oss-distributions/Security](https://github.com/apple-oss-distributions/Security).
 * Follows recommendations from [DTS Engineer](https://forums.developer.apple.com/forums/thread/707279). Excludes legacy from OS X.
-* Prevents usage of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for Keychain items.
 * Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/), [SwiftUI](https://developer.apple.com/documentation/swiftui/) and [apple/swift-certificates](https://github.com/apple/swift-certificates).
 
 ## Installation
