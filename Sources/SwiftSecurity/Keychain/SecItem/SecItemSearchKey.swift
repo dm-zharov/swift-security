@@ -19,7 +19,6 @@ struct SecItemSearchKey: Equatable, RawRepresentable {
 
 extension SecItemSearchKey {
     static let matchPolicy                = SecItemSearchKey(rawValue: kSecMatchPolicy as String)
-    static let matchItemList              = SecItemSearchKey(rawValue: kSecMatchItemList as String)
     static let matchIssuers               = SecItemSearchKey(rawValue: kSecMatchIssuers as String)
     static let matchEmailAddressIfPresent = SecItemSearchKey(rawValue: kSecMatchEmailAddressIfPresent as String)
     static let matchSubjectContains       = SecItemSearchKey(rawValue: kSecMatchSubjectContains as String)
@@ -27,4 +26,7 @@ extension SecItemSearchKey {
     static let matchTrustedOnly           = SecItemSearchKey(rawValue: kSecMatchTrustedOnly as String)
     static let matchValidOnDate           = SecItemSearchKey(rawValue: kSecMatchValidOnDate as String)
     static let matchLimit                 = SecItemSearchKey(rawValue: kSecMatchLimit as String)
+    
+    // @available(*, unavailable, message: "Legacy key for a file-based keychain on macOS")
+    static let matchItemList              = SecItemSearchKey(rawValue: kSecMatchItemList as String)
 }

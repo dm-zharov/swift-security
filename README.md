@@ -4,17 +4,17 @@
 [![SPM supported](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://mit-license.org)
 
-SwiftSecurity is a modern Swift API for Apple [Security](https://developer.apple.com/documentation/security) framework (Keychain API, SharedWebCredentials API, etc). Secure the data your app manages in a much easier way with compile-time checks. 
+SwiftSecurity is a modern Swift API for Apple [Security](https://developer.apple.com/documentation/security) framework (Keychain API, SharedWebCredentials API, Cryptography, etc). Secure the data your app manages in a much easier way with compile-time checks. 
 
 ## Features
 
-How does SwiftSecurity differ from other wrappers?
+How does SwiftSecurity differ from other popular frameworks?
 
-* Supports every [Keychain item class](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
-* Prevents creation of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for items.
+* Supports every [Keychain item](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_class_keys_and_values) (Generic & Internet Password, Key, Certificate and Identity).
+* Provides consistent behavior across platforms. Verified through [apple-oss-distributions/Security](https://github.com/apple-oss-distributions/Security).
+* Follows recommendations from [DTS Engineer](https://forums.developer.apple.com/forums/thread/707279). Excludes legacy from OS X.
+* Prevents usage of an incorrect set of [attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values) for Keychain items.
 * Compatible with [CryptoKit](https://developer.apple.com/documentation/cryptokit/), [SwiftUI](https://developer.apple.com/documentation/swiftui/) and [apple/swift-certificates](https://github.com/apple/swift-certificates).
-* Provides consistent behavior across platforms.
-* Clear of deprecated and legacy calls.
 
 ## Installation
 
@@ -167,7 +167,6 @@ if case let .persistentReference(data) = try keychain.store(
     // Persistent Reference
     data
 }
-
 ```
 
 #### CryptoKit
@@ -190,7 +189,7 @@ try keychain.store(
 )
 ```
 
-Other key types, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256` is a reference to the key inside `Secure Enclave`, not the key itself. These types conform to `SecDataConvertible`, so store them as follows:
+Other key types, like `SymmetricKey`, `Curve25519`, `SecureEnclave.P256`, have no direct keychain corollary. In particular, `SecureEnclave.P256.PrivateKey` is an encrypted block that only the same `Secure Enclave` can later use to restore the key, not the key itself. These types conform to `SecDataConvertible`, so store them as follows:
 
 ```swift
 // Store symmetric key
@@ -222,8 +221,8 @@ A digital identity is the combination of a certificate and the private key that 
 
 ```swift
 // Import digital identity from `PKCS #12` data
-let pkcs12Data: PKCS12.Blob // Content of file, often with `p12` extension
-for importItem in try keychain.import(pkcs12Data, passphrase: "8e9c0a7f") {
+let pkcs12Data: Data // Content of file, often with `p12` extension
+for importItem in try PKCS12.import(pkcs12Data, passphrase: "8e9c0a7f") {
     if let identity = importItem.identity {
         // Store digital identity
         try keychain.store(identity, query: .identity(for: "Apple Development"))
