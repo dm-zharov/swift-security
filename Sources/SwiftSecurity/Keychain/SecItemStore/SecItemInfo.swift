@@ -55,8 +55,8 @@ public extension SecItemInfo {
     }
     
     /// Depending on the item class requested, the returned references may be of type `SecKey`, `SecCertificate`, `SecIdentity`, or `Data`.
-    var reference: AnyObject? {
-        get { self[kSecValueRef as String] as? AnyObject }
+    var reference: Value? {
+        get { self[kSecValueRef as String] as? Value }
     }
     
     /// The bytes in this object can be stored by the caller and used on a subsequent invocation of the application (or even a different application) to retrieve the item referenced by it.

@@ -24,18 +24,18 @@ public protocol SecItemStore {
         authenticationContext: LAContext?
     ) throws -> SecValue<SecItem>?
     
-    /// Returns the item that uniquely identified by persistent reference, or copies attributes of that item.
+    /// Returns the item matching reference or uniquely identified by persistent reference.
     /// - Parameters:
     ///   - returnType: One or more return types. Use the values of ``SecReturnType`` to indicate whether you seek the item’s attributes,
     ///   the item’s data, a reference to the data, a persistent reference to the data, or a combination of these.
-    ///   - query: An object that describes the query. See ``SecItemQuery``.
+    ///   - value: An object that describes the query. See ``SecItemQuery``.
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found item. The exact value of the result depends on the return type values supplied as `returnType`.
-//    func retrieve<SecItem>(
-//        _ returnType: SecReturnType,
-//        for persistentReference: Data,
-//        authenticationContext: LAContext?
-//    ) throws -> SecValue<SecItem>?
+    func retrieve<SecItem>(
+        _ returnType: SecReturnType,
+        matching value: SecValue<SecItem>,
+        authenticationContext: LAContext?
+    ) throws -> SecValue<SecItem>?
 
     /// Returns items that match a search query, or copies attributes of specific items.
     /// - Parameters:
@@ -48,6 +48,18 @@ public protocol SecItemStore {
         query: SecItemQuery<SecItem>,
         authenticationContext: LAContext?
     ) throws -> [SecValue<SecItem>]
+
+    /// Removes the first item that match a search query.
+    /// - Parameters:
+    ///   - query: An object that describes the query. See ``SecItemQuery``.
+    /// - Returns: On return, the status of removal.
+    func remove<SecItem>(_ query: SecItemQuery<SecItem>) throws -> Bool
+
+    /// Removes the item matching reference or uniquely identified by persistent reference.
+    /// - Parameters:
+    ///   - value: A value. See ``SecValue``.
+    /// - Returns: On return, the status of removal.
+    func remove<SecItem>(matching value: SecValue<SecItem>) throws -> Bool
     
     /// Removes all items from store.
     /// - Parameter includingSynchronizableCredentials: The corresponding value representing a value that indicates whether credentials
@@ -105,12 +117,6 @@ public protocol SecDataStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the found secure data.
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<GenericPassword>, authenticationContext: LAContext?) throws -> T?
-
-    /// Removes the first secret data that match a search query.
-    /// - Parameters:
-    ///   - query: An object that describes the query. See ``SecItemQuery<GenericPassword>``.
-    /// - Returns: On return, the status of removal.
-    func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool
     
     // MARK: Internet Password
     
@@ -142,12 +148,6 @@ public protocol SecDataStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the found web credential.
     func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext?) throws -> T?
-    
-    /// Removes the first secret data that match a search query.
-    /// - Parameters:
-    ///   - query: An object that describes the query. See ``SecItemQuery<InternetPassword>``.
-    /// - Returns: On return, the status of removal.
-    func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool
 }
 
 // MARK: Convinient
@@ -201,13 +201,6 @@ public protocol SecKeyStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found key.
     func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
-    
-    /// Removes the first key that match a search query.
-    /// - Parameters:
-    ///   - query: An object that describes the query. See ``SecItemQuery<SecKey>``.
-    /// - Returns: On return, the status of removal.
-    /// - Important: Removing a private key that matches a public key in an existing certificate can ‘remove’ a digital identity (``SecIdentity``).
-    func remove(_ query: SecItemQuery<SecKey>) throws -> Bool
 }
 
 // MARK: - SecCertificate
@@ -241,28 +234,11 @@ public protocol SecCertificateStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found X.509 certificate.
     func retrieve<T: SecCertificateConvertible>(_ query: SecItemQuery<SecCertificate>, authenticationContext: LAContext?) throws -> T?
-    
-    /// Removes the first X.509 certificate that match a search query.
-    /// - Parameters:
-    ///   - query: An object that describes the query. See ``SecItemQuery<SecCertificate>``.
-    /// - Returns: On return, the status of removal.
-    /// - Important: Removing a certificate with a public key matching an existing private key can ‘remove’ a digital identity (``SecIdentity``).
-    func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool
 }
 
 // MARK: - SecIdentity
 
 public protocol SecIdentityStore: SecItemStore {
-    /// Imports the contents of PKCS #12 file (often with a p12 extension).
-    /// - Parameters:
-    ///   - data: The PKCS #12 data you wish to decode.
-    ///   - passphrase: A passphrase to be used when importing from PKCS#12 data.
-    /// - Important: Do not bundle passwords with your app in any form. Doing so is insecure, because no matter how carefully you try to obscure a password,
-    /// a motivated attacker will find a way to mimic the operations you use to reveal it for your own purposes.
-    /// Instead, prompt the user for a password when you need it, or read it from the secure storage offered by a keychain.
-    /// - Returns: On return, the list of each item (identity or certificate) in the PKCS #12 blob.
-    func `import`(_ data: PKCS12.Blob, passphrase: String) throws -> [SecImportItemInfo]
-    
     /// Stores the digital identity with specified query.
     ///
     /// A digital identity is the combination of a certificate and the private key that matches the public key within that certificate.
@@ -282,19 +258,4 @@ public protocol SecIdentityStore: SecItemStore {
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found digital identity.
     func retrieve<T: SecIdentityConvertible>(_ query: SecItemQuery<SecIdentity>, authenticationContext: LAContext?) throws -> T?
-
-    /// Removes the first digital identity that match a search query.
-    ///
-    /// A digital identity is the combination of a certificate and the private key that matches the public key within that certificate.
-    /// The system stores these components separately.
-    /// - Important: Removing a digital identity removes its certificate. It might also remove the private key,
-    /// depending on whether that private key is used by a different digital identity.
-    func remove(_ query: SecItemQuery<SecIdentity>) throws -> Bool
-}
-
-// MARK: PKCS #12 Blob
-
-public enum PKCS12 {
-    /// PKCS #12–formatted blob (the content of PKCS #12 file, often with a p12 extension).
-    public typealias Blob = Data
 }

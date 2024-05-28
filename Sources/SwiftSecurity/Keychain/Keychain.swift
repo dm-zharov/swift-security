@@ -86,8 +86,8 @@ extension Keychain: SecItemStore {
                     return nil
                 }
             case .reference:
-                if let result {
-                    return .reference(result as! SecItem)
+                if let result = result as? SecItem {
+                    return .reference(result)
                 } else {
                     return nil
                 }
@@ -109,6 +109,26 @@ extension Keychain: SecItemStore {
         case let status:
             throw SwiftSecurityError(rawValue: status)
         }
+    }
+    
+    public func retrieve<SecItem>(
+        _ returnType: SecReturnType,
+        matching value: SecValue<SecItem>,
+        authenticationContext: LAContext? = nil
+    ) throws -> SecValue<SecItem>? {
+        var query: SecItemQuery<SecItem>
+        
+        switch value {
+        case let .reference(reference):
+            query = SecItemQuery(value: reference)
+        case let .persistentReference(data):
+            query = SecItemQuery(persistentValue: data)
+        case .data, .dictionary:
+            // Searching on data is not supported.
+            throw SwiftSecurityError.invalidParameter
+        }
+        
+        return try retrieve(returnType, query: query, authenticationContext: authenticationContext)
     }
     
     public func retrieveAll<SecItem>(
@@ -182,6 +202,38 @@ extension Keychain: SecItemStore {
         }
     }
     
+    @discardableResult
+    public func remove<SecItem>(_ query: SecItemQuery<SecItem>) throws -> Bool {
+        var query = query
+        query.accessGroup = accessGroup.rawValue
+        
+        switch SecItemDelete(query.rawValue as CFDictionary) {
+        case errSecSuccess:
+            return true
+        case errSecItemNotFound:
+            return false
+        case let status:
+            // Searching on data is not supported.
+            throw SwiftSecurityError(rawValue: status)
+        }
+    }
+    
+    @discardableResult
+    public func remove<SecItem>(matching value: SecValue<SecItem>) throws -> Bool {
+        var query: SecItemQuery<SecItem>
+        
+        switch value {
+        case let .reference(reference):
+            query = SecItemQuery(value: reference)
+        case let .persistentReference(data):
+            query = SecItemQuery(persistentValue: data)
+        case .data, .dictionary:
+            throw SwiftSecurityError.invalidParameter
+        }
+        
+        return try remove(query)
+    }
+    
     public func removeAll(includingSynchronizableCredentials: Bool = false) throws {
         var gps = SecItemQuery<GenericPassword>()
         var ips = SecItemQuery<InternetPassword>()
@@ -228,11 +280,6 @@ extension Keychain: SecDataStore {
             return nil
         }
     }
-
-    @discardableResult
-    public func remove(_ query: SecItemQuery<GenericPassword>) throws -> Bool {
-        return try remove(nil, query: query)
-    }
 }
 
 // MARK: - InternetPassword
@@ -252,16 +299,13 @@ extension Keychain {
     }
 
     public func retrieve<T: SecDataConvertible>(_ query: SecItemQuery<InternetPassword>, authenticationContext: LAContext? = nil) throws -> T? {
-        if let value = try retrieve(.data, query: query, authenticationContext: authenticationContext), case let .data(data) = value {
-            return try T(rawRepresentation: data)
-        } else {
+        guard
+            let value = try retrieve(.data, query: query, authenticationContext: authenticationContext),
+            case let .data(data) = value
+        else {
             return nil
         }
-    }
-
-    @discardableResult
-    public func remove(_ query: SecItemQuery<InternetPassword>) throws -> Bool {
-        return try remove(nil, query: query)
+        return try T(rawRepresentation: data)
     }
 }
 
@@ -308,11 +352,6 @@ extension Keychain: SecKeyStore {
 
         return try T(x963Representation: data)
     }
-    
-    @discardableResult
-    public func remove(_ query: SecItemQuery<SecKey>) throws -> Bool {
-        return try remove(nil, query: query)
-    }
 }
 
 // MARK: - SecCertificate
@@ -344,32 +383,11 @@ extension Keychain: SecCertificateStore {
         }
         return T(certificate: secCertificate as! SecCertificate)
     }
-    
-    @discardableResult
-    public func remove(_ query: SecItemQuery<SecCertificate>) throws -> Bool {
-        return try remove(nil, query: query)
-    }
 }
 
 // MARK: - SecIdentity
 
 extension Keychain: SecIdentityStore {
-    public func `import`(_ data: PKCS12.Blob, passphrase: String) throws -> [SecImportItemInfo] {
-        var result: CFArray?
-        switch SecPKCS12Import(data as CFData, [kSecImportExportPassphrase as String: passphrase] as CFDictionary, &result) {
-        case errSecSuccess:
-            if let items = result as? Array<[String: Any]> {
-                return items.map { item in
-                    SecImportItemInfo(rawValue: item)
-                }
-            } else {
-                return []
-            }
-        case let status:
-            throw SwiftSecurityError(rawValue: status)
-        }
-    }
-
     public func store<T: SecIdentityConvertible>(
         _ identity: T,
         query: SecItemQuery<SecIdentity>,
@@ -389,11 +407,6 @@ extension Keychain: SecIdentityStore {
             return nil
         }
         return T(identity: secIdentity as! SecIdentity)
-    }
-    
-    @discardableResult
-    public func remove(_ query: SecItemQuery<SecIdentity>) throws -> Bool {
-        return try remove(nil, query: query)
     }
 }
 
@@ -467,33 +480,6 @@ private extension Keychain {
             throw SwiftSecurityError(rawValue: status)
         }
     }
-    
-    @discardableResult
-    func remove<SecItem>(_ item: SecValue<SecItem>?, query: SecItemQuery<SecItem>) throws -> Bool {
-        var query = query
-        query.accessGroup = accessGroup.rawValue
-        
-        switch item {
-        case .data, .dictionary:
-            throw SwiftSecurityError.invalidParameter
-        case let .reference(reference):
-            query[search: .matchItemList] = [reference] as CFArray
-        case let .persistentReference(reference):
-            query[search: .matchItemList] = [reference] as CFArray
-        case .none:
-            break
-        }
-        
-        switch SecItemDelete(query.rawValue as CFDictionary) {
-        case errSecSuccess:
-            return true
-        case errSecItemNotFound:
-            return false
-        case let status:
-            throw SwiftSecurityError(rawValue: status)
-        }
-    }
-    
 }
 
 extension Keychain: CustomStringConvertible {
