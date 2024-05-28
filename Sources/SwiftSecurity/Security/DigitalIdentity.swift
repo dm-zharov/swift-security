@@ -41,25 +41,27 @@ extension DigitalIdentity {
     
     /// Retrieves the private key associated with the certificate.
     /// - Note: Exports SecKey type to an external representation suitable to key type.
-    @available(macOS, unavailable, message: "Not implemented")
     public var privateKey: Data {
+        get throws {
+            var error: Unmanaged<CFError>?
+            guard let privateKey = SecKeyCopyExternalRepresentation(try secKey, &error) as Data?, error == nil else {
+                if let error = error?.takeRetainedValue() {
+                    throw SwiftSecurityError(error: error)
+                }
+                throw SwiftSecurityError.invalidParameter
+            }
+            return privateKey
+        }
+    }
+}
+
+extension DigitalIdentity {
+    public var secKey: SecKey {
         get throws {
             var secKey: SecKey?
             switch SecIdentityCopyPrivateKey(secIdentity, &secKey) {
             case errSecSuccess:
-                guard let secKey else {
-                    throw SwiftSecurityError.invalidParameter
-                }
-                
-                var error: Unmanaged<CFError>?
-                guard let privateKey = SecKeyCopyExternalRepresentation(secKey, &error) as Data?, error == nil else {
-                    if let error = error?.takeRetainedValue() {
-                        throw SwiftSecurityError(error: error)
-                    }
-                    throw SwiftSecurityError.invalidParameter
-                }
-
-                return privateKey
+                return secKey as! SecKey
             case let status:
                 throw SwiftSecurityError.underlyingSecurityError(error: status)
             }
