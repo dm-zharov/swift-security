@@ -231,7 +231,12 @@ for importItem in try PKCS12.import(pkcs12Data, passphrase: "8e9c0a7f") {
 
 // Retrieve digital identity
 if let identity = try keychain.retrieve(.identity(for: "Apple Development")) {
-    identity.secIdentity // Underlying SecIdentity
+    // Certificate
+    identity.certificate
+    // Private Key Data
+    identity.privateKey
+    // Underlying SecIdentity
+    identity.secIdentity
 }
 ```
 
