@@ -179,7 +179,7 @@ let privateKey = P256.KeyAgreement.PrivateKey()
 try keychain.store(privateKey, query: .key(for: "Alice"))
 
 // Retrieve private key (+ public key)
-let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.privateKey(for: "Alice"))
+let privateKey: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(.key(for: "Alice"))
 let publicKey = privateKey.publicKey /* Recommended */
 
 // Store public key. Not recommended, as you can generate it
@@ -221,7 +221,7 @@ A digital identity is the combination of a certificate and the private key that 
 
 ```swift
 // Import digital identity from `PKCS #12` data
-let pkcs12Data: Data / * Contents of PKCS #12 file (also known as PKCS12, PFX, .p12, and .pfx) */
+let pkcs12Data: Data /* Contents of PKCS #12 file (also known as PKCS12, PFX, .p12, and .pfx) */
 for importItem in try PKCS12.import(pkcs12Data, passphrase: "8e9c0a7f") {
     if let identity = importItem.identity {
         // Store digital identity
@@ -231,7 +231,7 @@ for importItem in try PKCS12.import(pkcs12Data, passphrase: "8e9c0a7f") {
 
 // Retrieve digital identity
 if let identity = try keychain.retrieve(.identity(for: "Apple Development")) {
-    identity.rawRepresentation // SecIdentity
+    identity.secIdentity // Underlying SecIdentity
 }
 ```
 
