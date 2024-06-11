@@ -29,7 +29,7 @@ public enum PKCS12 {
         ] as CFDictionary, &result) {
         case errSecSuccess:
             if let items = result as? Array<[String: Any]> {
-                return try items.map { item in
+                return items.map { item in
                     SecImportItemInfo(rawValue: item)
                 }
             } else {

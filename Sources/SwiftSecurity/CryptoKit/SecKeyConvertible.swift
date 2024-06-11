@@ -107,9 +107,9 @@ extension SecKeyConvertible {
     }
 }
 
-public struct SecKeyDescriptor {
-    public var keyType: KeyType
-    public var keyClass: KeyClass
+public struct SecKeyDescriptor: Sendable {
+    public let keyType: KeyType
+    public let keyClass: KeyClass
     
     /// A private key for elliptic curve cryptography. Suitable for `P256`/`P384`/`P521` keys from `CryptoKit`.
     public static let ecPrivateKey = SecKeyDescriptor(keyType: .ecsecPrimeRandom, keyClass: .private)

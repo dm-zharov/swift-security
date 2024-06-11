@@ -8,7 +8,7 @@
 import Foundation
 import Security
 
-public enum KeyClass {
+public enum KeyClass: Sendable {
     /// A public key of a public-private pair.
     case `public`
     /// A private key of a public-private pair.

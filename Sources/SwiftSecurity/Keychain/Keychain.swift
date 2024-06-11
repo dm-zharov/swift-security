@@ -343,7 +343,7 @@ extension Keychain: SecKeyStore {
         }
 
         var error: Unmanaged<CFError>?
-        guard let data = SecKeyCopyExternalRepresentation(secKey as! SecKey, &error) as Data? else {
+        guard let data = SecKeyCopyExternalRepresentation(secKey as SecKey, &error) as Data? else {
             if let error = error?.takeRetainedValue() {
                 throw SwiftSecurityError(error: error)
             }
@@ -381,7 +381,7 @@ extension Keychain: SecCertificateStore {
         else {
             return nil
         }
-        return T(certificate: secCertificate as! SecCertificate)
+        return T(certificate: secCertificate)
     }
 }
 
@@ -406,7 +406,7 @@ extension Keychain: SecIdentityStore {
         else {
             return nil
         }
-        return T(identity: secIdentity as! SecIdentity)
+        return T(identity: secIdentity)
     }
 }
 

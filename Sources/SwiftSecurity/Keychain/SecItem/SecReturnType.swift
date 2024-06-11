@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SecReturnType: OptionSet {
+public struct SecReturnType: OptionSet, Sendable {
     /// Returns a data of an item.
     public static let data                 = SecReturnType(rawValue: 1 << 0)
     /// Returns an attributes of an item.

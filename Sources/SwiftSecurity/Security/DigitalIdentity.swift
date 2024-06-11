@@ -61,7 +61,11 @@ extension DigitalIdentity {
             var secKey: SecKey?
             switch SecIdentityCopyPrivateKey(secIdentity, &secKey) {
             case errSecSuccess:
-                return secKey as! SecKey
+                if let secKey {
+                    return secKey
+                } else {
+                    throw SwiftSecurityError.invalidParameter
+                }
             case let status:
                 throw SwiftSecurityError.underlyingSecurityError(error: status)
             }

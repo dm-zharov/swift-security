@@ -11,7 +11,7 @@ import Security
 @available(*, renamed: "KeyType")
 public typealias KeyCipher = KeyType
 
-public enum KeyType {
+public enum KeyType: Sendable {
     /// RSA.
     case rsa
     /// Elliptic curve. Suitable for `P256`, `P384`, `P521` keys from `CryptoKit`.
