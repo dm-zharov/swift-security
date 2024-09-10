@@ -312,11 +312,11 @@ extension Keychain {
 // MARK: - SecKey
 
 extension Keychain: SecKeyStore {
-    public func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>, accessPolicy: AccessPolicy = .default) throws {
+    public func store<T: SecKeyRepresentable>(_ key: T, query: SecItemQuery<SecKey>, accessPolicy: AccessPolicy = .default) throws {
         _ = try store(key, returning: [], query: query, accessPolicy: accessPolicy)
     }
     
-    public func store<T: SecKeyConvertible>(
+    public func store<T: SecKeyRepresentable>(
         _ key: T,
         returning returnType: SecReturnType,
         query: SecItemQuery<SecKey>,
@@ -334,7 +334,7 @@ extension Keychain: SecKeyStore {
         return try store(.reference(key.secKey), returning: returnType, query: query, accessPolicy: accessPolicy)
     }
 
-    public func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
+    public func retrieve<T: SecKeyRepresentable>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext? = nil) throws -> T? {
         guard
             let value = try retrieve(.reference, query: query, authenticationContext: authenticationContext),
             case let .reference(secKey) = value
