@@ -178,7 +178,7 @@ public protocol SecKeyStore: SecItemStore {
     ///   - data: The key.
     ///   - query: An object that describes the search. See ``SecItemQuery<SecKey>``.
     ///   - accessPolicy: The protection policy to use when creating the associated access control object.
-    func store<T: SecKeyConvertible>(_ key: T, query: SecItemQuery<SecKey>, accessPolicy: AccessPolicy) throws
+    func store<T: SecKeyRepresentable>(_ key: T, query: SecItemQuery<SecKey>, accessPolicy: AccessPolicy) throws
     
     /// Stores the key with specified query.
     /// - Parameters:
@@ -188,7 +188,7 @@ public protocol SecKeyStore: SecItemStore {
     ///   - query: An object that describes the query. See ``SecItemQuery<SecKey>``.
     ///   - accessPolicy: The protection policy to use when creating the associated access control object.
     /// - Returns: On return, the result. The exact value of the result depends on the return type values supplied as `returnType`.
-    func store<T: SecKeyConvertible>(
+    func store<T: SecKeyRepresentable>(
         _ key: T,
         returning returnType: SecReturnType,
         query: SecItemQuery<SecKey>,
@@ -200,7 +200,7 @@ public protocol SecKeyStore: SecItemStore {
     ///   - query: An object that describes the query. See ``SecItemQuery<SecKey>``.
     ///   - authenticationContext: A local authentication context.
     /// - Returns: On return, the first found key.
-    func retrieve<T: SecKeyConvertible>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
+    func retrieve<T: SecKeyRepresentable>(_ query: SecItemQuery<SecKey>, authenticationContext: LAContext?) throws -> T?
 }
 
 // MARK: - SecCertificate
