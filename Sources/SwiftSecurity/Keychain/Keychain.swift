@@ -349,8 +349,14 @@ extension Keychain: SecKeyStore {
             }
             throw SwiftSecurityError.invalidParameter
         }
-
-        return try T(x963Representation: data)
+        
+        if let ecKey = try? T(x963Representation: data) {
+            return ecKey
+        } else if let rsaKey = try? T(derRepresentation: data) {
+            return rsaKey
+        } else {
+            throw SwiftSecurityError.invalidParameter
+        }
     }
 }
 

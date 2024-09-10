@@ -14,8 +14,14 @@ public protocol SecKeyConvertible: SecKeyRepresentable {
     /// Creates a key from an X9.63 representation.
     init<Bytes>(x963Representation: Bytes) throws where Bytes: ContiguousBytes
     
+    /// Creates a key from a Distinguished Encoding Rules (DER) encoded representation.
+    init<Bytes>(derRepresentation: Bytes) throws where Bytes : RandomAccessCollection, Bytes.Element == UInt8
+    
     /// An X9.63 representation of the key.
     var x963Representation: Data { get }
+    
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
+    var derRepresentation: Data { get }
 }
 
 // MARK: - CryptoKit
@@ -86,10 +92,11 @@ extension SecKeyConvertible {
             let keyData: Data
             switch secKeyDescriptor.keyType {
             case .ecsecPrimeRandom:
+                // X9.63
                 keyData = x963Representation
             case .rsa:
-                // override and use data in PKCS #1 format
-                throw SwiftSecurityError.unimplemented
+                // PCKS #1, DER-Encoded
+                keyData = derRepresentation
             }
 
             var error: Unmanaged<CFError>?
