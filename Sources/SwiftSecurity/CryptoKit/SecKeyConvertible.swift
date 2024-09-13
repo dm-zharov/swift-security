@@ -29,58 +29,58 @@ public protocol SecKeyConvertible: SecKeyRepresentable {
 /// NIST P-256 (also known as `secp256r1` /  `prime256r1` / `prime256v1`).
 
 extension P256.Signing.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 extension P256.Signing.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P256.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 extension P256.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 /// NIST P-384 (also known as `secp384r1` ).
 
 extension P384.Signing.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 
 extension P384.Signing.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P384.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 
 extension P384.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 /// NIST P-521 (also known as `secp521r1` ).
 
 extension P521.Signing.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 extension P521.Signing.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 extension P521.KeyAgreement.PrivateKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPrivateKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPrivateKey }
 }
 extension P521.KeyAgreement.PublicKey: SecKeyConvertible {
-    public var secKeyDescriptor: SecKeyDescriptor { .ecPublicKey }
+    public static var keyDescriptor: SecKeyDescriptor { .ecPublicKey }
 }
 
 // MARK: - SecKey
 
 public protocol SecKeyRepresentable {
     /// A key descriptor for storage.
-    var secKeyDescriptor: SecKeyDescriptor { get }
+    static var keyDescriptor: SecKeyDescriptor { get }
     
     /// A key reference.
     var secKey: SecKey { get throws }
@@ -90,7 +90,7 @@ extension SecKeyConvertible {
     public var secKey: SecKey {
         get throws {
             let keyData: Data
-            switch secKeyDescriptor.keyType {
+            switch keyType {
             case .ecsecPrimeRandom:
                 // X9.63
                 keyData = x963Representation
@@ -101,8 +101,8 @@ extension SecKeyConvertible {
 
             var error: Unmanaged<CFError>?
             guard let secKey: SecKey = SecKeyCreateWithData(keyData as CFData, [
-                kSecAttrKeyType: secKeyDescriptor.keyType.rawValue,
-                kSecAttrKeyClass: secKeyDescriptor.keyClass.rawValue
+                kSecAttrKeyType: keyType.rawValue,
+                kSecAttrKeyClass: keyClass.rawValue
             ] as CFDictionary, &error) else {
                 if let error = error?.takeRetainedValue() {
                     throw SwiftSecurityError(error: error)
@@ -111,6 +111,16 @@ extension SecKeyConvertible {
             }
             return secKey
         }
+    }
+    
+    /// The type of the key.
+    public var keyType: KeyType {
+        Self.keyDescriptor.keyType
+    }
+    
+    /// The role of the key.
+    public var keyClass: KeyClass {
+        Self.keyDescriptor.keyClass
     }
 }
 

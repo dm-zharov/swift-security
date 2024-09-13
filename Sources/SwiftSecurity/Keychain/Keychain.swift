@@ -324,9 +324,9 @@ extension Keychain: SecKeyStore {
     ) throws -> SecValue<SecKey>? {
         guard
             /// If key type specified in query, it should match with type from key's descriptor.  Refer to `.key(for:descriptor:)`
-            query.keyType == nil || query.keyType == key.secKeyDescriptor.keyType,
+            query.keyType == nil || query.keyType == key.keyType,
             /// If key class specified in query, it should match with class from key's descriptor.
-            query.keyClass == nil || query.keyClass == key.secKeyDescriptor.keyClass
+            query.keyClass == nil || query.keyClass == key.keyClass
         else {
             /// You most likely tried to store a public key as a private key. While it might be accepted by the keychain, it could lead to confusion.
             throw SwiftSecurityError.invalidParameter
@@ -350,12 +350,11 @@ extension Keychain: SecKeyStore {
             throw SwiftSecurityError.invalidParameter
         }
         
-        if let ecKey = try? T(x963Representation: data) {
-            return ecKey
-        } else if let rsaKey = try? T(derRepresentation: data) {
-            return rsaKey
-        } else {
-            throw SwiftSecurityError.invalidParameter
+        switch T.keyDescriptor.keyType {
+        case .ecsecPrimeRandom:
+            return try T(x963Representation: data)
+        case .rsa:
+            return try T(derRepresentation: data)
         }
     }
 }
