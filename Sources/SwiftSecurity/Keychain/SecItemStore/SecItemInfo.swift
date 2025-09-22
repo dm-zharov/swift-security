@@ -409,3 +409,5 @@ extension SecItemInfo {
         get { self[key.rawValue] }
     }
 }
+
+extension SecItemInfo: Sendable where Value: Sendable {}

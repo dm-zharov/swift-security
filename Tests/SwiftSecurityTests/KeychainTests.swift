@@ -5,18 +5,18 @@
 //  Created by Dmitriy Zharov on 23.01.2024.
 //
 
-import XCTest
 import CryptoKit
+import XCTest
 
 @testable import SwiftSecurity
 
 final class KeychainTests: XCTestCase {
     override func setUp() {
-        self.addTeardownBlock {
+        addTeardownBlock {
             try? Keychain.default.removeAll()
         }
     }
-    
+
     func testGenericPassword() {
         // Keychain
         let keychain = Keychain.default
@@ -28,17 +28,17 @@ final class KeychainTests: XCTestCase {
         query.account = "account"
         query.description = "description"
         query.comment = "comment"
-        
+
         // Secret
         let password = "password"
-        
+
         // Store item
         do {
             try keychain.store(password, query: query)
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Check item info
         do {
             if let info = try keychain.info(for: query) {
@@ -53,7 +53,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve item
         do {
             let data: String? = try keychain.retrieve(query)
@@ -61,13 +61,13 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve reference
         XCTAssertNil(try keychain.retrieve(.reference, query: query))
-        
+
         // Retrieve persistent reference
         XCTAssertNotNil(try keychain.retrieve(.persistentReference, query: query))
-        
+
         // Remove item
         do {
             let success = try keychain.remove(query)
@@ -78,11 +78,11 @@ final class KeychainTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
-    
+
     func testInternetPassword() {
         // Keychain
         let keychain = Keychain.default
-        
+
         // Query
         var query = SecItemQuery<InternetPassword>()
         query.synchronizable = false
@@ -93,17 +93,17 @@ final class KeychainTests: XCTestCase {
         query.port = 443
         query.protocol = .https
         query.server = "example.com"
-        
+
         // Secret
         let password = "password"
-        
+
         // Store item
         do {
             try keychain.store(password, query: query)
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Get item info
         do {
             if let info = try keychain.info(for: query) {
@@ -120,7 +120,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve item
         do {
             let data: Data? = try keychain.retrieve(query)
@@ -129,13 +129,13 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve reference
         XCTAssertNil(try keychain.retrieve(.reference, query: query))
-        
+
         // Retrieve persistent reference
         XCTAssertNotNil(try keychain.retrieve(.persistentReference, query: query))
-        
+
         // Remove item
         do {
             let success = try keychain.remove(query)
@@ -146,7 +146,7 @@ final class KeychainTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
-    
+
     func testSecKey() {
         // Keychain
         let keychain = Keychain.default
@@ -158,7 +158,7 @@ final class KeychainTests: XCTestCase {
         query.keyType = .ecsecPrimeRandom
         query.keySizeInBits = 256
         query.applicationLabel = "applicationLabel".data(using: .utf8)!
-        
+
         // Secret
         let privateKey = P256.KeyAgreement.PrivateKey()
 
@@ -168,7 +168,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Get item info
         do {
             if let info = try keychain.info(for: query) {
@@ -184,7 +184,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve item
         do {
             let data: P256.KeyAgreement.PrivateKey? = try keychain.retrieve(query)
@@ -192,22 +192,22 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve reference
         do {
             if case let .reference(secKey) = try keychain.retrieve(.reference, query: query) {
                 // Check reference type
                 XCTAssert(CFGetTypeID(secKey) == SecKeyGetTypeID())
-                
+
                 // Retrieve data matching reference
                 XCTAssertNil(try keychain.retrieve(.data, matching: SecValue<SecKey>.reference(secKey)))
-                
+
                 // Retrieve persistent reference matching reference
                 XCTAssertNil(try keychain.retrieve(.persistentReference, matching: SecValue<SecKey>.reference(secKey)))
-                
+
                 // Retrieve info matching reference
                 XCTAssertNil(try keychain.retrieve(.info, matching: SecValue<SecKey>.reference(secKey)))
-                
+
                 // Retrieve all matching reference
                 XCTAssertNil(try keychain.retrieve(.all, matching: SecValue<SecKey>.reference(secKey)))
             } else {
@@ -216,19 +216,19 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve persistent reference
         do {
             if case let .persistentReference(data) = try keychain.retrieve(.persistentReference, query: query) {
                 // Retrieve data matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.data, matching: SecValue<SecKey>.persistentReference(data)))
-                
+
                 // Retrieve reference matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.reference, matching: SecValue<SecKey>.persistentReference(data)))
-                
+
                 // Retrieve info matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.info, matching: SecValue<SecKey>.persistentReference(data)))
-                
+
                 // Retrieve all matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.all, matching: SecValue<SecKey>.persistentReference(data)))
             } else {
@@ -237,7 +237,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Remove item
         do {
             let success = try keychain.remove(query)
@@ -249,13 +249,13 @@ final class KeychainTests: XCTestCase {
         }
     }
 
-    func testSecCertificate() {
+    func testSecCertificate() throws {
         // Keychain
         let keychain = Keychain.default
-        
+
         // Certificate
-        let certificateFileURL = Bundle.main.url(forResource: "www.apple.com.root", withExtension: "der")!
-        let certificateData = try! Data(contentsOf: certificateFileURL)
+        let certificateFileURL = Bundle.module.url(forResource: "www.apple.com.root", withExtension: "der")!
+        let certificateData = try Data(contentsOf: certificateFileURL)
 
         let certificate: Certificate
 
@@ -265,14 +265,14 @@ final class KeychainTests: XCTestCase {
             XCTFail(error.localizedDescription)
             return
         }
-        
+
         // Store
         do {
             try keychain.store(certificate, query: .certificate(for: "Root CA"))
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve certificate
         do {
             let certificate: Certificate? = try keychain.retrieve(.certificate(for: "Root CA"))
@@ -280,22 +280,22 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve reference
         do {
             if case let .reference(secCertificate) = try keychain.retrieve(.reference, query: .certificate(for: "Root CA")) {
                 // Check reference type
                 XCTAssert(CFGetTypeID(secCertificate) == SecCertificateGetTypeID())
-                
+
                 // Retrieve data matching reference
                 XCTAssertNotNil(try keychain.retrieve(.data, matching: SecValue<SecCertificate>.reference(secCertificate)))
-                
+
                 // Retrieve persistent reference matching reference
                 XCTAssertNotNil(try keychain.retrieve(.reference, matching: SecValue<SecCertificate>.reference(secCertificate)))
-                
+
                 // Retrieve info matching reference
                 XCTAssertNotNil(try keychain.retrieve(.info, matching: SecValue<SecCertificate>.reference(secCertificate)))
-                
+
                 // Retrieve all matching reference
                 XCTAssertNotNil(try keychain.retrieve(.all, matching: SecValue<SecCertificate>.reference(secCertificate)))
             } else {
@@ -304,19 +304,19 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve persistent reference
         do {
             if case let .persistentReference(data) = try keychain.retrieve(.persistentReference, query: .certificate(for: "Root CA")) {
                 // Retrieve data matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.data, matching: SecValue<SecCertificate>.persistentReference(data)))
-                
+
                 // Retrieve reference matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.reference, matching: SecValue<SecCertificate>.persistentReference(data)))
-                
+
                 // Retrieve info matching reference
                 XCTAssertNotNil(try keychain.retrieve(.info, matching: SecValue<SecCertificate>.persistentReference(data)))
-                
+
                 // Retrieve all matching reference
                 XCTAssertNotNil(try keychain.retrieve(.all, matching: SecValue<SecCertificate>.persistentReference(data)))
             } else {
@@ -325,7 +325,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Remove
         do {
             let query: SecItemQuery<SecCertificate> = .certificate(for: "Root CA")
@@ -337,18 +337,18 @@ final class KeychainTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
-    
-    func testSecIdentity() {
+
+    func testSecIdentity() throws {
         // Keychain
         let keychain = Keychain.default
-        
+
         // PKCS #12 Blob
-        let pkcs12FileURL = Bundle.main.url(forResource: "badssl", withExtension: "p12")!
-        let pkcs12Data = try! Data(contentsOf: pkcs12FileURL)
+        let pkcs12FileURL = Bundle.module.url(forResource: "badssl", withExtension: "p12")!
+        let pkcs12Data = try Data(contentsOf: pkcs12FileURL)
 
         // Import with wrong passphrase
         XCTAssertThrowsError(try PKCS12.import(pkcs12Data, passphrase: "random"))
-        
+
         // Import
         let identity: DigitalIdentity
 
@@ -357,56 +357,56 @@ final class KeychainTests: XCTestCase {
 
             XCTAssertTrue(result.count == 1)
             let importItem = result[0]
-            
+
             XCTAssertNotNil(importItem.identity)
             identity = importItem.identity!
-            
+
             #if os(macOS)
-            // On macOS, automatically imports identity and certificate chain to the keychain.
-            // See: https://github.com/apple-oss-distributions/Security/blob/main/OSX/libsecurity_keychain/lib/SecImportExport.c#L139
-            try Keychain.default.remove(matching: .reference(identity.secIdentity))
+                // On macOS, automatically imports identity and certificate chain to the keychain.
+                // See: https://github.com/apple-oss-distributions/Security/blob/main/OSX/libsecurity_keychain/lib/SecImportExport.c#L139
+                try Keychain.default.remove(matching: .reference(identity.secIdentity))
             #endif
         } catch {
             XCTFail(error.localizedDescription)
             return
         }
-        
+
         // Store
         do {
             try keychain.store(identity, query: .identity(for: "badssl"))
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve identity
         do {
             let identity: DigitalIdentity? = try keychain.retrieve(.identity(for: "badssl"))
             XCTAssertNotNil(identity)
-            
+
             // Retrieve certificate
             try XCTAssertNotNil(identity?.certificate)
-            
+
             // Retrieve private key
             try XCTAssertNotNil(identity?.privateKey)
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve reference
         do {
             if case let .reference(secIdentity) = try keychain.retrieve(.reference, query: .identity(for: "badssl")) {
                 // Check reference type
                 XCTAssert(CFGetTypeID(secIdentity) == SecIdentityGetTypeID())
-                
+
                 // Retrieve data matching reference
                 XCTAssertNil(try keychain.retrieve(.data, matching: SecValue<SecIdentity>.reference(secIdentity)))
-                
+
                 // Retrieve persistent reference matching reference
                 XCTAssertNotNil(try keychain.retrieve(.persistentReference, matching: SecValue<SecIdentity>.reference(secIdentity)))
-                
+
                 // Retrieve info matching reference
                 XCTAssertNil(try keychain.retrieve(.info, matching: SecValue<SecIdentity>.reference(secIdentity)))
-                
+
                 // Retrieve all matching reference
                 XCTAssertNil(try keychain.retrieve(.all, matching: SecValue<SecIdentity>.reference(secIdentity)))
             } else {
@@ -415,19 +415,19 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Retrieve persistent reference
         do {
             if case let .persistentReference(data) = try keychain.retrieve(.persistentReference, query: .identity(for: "badssl")) {
                 // Retrieve data using persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.data, matching: SecValue<SecIdentity>.persistentReference(data)))
-                
+
                 // Retrieve reference matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.reference, matching: SecValue<SecIdentity>.persistentReference(data)))
-                
+
                 // Retrieve info matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.info, matching: SecValue<SecIdentity>.persistentReference(data)))
-                
+
                 // Retrieve all matching persistent reference
                 XCTAssertNotNil(try keychain.retrieve(.all, matching: SecValue<SecIdentity>.persistentReference(data)))
             } else {
@@ -436,7 +436,7 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Remove
         do {
             let query: SecItemQuery<SecIdentity> = .identity(for: "badssl")
@@ -452,7 +452,7 @@ final class KeychainTests: XCTestCase {
     func testRemoveAll() throws {
         // Keychain
         let keychain = Keychain.default
-        
+
         // Store
         do {
             try keychain.store("password", query: .credential(for: "service"))
@@ -460,14 +460,14 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Remove
         do {
             try keychain.removeAll()
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Check
         do {
             let genericPassword: Data? = try keychain.retrieve(.credential(for: "service"))
@@ -484,19 +484,19 @@ final class KeychainTests: XCTestCase {
     func testConvenientSyntax() throws {
         // Keychain
         let keychain = Keychain.default
-        
+
         // Store
         do {
             try keychain.store("password", query: .credential(for: "service"))
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
+
         // Check
         let data1 = try keychain.retrieve(.credential(for: "service"))
         let data2: Data? = try keychain.retrieve(.credential(for: "service"))
         XCTAssertEqual(data1, data2)
-        
+
         // Remove
         do {
             try keychain.remove(.credential(for: "service"))
@@ -513,7 +513,7 @@ final class KeychainTests: XCTestCase {
          */
         do {
             try Keychain.default.store("password", query: .credential(for: "OpenAI"))
-            
+
             // Retrieve item
             XCTAssertNotNil({ () -> Data? in
                 return try? Keychain(
@@ -523,25 +523,25 @@ final class KeychainTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
-        
-        #if !os(macOS)
-        /**
-         Sharing within App Group.
-         This behavior is not present on macOS.
-         */
-        do {
-            let keychain = Keychain(accessGroup: .appGroupID("group.dev.zharov.TestHost"))
 
-            // when
-            try keychain.store("password", query: .credential(for: "OpenAI"))
-            
-            // then
-            XCTAssertNotNil({ () -> Data? in
-                try? keychain.retrieve(.credential(for: "OpenAI"))
-            }())
-        } catch {
-            XCTFail(error.localizedDescription)
-        }
+        #if !os(macOS)
+            /**
+             Sharing within App Group.
+             This behavior is not present on macOS.
+             */
+            do {
+                let keychain = Keychain(accessGroup: .appGroupID("group.dev.zharov.TestHost"))
+
+                // when
+                try keychain.store("password", query: .credential(for: "OpenAI"))
+
+                // then
+                XCTAssertNotNil({ () -> Data? in
+                    try? keychain.retrieve(.credential(for: "OpenAI"))
+                }())
+            } catch {
+                XCTFail(error.localizedDescription)
+            }
         #endif
     }
 }
