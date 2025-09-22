@@ -21,8 +21,9 @@ let package = Package(
         .testTarget(
             name: "SwiftSecurityTests",
             dependencies: [
-                .target(name: "SwiftSecurity")
-            ]
+                .target(name: "SwiftSecurity"),
+            ],
+            resources: [.process("Resources")]
         ),
     ]
 )
