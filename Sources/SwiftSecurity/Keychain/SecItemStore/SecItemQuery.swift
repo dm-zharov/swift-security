@@ -549,3 +549,5 @@ extension SecItemQuery {
         set { self[key.rawValue] = newValue }
     }
 }
+
+extension SecItemQuery: Sendable where Value: Sendable {}

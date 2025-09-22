@@ -55,3 +55,5 @@ extension SecValue: CustomDebugStringConvertible {
         }
     }
 }
+
+extension SecValue: Sendable where Value: Sendable {}
