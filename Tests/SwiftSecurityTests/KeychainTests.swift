@@ -361,7 +361,7 @@ final class KeychainTests: XCTestCase {
             XCTAssertNotNil(importItem.identity)
             identity = importItem.identity!
 
-            #if os(macOS)
+            #if os(macOS) || targetEnvironment(simulator)
                 // On macOS, automatically imports identity and certificate chain to the keychain.
                 // See: https://github.com/apple-oss-distributions/Security/blob/main/OSX/libsecurity_keychain/lib/SecImportExport.c#L139
                 try Keychain.default.remove(matching: .reference(identity.secIdentity))
@@ -545,3 +545,9 @@ final class KeychainTests: XCTestCase {
         #endif
     }
 }
+
+#if HOST_APP
+private extension Bundle {
+    static var module: Bundle { .main }
+}
+#endif
