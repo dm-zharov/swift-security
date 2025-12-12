@@ -158,7 +158,7 @@ extension SecDataStore {
     ///   - query: An object that describes the query. See ``SecItemQuery<GenericPassword>``.
     /// - Returns: On return, the first found secure data.
     public func retrieve(_ query: SecItemQuery<GenericPassword>) throws -> Data? {
-        try self.retrieve<Data>(query, authenticationContext: nil)
+        try self.retrieve(query, authenticationContext: nil)
     }
 
     /// Returns the first web credential that match a search query.
@@ -166,7 +166,7 @@ extension SecDataStore {
     ///   - query: An object that describes the query. See ``SecItemQuery<InternetPassword>``.
     /// - Returns: On return, the first found web credential.
     public func retrieve(_ query: SecItemQuery<InternetPassword>) throws -> Data? {
-        try self.retrieve<Data>(query, authenticationContext: nil)
+        try self.retrieve(query, authenticationContext: nil)
     }
 }
 
